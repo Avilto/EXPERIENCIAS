@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Flux — Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "flux-bg":        "#0c0c0f",
+          "flux-bg2":       "#141418",
+          "flux-bg3":       "#1c1c22",
+          "flux-bg4":       "#242430",
+          "flux-surface":   "#1e1e28",
+          "flux-surface2":  "#272733",
+          "flux-border":    "rgba(255,255,255,0.07)",
+          "flux-border2":   "rgba(255,255,255,0.12)",
+          "flux-accent":    "#7c5cfc",
+          "flux-accent2":   "#fc5c8e",
+          "flux-text":      "#f0f0fa",
+          "flux-text2":     "#9898b8",
+          "flux-text3":     "#6060a0",
+          "flux-green":     "#22c55e",
+          "flux-yellow":    "#eab308",
+          "flux-orange":    "#f97316",
+          "flux-red":       "#ef4444",
+          "ig-purple":      "#833ab4",
+          "ig-pink":        "#c13584",
+          "ig-orange":      "#f77737",
+        },
+        fontFamily: {
+          "sans": ["Inter", "sans-serif"],
+          "display": ["Syne", "sans-serif"],
+        },
+        borderRadius: {
+          DEFAULT: "0.5rem",
+          lg: "0.875rem",
+          xl: "1.25rem",
+          "2xl": "1.5rem",
+          full: "9999px",
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-rounded {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    font-family: 'Material Symbols Rounded';
+    font-style: normal;
+    display: inline-block;
+    line-height: 1;
+    vertical-align: middle;
+  }
+  body { font-family: 'Inter', sans-serif; background: #0c0c0f; }
+
+  /* ─── Gradient text ─── */
+  .gradient-text {
+    background: linear-gradient(135deg, #9b82fd, #fd82a8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  /* ─── Glow effect ─── */
+  .glow-accent { box-shadow: 0 0 24px rgba(124,92,252,0.35); }
+  .glow-btn { box-shadow: 0 8px 24px rgba(124,92,252,0.4); }
+
+  /* ─── Circular progress ─── */
+  .progress-ring__circle {
+    transition: stroke-dashoffset 0.6s cubic-bezier(0.4,0,0.2,1);
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+  }
+
+  /* ─── Card hover ─── */
+  .card-hover { transition: all 0.2s ease; }
+  .card-hover:hover { transform: translateY(-2px); border-color: rgba(124,92,252,0.4); }
+
+  /* ─── Glass morphism ─── */
+  .glass {
+    background: rgba(30,30,40,0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* ─── Shimmer animation on FAB ─── */
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 8px 24px rgba(124,92,252,0.4); }
+    50%       { box-shadow: 0 8px 36px rgba(124,92,252,0.7); }
+  }
+  .fab-pulse { animation: pulse-glow 2.5s ease-in-out infinite; }
+
+  /* ─── Instagram gradient border ─── */
+  .ig-border {
+    background: linear-gradient(#1e1e28, #1e1e28) padding-box,
+                linear-gradient(135deg, #833ab4, #c13584, #f77737) border-box;
+    border: 2px solid transparent;
+  }
+
+  /* ─── Ripple ─── */
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    background: rgba(255,255,255,0.1);
+    pointer-events: none;
+  }
+  @keyframes ripple {
+    to { transform: scale(4); opacity: 0; }
+  }
+  
+  /* ─── Fade in ─── */
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in { animation: fadeSlideUp 0.5s ease forwards; }
+  .delay-1 { animation-delay: 0.1s; opacity: 0; }
+  .delay-2 { animation-delay: 0.2s; opacity: 0; }
+  .delay-3 { animation-delay: 0.3s; opacity: 0; }
+  .delay-4 { animation-delay: 0.4s; opacity: 0; }
+</style>
+</head>
+<body class="bg-flux-bg text-flux-text min-h-screen pb-32">
+
+<!-- ═══════════════════════════════════════
+     TOP APP BAR
+═══════════════════════════════════════ -->
+<header class="w-full top-0 sticky z-40 glass border-b border-flux-border flex justify-between items-center px-5 py-3">
+  <div class="flex items-center gap-3">
+    <!-- Avatar / Logo -->
+    <div class="w-10 h-10 rounded-full flex items-center justify-center font-display font-bold text-lg"
+         style="background: linear-gradient(135deg, #7c5cfc, #fc5c8e);">F</div>
+    <div class="flex flex-col">
+      <span class="font-display font-bold text-xl gradient-text tracking-tight leading-none">Flux</span>
+      <span class="text-[10px] text-flux-text3 font-medium tracking-wider uppercase">Alto Rendimiento</span>
+    </div>
+  </div>
+  <div class="flex items-center gap-2">
+    <!-- Search -->
+    <button class="p-2 text-flux-text3 hover:text-flux-text hover:bg-flux-bg3 rounded-xl transition-all duration-200 relative">
+      <span class="material-symbols-rounded" style="font-size:22px">search</span>
+    </button>
+    <!-- Notifications -->
+    <button class="p-2 text-flux-text3 hover:text-flux-text hover:bg-flux-bg3 rounded-xl transition-all duration-200 relative">
+      <span class="material-symbols-rounded" style="font-size:22px">notifications</span>
+      <!-- Badge -->
+      <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-flux-red border-2 border-flux-bg"></span>
+    </button>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════
+     MAIN CONTENT
+═══════════════════════════════════════ -->
+<main class="px-5 pt-6 max-w-2xl mx-auto space-y-5">
+
+  <!-- ─── Saludo ─── -->
+  <section class="animate-in">
+    <p class="text-xs text-flux-text3 font-semibold tracking-widest uppercase mb-1">Miércoles, 16 de Julio</p>
+    <h1 class="font-display font-bold text-3xl leading-tight">
+      Buenas tardes, <span class="gradient-text">Creador</span> 👋
+    </h1>
+    <p class="text-flux-text2 text-sm mt-1">Tienes 4 tareas críticas para hoy.</p>
+  </section>
+
+  <!-- ─── BENTO: Progreso del día ─── -->
+  <section class="animate-in delay-1 bg-flux-surface rounded-2xl border border-flux-border p-5">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xs font-bold text-flux-accent tracking-widest uppercase">Progreso del día</h2>
+      <span class="text-xs text-flux-text3 font-medium">Hoy</span>
+    </div>
+
+    <div class="flex items-center justify-center flex-col">
+      <!-- Circular progress -->
+      <div class="relative flex items-center justify-center">
+        <svg class="w-40 h-40" viewBox="0 0 160 160">
+          <!-- Track -->
+          <circle cx="80" cy="80" r="66" fill="transparent"
+                  stroke="rgba(124,92,252,0.1)" stroke-width="12"/>
+          <!-- Progress (8/12 = 66.7%) -->
+          <circle cx="80" cy="80" r="66" fill="transparent"
+                  stroke="url(#progressGrad)" stroke-width="12"
+                  stroke-linecap="round"
+                  stroke-dasharray="414.7"
+                  stroke-dashoffset="138.2"
+                  class="progress-ring__circle"/>
+          <defs>
+            <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#7c5cfc"/>
+              <stop offset="100%" stop-color="#fc5c8e"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="absolute flex flex-col items-center">
+          <span class="font-display font-bold text-3xl gradient-text">8/12</span>
+          <span class="text-flux-text3 text-xs font-medium mt-0.5">completadas</span>
+        </div>
+      </div>
+
+      <!-- Stats mini-grid -->
+      <div class="w-full mt-5 grid grid-cols-3 gap-3">
+        <div class="bg-flux-bg3 rounded-xl p-3 flex flex-col items-center border border-flux-border">
+          <span class="material-symbols-rounded text-flux-accent mb-1" style="font-size:20px;font-variation-settings:'FILL' 1">task_alt</span>
+          <span class="font-bold text-sm">4</span>
+          <span class="text-flux-text3 text-[10px] mt-0.5">Pendientes</span>
+        </div>
+        <div class="bg-flux-bg3 rounded-xl p-3 flex flex-col items-center border border-flux-border">
+          <span class="material-symbols-rounded text-flux-red mb-1" style="font-size:20px;font-variation-settings:'FILL' 1">priority_high</span>
+          <span class="font-bold text-sm">2</span>
+          <span class="text-flux-text3 text-[10px] mt-0.5">Urgentes</span>
+        </div>
+        <div class="bg-flux-bg3 rounded-xl p-3 flex flex-col items-center border border-flux-border">
+          <span class="material-symbols-rounded text-flux-green mb-1" style="font-size:20px;font-variation-settings:'FILL' 1">check_circle</span>
+          <span class="font-bold text-sm">8</span>
+          <span class="text-flux-text3 text-[10px] mt-0.5">Hechas</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Próximas tareas críticas ─── -->
+  <section class="animate-in delay-2 space-y-3">
+    <div class="flex justify-between items-center">
+      <h2 class="text-xs font-bold text-flux-accent tracking-widest uppercase">Tareas Críticas</h2>
+      <button class="text-flux-text3 text-xs font-semibold hover:text-flux-accent transition-colors">Ver todas →</button>
+    </div>
+
+    <!-- Task 1 — CRITICAL -->
+    <div class="card-hover bg-flux-surface rounded-xl border border-flux-border p-4 flex items-center gap-4 cursor-pointer relative overflow-hidden">
+      <!-- Left accent bar -->
+      <div class="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl" style="background: linear-gradient(180deg,#ef4444,#f97316)"></div>
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ml-1"
+           style="background: rgba(239,68,68,0.15)">
+        <span class="material-symbols-rounded text-flux-red" style="font-size:20px;font-variation-settings:'FILL' 1">bolt</span>
+      </div>
+      <div class="flex-grow min-w-0">
+        <h3 class="font-semibold text-sm text-flux-text truncate">Revisar propuesta de cliente</h3>
+        <p class="text-flux-text3 text-xs mt-0.5">Campaña Verano — Proyecto Alpha</p>
+      </div>
+      <div class="text-right shrink-0">
+        <span class="block text-xs font-bold text-flux-red">2:00 PM</span>
+        <span class="material-symbols-rounded text-flux-text3 mt-0.5" style="font-size:18px">chevron_right</span>
+      </div>
+    </div>
+
+    <!-- Task 2 — HIGH -->
+    <div class="card-hover bg-flux-surface rounded-xl border border-flux-border p-4 flex items-center gap-4 cursor-pointer relative overflow-hidden">
+      <div class="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl" style="background: linear-gradient(180deg,#f97316,#eab308)"></div>
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ml-1"
+           style="background: rgba(249,115,22,0.15)">
+        <span class="material-symbols-rounded text-flux-orange" style="font-size:20px;font-variation-settings:'FILL' 1">edit_note</span>
+      </div>
+      <div class="flex-grow min-w-0">
+        <h3 class="font-semibold text-sm text-flux-text truncate">Actualizar cronograma de fases</h3>
+        <p class="text-flux-text3 text-xs mt-0.5">Proyecto Industrial — Fase 2</p>
+      </div>
+      <div class="text-right shrink-0">
+        <span class="block text-xs font-bold text-flux-orange">4:30 PM</span>
+        <span class="material-symbols-rounded text-flux-text3 mt-0.5" style="font-size:18px">chevron_right</span>
+      </div>
+    </div>
+
+    <!-- Task 3 — MEDIUM -->
+    <div class="card-hover bg-flux-surface rounded-xl border border-flux-border p-4 flex items-center gap-4 cursor-pointer relative overflow-hidden">
+      <div class="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl" style="background: linear-gradient(180deg,#7c5cfc,#fc5c8e)"></div>
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ml-1"
+           style="background: rgba(124,92,252,0.15)">
+        <span class="material-symbols-rounded text-flux-accent" style="font-size:20px;font-variation-settings:'FILL' 1">photo_camera</span>
+      </div>
+      <div class="flex-grow min-w-0">
+        <h3 class="font-semibold text-sm text-flux-text truncate">Guardar referencias de Instagram</h3>
+        <p class="text-flux-text3 text-xs mt-0.5">Banco de Inspiración — Moda</p>
+      </div>
+      <div class="text-right shrink-0">
+        <span class="block text-xs font-bold text-flux-text3">Mañana</span>
+        <span class="material-symbols-rounded text-flux-text3 mt-0.5" style="font-size:18px">chevron_right</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Proyecto Spotlight ─── -->
+  <section class="animate-in delay-3">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-xs font-bold text-flux-accent tracking-widest uppercase">Proyecto Destacado</h2>
+      <button class="text-flux-text3 text-xs font-semibold hover:text-flux-accent transition-colors">Ver proyectos →</button>
+    </div>
+
+    <div class="relative h-52 rounded-2xl overflow-hidden border border-flux-border2 card-hover cursor-pointer"
+         style="background: linear-gradient(135deg, #141418, #1e1e2e)">
+      <!-- Decorative gradient orbs -->
+      <div class="absolute -top-8 -right-8 w-40 h-40 rounded-full opacity-30"
+           style="background: radial-gradient(circle, #7c5cfc, transparent)"></div>
+      <div class="absolute -bottom-8 -left-8 w-32 h-32 rounded-full opacity-20"
+           style="background: radial-gradient(circle, #fc5c8e, transparent)"></div>
+
+      <!-- Radial progress in top-right -->
+      <div class="absolute top-4 right-4">
+        <svg class="w-16 h-16" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="26" fill="transparent" stroke="rgba(255,255,255,0.1)" stroke-width="6"/>
+          <circle cx="32" cy="32" r="26" fill="transparent"
+                  stroke="url(#spotlightGrad)" stroke-width="6"
+                  stroke-linecap="round"
+                  stroke-dasharray="163.4"
+                  stroke-dashoffset="57.2"
+                  class="progress-ring__circle"/>
+          <defs>
+            <linearGradient id="spotlightGrad" x1="0%" y1="0%" x2="100%">
+              <stop offset="0%" stop-color="#9b82fd"/>
+              <stop offset="100%" stop-color="#fd82a8"/>
+            </linearGradient>
+          </defs>
+          <text x="32" y="37" text-anchor="middle" fill="white" font-size="11" font-weight="700" font-family="Inter">65%</text>
+        </svg>
+      </div>
+
+      <!-- Content -->
+      <div class="absolute bottom-0 left-0 p-5 z-10 w-full">
+        <span class="text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full mb-3 inline-block"
+              style="background: linear-gradient(135deg, #7c5cfc, #fc5c8e); color: white;">✦ Activo</span>
+        <h2 class="font-display font-bold text-xl text-white mt-1">Campaña Verano 2025</h2>
+        <div class="flex items-center gap-3 mt-2">
+          <div class="flex-1 h-1.5 rounded-full overflow-hidden" style="background: rgba(255,255,255,0.15)">
+            <div class="h-full rounded-full" style="width:65%; background: linear-gradient(90deg,#7c5cfc,#fc5c8e)"></div>
+          </div>
+          <span class="text-white/70 text-xs font-semibold shrink-0">8/12 tareas</span>
+        </div>
+        <div class="flex gap-2 mt-3">
+          <span class="text-[10px] text-white/60 bg-white/10 px-2 py-0.5 rounded-full font-medium">📸 3 IG Insps</span>
+          <span class="text-[10px] text-white/60 bg-white/10 px-2 py-0.5 rounded-full font-medium">💰 S/ 1,150</span>
+          <span class="text-[10px] text-white/60 bg-white/10 px-2 py-0.5 rounded-full font-medium">⏱ 4h 20m</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── IG Inspiraciones recientes ─── -->
+  <section class="animate-in delay-4 space-y-3">
+    <div class="flex justify-between items-center">
+      <h2 class="text-xs font-bold text-flux-accent tracking-widest uppercase">Inspiraciones IG Guardadas</h2>
+      <button class="text-flux-text3 text-xs font-semibold hover:text-flux-accent transition-colors">Ver todas →</button>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <!-- IG Card 1 -->
+      <div class="card-hover ig-border rounded-xl overflow-hidden cursor-pointer">
+        <div class="h-24 flex items-center justify-center"
+             style="background: linear-gradient(135deg, #833ab4, #c13584, #f77737)">
+          <span class="material-symbols-rounded text-white" style="font-size:32px;font-variation-settings:'FILL' 1">photo_camera</span>
+        </div>
+        <div class="bg-flux-surface p-3">
+          <p class="text-[10px] text-ig-pink font-bold">@influencer.moda</p>
+          <p class="text-xs text-flux-text2 mt-1 line-clamp-2">Estilo de edición cinematográfico para la apertura del reel.</p>
+        </div>
+      </div>
+
+      <!-- IG Card 2 -->
+      <div class="card-hover ig-border rounded-xl overflow-hidden cursor-pointer">
+        <div class="h-24 flex items-center justify-center"
+             style="background: linear-gradient(135deg, #c13584, #f77737, #fcaf45)">
+          <span class="material-symbols-rounded text-white" style="font-size:32px;font-variation-settings:'FILL' 1">play_circle</span>
+        </div>
+        <div class="bg-flux-surface p-3">
+          <p class="text-[10px] text-ig-pink font-bold">@creativestudio.pe</p>
+          <p class="text-xs text-flux-text2 mt-1 line-clamp-2">Transiciones fluidas entre escenas de producto.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add IG button -->
+    <button class="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-flux-border2 text-flux-text3 text-sm font-medium hover:border-flux-accent hover:text-flux-accent transition-all duration-200">
+      <span class="material-symbols-rounded" style="font-size:18px">add</span>
+      Guardar nueva inspiración de Instagram
+    </button>
+  </section>
+
+  <!-- ─── Resumen Financiero ─── -->
+  <section class="animate-in delay-4 bg-flux-surface rounded-2xl border border-flux-border p-5">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xs font-bold text-flux-accent tracking-widest uppercase">Finanzas del Mes</h2>
+      <span class="text-[10px] text-flux-text3 bg-flux-bg3 px-2 py-1 rounded-full font-medium">Julio 2025</span>
+    </div>
+    <div class="grid grid-cols-3 gap-3 mb-4">
+      <div class="text-center">
+        <p class="text-[10px] text-flux-text3 font-semibold uppercase tracking-wider mb-1">Presupuesto</p>
+        <p class="font-display font-bold text-lg text-flux-text">S/ 8,000</p>
+      </div>
+      <div class="text-center">
+        <p class="text-[10px] text-flux-red font-semibold uppercase tracking-wider mb-1">Gastado</p>
+        <p class="font-display font-bold text-lg text-flux-red">S/ 5,200</p>
+      </div>
+      <div class="text-center">
+        <p class="text-[10px] text-flux-green font-semibold uppercase tracking-wider mb-1">Disponible</p>
+        <p class="font-display font-bold text-lg text-flux-green">S/ 2,800</p>
+      </div>
+    </div>
+    <!-- Budget bar -->
+    <div class="h-2 w-full rounded-full overflow-hidden" style="background: rgba(255,255,255,0.06)">
+      <div class="h-full rounded-full" style="width:65%; background: linear-gradient(90deg, #f97316, #ef4444)"></div>
+    </div>
+    <p class="text-[10px] text-flux-text3 mt-2 text-right font-medium">65% del presupuesto utilizado</p>
+  </section>
+
+  <div class="h-4"></div>
+</main>
+
+<!-- ═══════════════════════════════════════
+     FAB
+═══════════════════════════════════════ -->
+<button class="fixed bottom-24 right-5 w-14 h-14 rounded-full flex items-center justify-center text-white fab-pulse transition-transform hover:scale-105 active:scale-95 z-50"
+        style="background: linear-gradient(135deg, #7c5cfc, #5a3fcc)">
+  <span class="material-symbols-rounded font-bold" style="font-size:26px">add</span>
+</button>
+
+<!-- ═══════════════════════════════════════
+     BOTTOM NAV
+═══════════════════════════════════════ -->
+<nav class="glass fixed bottom-0 w-full z-50 border-t border-flux-border flex justify-around items-center px-4 py-2">
+
+  <!-- Dashboard (Active) -->
+  <a class="flex flex-col items-center justify-center px-4 py-2 rounded-xl transition-all duration-200 relative"
+     style="background: rgba(124,92,252,0.15)" href="#">
+    <span class="material-symbols-rounded text-flux-accent" style="font-variation-settings:'FILL' 1;font-size:22px">dashboard</span>
+    <span class="text-[10px] font-semibold text-flux-accent mt-0.5">Inicio</span>
+  </a>
+
+  <!-- Projects -->
+  <a class="flex flex-col items-center justify-center px-4 py-2 rounded-xl text-flux-text3 hover:text-flux-text hover:bg-flux-bg3 transition-all duration-200" href="#">
+    <span class="material-symbols-rounded" style="font-size:22px">folder_open</span>
+    <span class="text-[10px] font-medium mt-0.5">Proyectos</span>
+  </a>
+
+  <!-- Inspiration (IG) -->
+  <a class="flex flex-col items-center justify-center px-4 py-2 rounded-xl text-flux-text3 hover:text-flux-text hover:bg-flux-bg3 transition-all duration-200" href="#">
+    <span class="material-symbols-rounded" style="font-size:22px">photo_camera</span>
+    <span class="text-[10px] font-medium mt-0.5">Inspiración</span>
+  </a>
+
+  <!-- Tasks -->
+  <a class="flex flex-col items-center justify-center px-4 py-2 rounded-xl text-flux-text3 hover:text-flux-text hover:bg-flux-bg3 transition-all duration-200" href="#">
+    <span class="material-symbols-rounded" style="font-size:22px">task_alt</span>
+    <span class="text-[10px] font-medium mt-0.5">Tareas</span>
+  </a>
+
+  <!-- Profile -->
+  <a class="flex flex-col items-center justify-center px-4 py-2 rounded-xl text-flux-text3 hover:text-flux-text hover:bg-flux-bg3 transition-all duration-200" href="#">
+    <span class="material-symbols-rounded" style="font-size:22px">person</span>
+    <span class="text-[10px] font-medium mt-0.5">Perfil</span>
+  </a>
+</nav>
+
+<script>
+  // Ripple effect
+  document.querySelectorAll('a, button').forEach(el => {
+    el.style.position = 'relative';
+    el.style.overflow = 'hidden';
+    el.addEventListener('click', function(e) {
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height) * 2;
+      const ripple = document.createElement('div');
+      ripple.classList.add('ripple');
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+      ripple.style.top  = (e.clientY - rect.top  - size / 2) + 'px';
+      this.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 700);
+    });
+  });
+</script>
+</body>
+</html>
