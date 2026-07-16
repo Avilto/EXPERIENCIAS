@@ -1,478 +1,1433 @@
 <!DOCTYPE html>
-<html class="dark" lang="es">
+<html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>Flux — Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Flux — Gestor de Proyectos</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
-<script id="tailwind-config">
+<script>
   tailwind.config = {
-    darkMode: "class",
     theme: {
       extend: {
         colors: {
-          "flux-bg":        "#0c0c0f",
-          "flux-bg2":       "#141418",
-          "flux-bg3":       "#1c1c22",
-          "flux-bg4":       "#242430",
-          "flux-surface":   "#1e1e28",
-          "flux-surface2":  "#272733",
-          "flux-border":    "rgba(255,255,255,0.07)",
-          "flux-border2":   "rgba(255,255,255,0.12)",
-          "flux-accent":    "#7c5cfc",
-          "flux-accent2":   "#fc5c8e",
-          "flux-text":      "#f0f0fa",
-          "flux-text2":     "#9898b8",
-          "flux-text3":     "#6060a0",
-          "flux-green":     "#22c55e",
-          "flux-yellow":    "#eab308",
-          "flux-orange":    "#f97316",
-          "flux-red":       "#ef4444",
-          "ig-purple":      "#833ab4",
-          "ig-pink":        "#c13584",
-          "ig-orange":      "#f77737",
+          "P":     "#344955",
+          "PD":    "#243540",
+          "PL":    "#4a6275",
+          "PM":    "#e8edf0",
+          "S":     "#F39C12",
+          "SD":    "#d68910",
+          "SL":    "#f7b731",
+          "SM":    "#fef5e4",
+          "N":     "#ECF0F1",
+          "ND":    "#d5dbdd",
+          "NDD":   "#b2bec3",
+          "W":     "#ffffff",
+          "T1":    "#1a252f",
+          "T2":    "#566573",
+          "T3":    "#95a5a6",
+          "OK":    "#27ae60",
+          "ERR":   "#e74c3c",
+          "WARN":  "#e67e22",
+          "IGP":   "#833ab4",
+          "IGPK":  "#c13584",
+          "IGO":   "#f77737",
         },
         fontFamily: {
-          "sans": ["Inter", "sans-serif"],
-          "display": ["Syne", "sans-serif"],
+          sans:    ["Inter","sans-serif"],
+          display: ["Syne","sans-serif"],
         },
         borderRadius: {
-          DEFAULT: "0.5rem",
-          lg: "0.875rem",
-          xl: "1.25rem",
-          "2xl": "1.5rem",
-          full: "9999px",
+          DEFAULT:"0.5rem", lg:"0.875rem", xl:"1.25rem", "2xl":"1.75rem", full:"9999px"
         }
       }
     }
   }
 </script>
 <style>
-  .material-symbols-rounded {
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-    font-family: 'Material Symbols Rounded';
-    font-style: normal;
-    display: inline-block;
-    line-height: 1;
-    vertical-align: middle;
+  .msr {
+    font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;
+    font-family:'Material Symbols Rounded';
+    font-style:normal; display:inline-block;
+    line-height:1; vertical-align:middle;
   }
-  body { font-family: 'Inter', sans-serif; background: #0c0c0f; }
+  body { font-family:'Inter',sans-serif; background:#ECF0F1; overscroll-behavior:none; }
 
-  /* ─── Gradient text ─── */
-  .gradient-text {
-    background: linear-gradient(135deg, #9b82fd, #fd82a8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  /* ── Gradients ── */
+  .g-primary  { background: linear-gradient(135deg,#344955,#4a6275); }
+  .g-secondary{ background: linear-gradient(135deg,#F39C12,#f7b731); }
+  .g-both     { background: linear-gradient(135deg,#344955 0%,#F39C12 100%); }
+  .g-text     { background:linear-gradient(135deg,#344955,#F39C12);
+                -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+
+  /* ── Shadows ── */
+  .sh-card { box-shadow:0 2px 10px rgba(52,73,85,0.08); }
+  .sh-p    { box-shadow:0 6px 20px rgba(52,73,85,0.22); }
+  .sh-s    { box-shadow:0 6px 20px rgba(243,156,18,0.35); }
+
+  /* ── Hover lift ── */
+  .lift { transition:all .2s ease; }
+  .lift:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(52,73,85,0.14); }
+
+  /* ── Progress ring ── */
+  .ring { transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1);
+          transform:rotate(-90deg); transform-origin:50% 50%; }
+
+  /* ── FAB pulse ── */
+  @keyframes spulse {
+    0%,100%{ box-shadow:0 6px 20px rgba(243,156,18,.4); }
+    50%    { box-shadow:0 6px 28px rgba(243,156,18,.7); }
   }
-  /* ─── Glow effect ─── */
-  .glow-accent { box-shadow: 0 0 24px rgba(124,92,252,0.35); }
-  .glow-btn { box-shadow: 0 8px 24px rgba(124,92,252,0.4); }
+  .fab { animation:spulse 2.5s ease-in-out infinite; }
 
-  /* ─── Circular progress ─── */
-  .progress-ring__circle {
-    transition: stroke-dashoffset 0.6s cubic-bezier(0.4,0,0.2,1);
-    transform: rotate(-90deg);
-    transform-origin: 50% 50%;
-  }
-
-  /* ─── Card hover ─── */
-  .card-hover { transition: all 0.2s ease; }
-  .card-hover:hover { transform: translateY(-2px); border-color: rgba(124,92,252,0.4); }
-
-  /* ─── Glass morphism ─── */
-  .glass {
-    background: rgba(30,30,40,0.7);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-  }
-
-  /* ─── Shimmer animation on FAB ─── */
-  @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 8px 24px rgba(124,92,252,0.4); }
-    50%       { box-shadow: 0 8px 36px rgba(124,92,252,0.7); }
-  }
-  .fab-pulse { animation: pulse-glow 2.5s ease-in-out infinite; }
-
-  /* ─── Instagram gradient border ─── */
+  /* ── IG border ── */
   .ig-border {
-    background: linear-gradient(#1e1e28, #1e1e28) padding-box,
-                linear-gradient(135deg, #833ab4, #c13584, #f77737) border-box;
-    border: 2px solid transparent;
+    background:linear-gradient(#fff,#fff) padding-box,
+               linear-gradient(135deg,#833ab4,#c13584,#f77737) border-box;
+    border:2px solid transparent;
   }
 
-  /* ─── Ripple ─── */
-  .ripple {
-    position: absolute;
-    border-radius: 50%;
-    transform: scale(0);
-    animation: ripple 0.6s linear;
-    background: rgba(255,255,255,0.1);
-    pointer-events: none;
-  }
-  @keyframes ripple {
-    to { transform: scale(4); opacity: 0; }
-  }
-  
-  /* ─── Fade in ─── */
-  @keyframes fadeSlideUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .animate-in { animation: fadeSlideUp 0.5s ease forwards; }
-  .delay-1 { animation-delay: 0.1s; opacity: 0; }
-  .delay-2 { animation-delay: 0.2s; opacity: 0; }
-  .delay-3 { animation-delay: 0.3s; opacity: 0; }
-  .delay-4 { animation-delay: 0.4s; opacity: 0; }
+  /* ── Ripple ── */
+  .ripple { position:absolute; border-radius:50%; transform:scale(0);
+    animation:ripple .55s linear; background:rgba(52,73,85,.1); pointer-events:none; }
+  @keyframes ripple { to { transform:scale(4); opacity:0; } }
+
+  /* ── Fade/slide in ── */
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+  .au  { animation:fadeUp .4s ease forwards; }
+  .d1  { animation-delay:.07s; opacity:0; }
+  .d2  { animation-delay:.14s; opacity:0; }
+  .d3  { animation-delay:.21s; opacity:0; }
+  .d4  { animation-delay:.28s; opacity:0; }
+  .d5  { animation-delay:.35s; opacity:0; }
+
+  /* ── Views ── */
+  .view { position:absolute; inset:0; bottom:64px; overflow-y:auto;
+          display:none; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .view::-webkit-scrollbar { display:none; }
+  .view.active { display:block; }
+
+  /* ── Accent left bar on task card ── */
+  .abar { position:absolute; left:0; top:0; bottom:0; width:4px;
+          border-radius:8px 0 0 8px; }
+
+  /* ── Tabs ── */
+  .tab-btn { transition:all .2s; }
+  .tab-btn.active { color:#344955; border-bottom:2px solid #344955; font-weight:700; }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+
+  /* ── Checkbox ── */
+  .task-cb { width:20px;height:20px;border-radius:50%;border:2px solid #b2bec3;
+             flex-shrink:0;display:flex;align-items:center;justify-content:center;
+             cursor:pointer;transition:all .2s; }
+  .task-cb.done { background:#27ae60;border-color:#27ae60; }
+
+  /* ── Slide page transition ── */
+  @keyframes slideIn { from{opacity:0;transform:translateX(32px)} to{opacity:1;transform:none} }
+  @keyframes slideOut { from{opacity:1;transform:none} to{opacity:0;transform:translateX(-32px)} }
+  .slide-in  { animation:slideIn .3s ease forwards; }
+  .slide-out { animation:slideOut .25s ease forwards; }
+
+  /* ── Modal ── */
+  .modal-wrap { position:fixed;inset:0;z-index:200;background:rgba(26,37,47,.45);
+                display:flex;align-items:flex-end;backdrop-filter:blur(4px); }
+  .modal-wrap.hidden { display:none; }
+  .modal-sheet { background:#fff;border-radius:1.75rem 1.75rem 0 0;
+                 padding:14px 20px 40px;width:100%;max-height:88dvh;overflow-y:auto; }
+  @keyframes sheetUp { from{transform:translateY(100%)} to{transform:none} }
+  .modal-sheet { animation:sheetUp .3s cubic-bezier(.34,1.56,.64,1); }
+  .mhandle { width:36px;height:4px;border-radius:99px;background:#d5dbdd;margin:0 auto 16px; }
+
+  /* ── Toast ── */
+  .toast { position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+           background:#344955;color:#fff;padding:10px 20px;border-radius:99px;
+           font-size:13px;font-weight:600;z-index:999;white-space:nowrap;
+           box-shadow:0 4px 16px rgba(52,73,85,.35); }
+  .toast.hidden { display:none; }
 </style>
 </head>
-<body class="bg-flux-bg text-flux-text min-h-screen pb-32">
+<body class="bg-N text-T1">
 
-<!-- ═══════════════════════════════════════
-     TOP APP BAR
-═══════════════════════════════════════ -->
-<header class="w-full top-0 sticky z-40 glass border-b border-flux-border flex justify-between items-center px-5 py-3">
-  <div class="flex items-center gap-3">
-    <!-- Avatar / Logo -->
-    <div class="w-10 h-10 rounded-full flex items-center justify-center font-display font-bold text-lg"
-         style="background: linear-gradient(135deg, #7c5cfc, #fc5c8e);">F</div>
-    <div class="flex flex-col">
-      <span class="font-display font-bold text-xl gradient-text tracking-tight leading-none">Flux</span>
-      <span class="text-[10px] text-flux-text3 font-medium tracking-wider uppercase">Alto Rendimiento</span>
-    </div>
-  </div>
-  <div class="flex items-center gap-2">
-    <!-- Search -->
-    <button class="p-2 text-flux-text3 hover:text-flux-text hover:bg-flux-bg3 rounded-xl transition-all duration-200 relative">
-      <span class="material-symbols-rounded" style="font-size:22px">search</span>
-    </button>
-    <!-- Notifications -->
-    <button class="p-2 text-flux-text3 hover:text-flux-text hover:bg-flux-bg3 rounded-xl transition-all duration-200 relative">
-      <span class="material-symbols-rounded" style="font-size:22px">notifications</span>
-      <!-- Badge -->
-      <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-flux-red border-2 border-flux-bg"></span>
-    </button>
-  </div>
-</header>
+<!-- ────────────────────────────────────────────
+     APP SHELL
+──────────────────────────────────────────── -->
+<div id="app" style="height:100dvh;position:relative;overflow:hidden;">
 
-<!-- ═══════════════════════════════════════
-     MAIN CONTENT
-═══════════════════════════════════════ -->
-<main class="px-5 pt-6 max-w-2xl mx-auto space-y-5">
+  <!-- TOAST -->
+  <div id="toast" class="toast hidden"></div>
 
-  <!-- ─── Saludo ─── -->
-  <section class="animate-in">
-    <p class="text-xs text-flux-text3 font-semibold tracking-widest uppercase mb-1">Miércoles, 16 de Julio</p>
-    <h1 class="font-display font-bold text-3xl leading-tight">
-      Buenas tardes, <span class="gradient-text">Creador</span> 👋
-    </h1>
-    <p class="text-flux-text2 text-sm mt-1">Tienes 4 tareas críticas para hoy.</p>
-  </section>
+  <!-- ══════════════════════════════════════
+       VIEW: DASHBOARD
+  ══════════════════════════════════════ -->
+  <div id="v-dashboard" class="view active">
+    <div style="padding:0 20px; padding-bottom:24px;">
 
-  <!-- ─── BENTO: Progreso del día ─── -->
-  <section class="animate-in delay-1 bg-flux-surface rounded-2xl border border-flux-border p-5">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xs font-bold text-flux-accent tracking-widest uppercase">Progreso del día</h2>
-      <span class="text-xs text-flux-text3 font-medium">Hoy</span>
-    </div>
-
-    <div class="flex items-center justify-center flex-col">
-      <!-- Circular progress -->
-      <div class="relative flex items-center justify-center">
-        <svg class="w-40 h-40" viewBox="0 0 160 160">
-          <!-- Track -->
-          <circle cx="80" cy="80" r="66" fill="transparent"
-                  stroke="rgba(124,92,252,0.1)" stroke-width="12"/>
-          <!-- Progress (8/12 = 66.7%) -->
-          <circle cx="80" cy="80" r="66" fill="transparent"
-                  stroke="url(#progressGrad)" stroke-width="12"
-                  stroke-linecap="round"
-                  stroke-dasharray="414.7"
-                  stroke-dashoffset="138.2"
-                  class="progress-ring__circle"/>
-          <defs>
-            <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#7c5cfc"/>
-              <stop offset="100%" stop-color="#fc5c8e"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        <div class="absolute flex flex-col items-center">
-          <span class="font-display font-bold text-3xl gradient-text">8/12</span>
-          <span class="text-flux-text3 text-xs font-medium mt-0.5">completadas</span>
-        </div>
-      </div>
-
-      <!-- Stats mini-grid -->
-      <div class="w-full mt-5 grid grid-cols-3 gap-3">
-        <div class="bg-flux-bg3 rounded-xl p-3 flex flex-col items-center border border-flux-border">
-          <span class="material-symbols-rounded text-flux-accent mb-1" style="font-size:20px;font-variation-settings:'FILL' 1">task_alt</span>
-          <span class="font-bold text-sm">4</span>
-          <span class="text-flux-text3 text-[10px] mt-0.5">Pendientes</span>
-        </div>
-        <div class="bg-flux-bg3 rounded-xl p-3 flex flex-col items-center border border-flux-border">
-          <span class="material-symbols-rounded text-flux-red mb-1" style="font-size:20px;font-variation-settings:'FILL' 1">priority_high</span>
-          <span class="font-bold text-sm">2</span>
-          <span class="text-flux-text3 text-[10px] mt-0.5">Urgentes</span>
-        </div>
-        <div class="bg-flux-bg3 rounded-xl p-3 flex flex-col items-center border border-flux-border">
-          <span class="material-symbols-rounded text-flux-green mb-1" style="font-size:20px;font-variation-settings:'FILL' 1">check_circle</span>
-          <span class="font-bold text-sm">8</span>
-          <span class="text-flux-text3 text-[10px] mt-0.5">Hechas</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── Próximas tareas críticas ─── -->
-  <section class="animate-in delay-2 space-y-3">
-    <div class="flex justify-between items-center">
-      <h2 class="text-xs font-bold text-flux-accent tracking-widest uppercase">Tareas Críticas</h2>
-      <button class="text-flux-text3 text-xs font-semibold hover:text-flux-accent transition-colors">Ver todas →</button>
-    </div>
-
-    <!-- Task 1 — CRITICAL -->
-    <div class="card-hover bg-flux-surface rounded-xl border border-flux-border p-4 flex items-center gap-4 cursor-pointer relative overflow-hidden">
-      <!-- Left accent bar -->
-      <div class="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl" style="background: linear-gradient(180deg,#ef4444,#f97316)"></div>
-      <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ml-1"
-           style="background: rgba(239,68,68,0.15)">
-        <span class="material-symbols-rounded text-flux-red" style="font-size:20px;font-variation-settings:'FILL' 1">bolt</span>
-      </div>
-      <div class="flex-grow min-w-0">
-        <h3 class="font-semibold text-sm text-flux-text truncate">Revisar propuesta de cliente</h3>
-        <p class="text-flux-text3 text-xs mt-0.5">Campaña Verano — Proyecto Alpha</p>
-      </div>
-      <div class="text-right shrink-0">
-        <span class="block text-xs font-bold text-flux-red">2:00 PM</span>
-        <span class="material-symbols-rounded text-flux-text3 mt-0.5" style="font-size:18px">chevron_right</span>
-      </div>
-    </div>
-
-    <!-- Task 2 — HIGH -->
-    <div class="card-hover bg-flux-surface rounded-xl border border-flux-border p-4 flex items-center gap-4 cursor-pointer relative overflow-hidden">
-      <div class="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl" style="background: linear-gradient(180deg,#f97316,#eab308)"></div>
-      <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ml-1"
-           style="background: rgba(249,115,22,0.15)">
-        <span class="material-symbols-rounded text-flux-orange" style="font-size:20px;font-variation-settings:'FILL' 1">edit_note</span>
-      </div>
-      <div class="flex-grow min-w-0">
-        <h3 class="font-semibold text-sm text-flux-text truncate">Actualizar cronograma de fases</h3>
-        <p class="text-flux-text3 text-xs mt-0.5">Proyecto Industrial — Fase 2</p>
-      </div>
-      <div class="text-right shrink-0">
-        <span class="block text-xs font-bold text-flux-orange">4:30 PM</span>
-        <span class="material-symbols-rounded text-flux-text3 mt-0.5" style="font-size:18px">chevron_right</span>
-      </div>
-    </div>
-
-    <!-- Task 3 — MEDIUM -->
-    <div class="card-hover bg-flux-surface rounded-xl border border-flux-border p-4 flex items-center gap-4 cursor-pointer relative overflow-hidden">
-      <div class="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl" style="background: linear-gradient(180deg,#7c5cfc,#fc5c8e)"></div>
-      <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ml-1"
-           style="background: rgba(124,92,252,0.15)">
-        <span class="material-symbols-rounded text-flux-accent" style="font-size:20px;font-variation-settings:'FILL' 1">photo_camera</span>
-      </div>
-      <div class="flex-grow min-w-0">
-        <h3 class="font-semibold text-sm text-flux-text truncate">Guardar referencias de Instagram</h3>
-        <p class="text-flux-text3 text-xs mt-0.5">Banco de Inspiración — Moda</p>
-      </div>
-      <div class="text-right shrink-0">
-        <span class="block text-xs font-bold text-flux-text3">Mañana</span>
-        <span class="material-symbols-rounded text-flux-text3 mt-0.5" style="font-size:18px">chevron_right</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── Proyecto Spotlight ─── -->
-  <section class="animate-in delay-3">
-    <div class="flex justify-between items-center mb-3">
-      <h2 class="text-xs font-bold text-flux-accent tracking-widest uppercase">Proyecto Destacado</h2>
-      <button class="text-flux-text3 text-xs font-semibold hover:text-flux-accent transition-colors">Ver proyectos →</button>
-    </div>
-
-    <div class="relative h-52 rounded-2xl overflow-hidden border border-flux-border2 card-hover cursor-pointer"
-         style="background: linear-gradient(135deg, #141418, #1e1e2e)">
-      <!-- Decorative gradient orbs -->
-      <div class="absolute -top-8 -right-8 w-40 h-40 rounded-full opacity-30"
-           style="background: radial-gradient(circle, #7c5cfc, transparent)"></div>
-      <div class="absolute -bottom-8 -left-8 w-32 h-32 rounded-full opacity-20"
-           style="background: radial-gradient(circle, #fc5c8e, transparent)"></div>
-
-      <!-- Radial progress in top-right -->
-      <div class="absolute top-4 right-4">
-        <svg class="w-16 h-16" viewBox="0 0 64 64">
-          <circle cx="32" cy="32" r="26" fill="transparent" stroke="rgba(255,255,255,0.1)" stroke-width="6"/>
-          <circle cx="32" cy="32" r="26" fill="transparent"
-                  stroke="url(#spotlightGrad)" stroke-width="6"
-                  stroke-linecap="round"
-                  stroke-dasharray="163.4"
-                  stroke-dashoffset="57.2"
-                  class="progress-ring__circle"/>
-          <defs>
-            <linearGradient id="spotlightGrad" x1="0%" y1="0%" x2="100%">
-              <stop offset="0%" stop-color="#9b82fd"/>
-              <stop offset="100%" stop-color="#fd82a8"/>
-            </linearGradient>
-          </defs>
-          <text x="32" y="37" text-anchor="middle" fill="white" font-size="11" font-weight="700" font-family="Inter">65%</text>
-        </svg>
-      </div>
-
-      <!-- Content -->
-      <div class="absolute bottom-0 left-0 p-5 z-10 w-full">
-        <span class="text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full mb-3 inline-block"
-              style="background: linear-gradient(135deg, #7c5cfc, #fc5c8e); color: white;">✦ Activo</span>
-        <h2 class="font-display font-bold text-xl text-white mt-1">Campaña Verano 2025</h2>
-        <div class="flex items-center gap-3 mt-2">
-          <div class="flex-1 h-1.5 rounded-full overflow-hidden" style="background: rgba(255,255,255,0.15)">
-            <div class="h-full rounded-full" style="width:65%; background: linear-gradient(90deg,#7c5cfc,#fc5c8e)"></div>
+      <!-- TopBar -->
+      <div class="bg-W sticky top-0 z-30 -mx-5 px-5 py-3 flex justify-between items-center sh-card mb-0"
+           style="margin-bottom:0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg text-W g-primary sh-p">F</div>
+          <div>
+            <span class="font-display font-bold text-xl g-text tracking-tight block leading-none">Flux</span>
+            <span class="text-[10px] text-T3 font-semibold tracking-widest uppercase">Alto Rendimiento</span>
           </div>
-          <span class="text-white/70 text-xs font-semibold shrink-0">8/12 tareas</span>
         </div>
-        <div class="flex gap-2 mt-3">
-          <span class="text-[10px] text-white/60 bg-white/10 px-2 py-0.5 rounded-full font-medium">📸 3 IG Insps</span>
-          <span class="text-[10px] text-white/60 bg-white/10 px-2 py-0.5 rounded-full font-medium">💰 S/ 1,150</span>
-          <span class="text-[10px] text-white/60 bg-white/10 px-2 py-0.5 rounded-full font-medium">⏱ 4h 20m</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── IG Inspiraciones recientes ─── -->
-  <section class="animate-in delay-4 space-y-3">
-    <div class="flex justify-between items-center">
-      <h2 class="text-xs font-bold text-flux-accent tracking-widest uppercase">Inspiraciones IG Guardadas</h2>
-      <button class="text-flux-text3 text-xs font-semibold hover:text-flux-accent transition-colors">Ver todas →</button>
-    </div>
-
-    <div class="grid grid-cols-2 gap-3">
-      <!-- IG Card 1 -->
-      <div class="card-hover ig-border rounded-xl overflow-hidden cursor-pointer">
-        <div class="h-24 flex items-center justify-center"
-             style="background: linear-gradient(135deg, #833ab4, #c13584, #f77737)">
-          <span class="material-symbols-rounded text-white" style="font-size:32px;font-variation-settings:'FILL' 1">photo_camera</span>
-        </div>
-        <div class="bg-flux-surface p-3">
-          <p class="text-[10px] text-ig-pink font-bold">@influencer.moda</p>
-          <p class="text-xs text-flux-text2 mt-1 line-clamp-2">Estilo de edición cinematográfico para la apertura del reel.</p>
+        <div class="flex gap-1">
+          <button class="p-2 text-T3 hover:text-P hover:bg-PM rounded-xl transition-all">
+            <span class="msr" style="font-size:22px">search</span>
+          </button>
+          <button class="p-2 text-T3 hover:text-P hover:bg-PM rounded-xl transition-all relative">
+            <span class="msr" style="font-size:22px">notifications</span>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-ERR border-2 border-W"></span>
+          </button>
         </div>
       </div>
 
-      <!-- IG Card 2 -->
-      <div class="card-hover ig-border rounded-xl overflow-hidden cursor-pointer">
-        <div class="h-24 flex items-center justify-center"
-             style="background: linear-gradient(135deg, #c13584, #f77737, #fcaf45)">
-          <span class="material-symbols-rounded text-white" style="font-size:32px;font-variation-settings:'FILL' 1">play_circle</span>
+      <!-- Saludo -->
+      <div class="au pt-5 pb-2">
+        <p class="text-[11px] text-T3 font-bold tracking-widest uppercase mb-1" id="dashDate"></p>
+        <h1 class="font-display font-bold text-3xl leading-tight g-text" id="dashGreeting">Hola 👋</h1>
+        <p class="text-T2 text-sm mt-1" id="dashSubtitle">Cargando...</p>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="au d1 grid grid-cols-3 gap-3 mt-4">
+        <div class="bg-W rounded-xl p-3 sh-card text-center">
+          <span class="msr text-P" style="font-size:20px;font-variation-settings:'FILL' 1">folder_open</span>
+          <p class="font-bold text-lg mt-1" id="statProj">0</p>
+          <p class="text-[10px] text-T3 font-semibold">Proyectos</p>
         </div>
-        <div class="bg-flux-surface p-3">
-          <p class="text-[10px] text-ig-pink font-bold">@creativestudio.pe</p>
-          <p class="text-xs text-flux-text2 mt-1 line-clamp-2">Transiciones fluidas entre escenas de producto.</p>
+        <div class="bg-W rounded-xl p-3 sh-card text-center">
+          <span class="msr text-S" style="font-size:20px;font-variation-settings:'FILL' 1">task_alt</span>
+          <p class="font-bold text-lg mt-1" id="statTask">0</p>
+          <p class="text-[10px] text-T3 font-semibold">Tareas</p>
+        </div>
+        <div class="bg-W rounded-xl p-3 sh-card text-center">
+          <span class="msr text-OK" style="font-size:20px;font-variation-settings:'FILL' 1">check_circle</span>
+          <p class="font-bold text-lg mt-1" id="statDone">0</p>
+          <p class="text-[10px] text-T3 font-semibold">Hechas</p>
         </div>
       </div>
-    </div>
 
-    <!-- Add IG button -->
-    <button class="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-flux-border2 text-flux-text3 text-sm font-medium hover:border-flux-accent hover:text-flux-accent transition-all duration-200">
-      <span class="material-symbols-rounded" style="font-size:18px">add</span>
-      Guardar nueva inspiración de Instagram
+      <!-- Progreso circular del día -->
+      <div class="au d2 bg-W rounded-2xl sh-card p-5 mt-4">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-[11px] font-bold text-P tracking-widest uppercase">Progreso del día</h2>
+          <span class="text-[10px] text-T3 bg-N px-2 py-1 rounded-full font-semibold">Hoy</span>
+        </div>
+        <div class="flex items-center gap-5">
+          <!-- Ring -->
+          <div class="relative flex-shrink-0">
+            <svg viewBox="0 0 120 120" class="w-28 h-28">
+              <circle cx="60" cy="60" r="50" fill="transparent" stroke="#ECF0F1" stroke-width="10"/>
+              <circle cx="60" cy="60" r="50" fill="transparent" stroke="url(#dg)" stroke-width="10"
+                      stroke-linecap="round" stroke-dasharray="314.2"
+                      id="dayRing" class="ring"/>
+              <defs>
+                <linearGradient id="dg" x1="0%" y1="0%" x2="100%">
+                  <stop offset="0%" stop-color="#344955"/>
+                  <stop offset="100%" stop-color="#F39C12"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span class="font-display font-bold text-xl g-text" id="dayFraction">0/0</span>
+              <span class="text-[10px] text-T3 font-semibold">listas</span>
+            </div>
+          </div>
+          <!-- Legend -->
+          <div class="flex-1 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-ERR"></span>
+                <span class="text-xs text-T2 font-medium">Urgentes</span>
+              </div>
+              <span class="font-bold text-sm" id="legendUrgent">0</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-WARN"></span>
+                <span class="text-xs text-T2 font-medium">En progreso</span>
+              </div>
+              <span class="font-bold text-sm" id="legendProgress">0</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-OK"></span>
+                <span class="text-xs text-T2 font-medium">Completadas</span>
+              </div>
+              <span class="font-bold text-sm" id="legendDone">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Proyectos -->
+      <div class="au d3 mt-5">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-[11px] font-bold text-P tracking-widest uppercase">Mis Proyectos</h2>
+          <button onclick="openModal('mNewProject')"
+                  class="flex items-center gap-1 text-S font-bold text-xs hover:text-SD transition-colors">
+            <span class="msr" style="font-size:16px">add</span> Nuevo
+          </button>
+        </div>
+        <div id="projectList" class="space-y-3"></div>
+      </div>
+
+      <div style="height:20px"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       VIEW: PROJECT DETAIL
+  ══════════════════════════════════════ -->
+  <div id="v-project" class="view">
+    <div style="padding:0; padding-bottom:24px;">
+
+      <!-- Hero header del proyecto -->
+      <div class="g-primary relative px-5 pt-12 pb-5" id="projHero">
+        <!-- Back -->
+        <button onclick="goBack()"
+                class="absolute top-12 left-4 w-9 h-9 rounded-xl bg-W/20 flex items-center justify-center backdrop-blur-sm">
+          <span class="msr text-W" style="font-size:20px">arrow_back_ios</span>
+        </button>
+        <!-- More -->
+        <button onclick="openProjectMenu()"
+                class="absolute top-12 right-4 w-9 h-9 rounded-xl bg-W/20 flex items-center justify-center backdrop-blur-sm">
+          <span class="msr text-W" style="font-size:20px">more_vert</span>
+        </button>
+
+        <div class="mt-8">
+          <span id="projStatusBadge"
+                class="text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full inline-block mb-2 text-P bg-S">
+            ACTIVO
+          </span>
+          <h1 id="projName" class="font-display font-bold text-2xl text-W leading-tight">Proyecto</h1>
+          <p id="projDesc" class="text-W/70 text-sm mt-1"></p>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="mt-4">
+          <div class="flex justify-between items-center mb-1.5">
+            <span class="text-W/80 text-xs font-semibold">Progreso global</span>
+            <span id="projPct" class="text-W font-bold text-sm">0%</span>
+          </div>
+          <div class="h-2 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.2)">
+            <div id="projBar" class="h-full rounded-full bg-S transition-all duration-700" style="width:0%"></div>
+          </div>
+        </div>
+
+        <!-- Quick stats -->
+        <div class="grid grid-cols-3 gap-2 mt-4">
+          <div class="bg-W/10 backdrop-blur-sm rounded-xl p-3 text-center">
+            <p id="qsTasks" class="font-bold text-lg text-W">0</p>
+            <p class="text-W/60 text-[10px] font-semibold">Tareas</p>
+          </div>
+          <div class="bg-W/10 backdrop-blur-sm rounded-xl p-3 text-center">
+            <p id="qsIG" class="font-bold text-lg text-W">0</p>
+            <p class="text-W/60 text-[10px] font-semibold">Insps IG</p>
+          </div>
+          <div class="bg-W/10 backdrop-blur-sm rounded-xl p-3 text-center">
+            <p id="qsBudget" class="font-bold text-lg text-W">S/0</p>
+            <p class="text-W/60 text-[10px] font-semibold">Presup.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="bg-W border-b border-ND sticky top-0 z-20">
+        <div class="flex overflow-x-auto scrollbar-none px-4" style="scrollbar-width:none">
+          <button onclick="switchTab('tareas')"
+                  id="tab-btn-tareas"
+                  class="tab-btn active flex-shrink-0 px-4 py-3.5 text-xs font-semibold text-T3 border-b-2 border-transparent flex items-center gap-1.5">
+            <span class="msr" style="font-size:16px">task_alt</span> Tareas
+          </button>
+          <button onclick="switchTab('planificacion')"
+                  id="tab-btn-planificacion"
+                  class="tab-btn flex-shrink-0 px-4 py-3.5 text-xs font-semibold text-T3 border-b-2 border-transparent flex items-center gap-1.5">
+            <span class="msr" style="font-size:16px">checklist</span> Planificación
+          </button>
+          <button onclick="switchTab('inspiracion')"
+                  id="tab-btn-inspiracion"
+                  class="tab-btn flex-shrink-0 px-4 py-3.5 text-xs font-semibold text-T3 border-b-2 border-transparent flex items-center gap-1.5">
+            <span class="msr" style="font-size:16px">photo_camera</span> Inspiración IG
+          </button>
+          <button onclick="switchTab('costos')"
+                  id="tab-btn-costos"
+                  class="tab-btn flex-shrink-0 px-4 py-3.5 text-xs font-semibold text-T3 border-b-2 border-transparent flex items-center gap-1.5">
+            <span class="msr" style="font-size:16px">payments</span> Costos
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB PANELS -->
+      <div class="px-5 pt-4">
+
+        <!-- ── TAREAS ── -->
+        <div id="tp-tareas" class="tab-panel active space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="text-[11px] font-bold text-P tracking-widest uppercase">Lista de Tareas</h3>
+            <button onclick="openModal('mNewTask')"
+                    class="flex items-center gap-1 text-S font-bold text-xs">
+              <span class="msr" style="font-size:16px">add</span> Agregar
+            </button>
+          </div>
+          <!-- Filter chips -->
+          <div class="flex gap-2 overflow-x-auto pb-1" style="scrollbar-width:none">
+            <button onclick="filterTasks(this,'ALL')"
+                    class="fchip flex-shrink-0 active text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all"
+                    style="background:#344955;color:#fff;border-color:#344955">Todas</button>
+            <button onclick="filterTasks(this,'TODO')"
+                    class="fchip flex-shrink-0 text-[11px] font-semibold px-3 py-1.5 rounded-full border border-ND text-T2 bg-W">Por hacer</button>
+            <button onclick="filterTasks(this,'IN_PROGRESS')"
+                    class="fchip flex-shrink-0 text-[11px] font-semibold px-3 py-1.5 rounded-full border border-ND text-T2 bg-W">En progreso</button>
+            <button onclick="filterTasks(this,'DONE')"
+                    class="fchip flex-shrink-0 text-[11px] font-semibold px-3 py-1.5 rounded-full border border-ND text-T2 bg-W">Completadas</button>
+          </div>
+          <div id="taskList" class="space-y-2.5"></div>
+        </div>
+
+        <!-- ── PLANIFICACIÓN ── -->
+        <div id="tp-planificacion" class="tab-panel space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="text-[11px] font-bold text-P tracking-widest uppercase">Pasos del Proyecto</h3>
+            <button onclick="openModal('mNewStep')"
+                    class="flex items-center gap-1 text-S font-bold text-xs">
+              <span class="msr" style="font-size:16px">add</span> Agregar
+            </button>
+          </div>
+          <div id="stepList" class="space-y-2.5"></div>
+          <!-- Banco de ideas -->
+          <div class="mt-5">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="text-[11px] font-bold text-P tracking-widest uppercase">Banco de Ideas</h3>
+              <button onclick="openModal('mNewNote')"
+                      class="flex items-center gap-1 text-S font-bold text-xs">
+                <span class="msr" style="font-size:16px">add</span> Nota
+              </button>
+            </div>
+            <div id="noteList" class="space-y-2.5"></div>
+          </div>
+        </div>
+
+        <!-- ── INSPIRACIÓN IG ── -->
+        <div id="tp-inspiracion" class="tab-panel space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="text-[11px] font-bold text-P tracking-widest uppercase">Inspiraciones de Instagram</h3>
+            <button onclick="openModal('mNewIG')"
+                    class="flex items-center gap-1 text-S font-bold text-xs">
+              <span class="msr" style="font-size:16px">add</span> Guardar
+            </button>
+          </div>
+          <div id="igList" class="space-y-3"></div>
+          <!-- Empty CTA -->
+          <button onclick="openModal('mNewIG')"
+                  class="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-NDD text-T3 text-sm font-semibold hover:border-IGPK hover:text-IGPK transition-all bg-W sh-card">
+            <span class="msr" style="font-size:20px">photo_camera</span>
+            Guardar nueva inspiración de Instagram
+          </button>
+        </div>
+
+        <!-- ── COSTOS ── -->
+        <div id="tp-costos" class="tab-panel space-y-3">
+          <!-- Finance card -->
+          <div class="bg-W rounded-2xl sh-card overflow-hidden">
+            <div class="g-primary p-5">
+              <p class="text-W/70 text-[11px] font-bold tracking-widest uppercase mb-3">Resumen Financiero</p>
+              <div class="grid grid-cols-3 gap-3">
+                <div class="text-center">
+                  <p class="text-W/60 text-[10px] font-semibold uppercase mb-1">Presupuesto</p>
+                  <p id="finBudget" class="font-display font-bold text-xl text-W">S/ 0</p>
+                </div>
+                <div class="text-center">
+                  <p class="text-[10px] font-semibold uppercase mb-1" style="color:rgba(231,76,60,.9)">Gastado</p>
+                  <p id="finSpent" class="font-display font-bold text-xl text-W">S/ 0</p>
+                </div>
+                <div class="text-center">
+                  <p class="text-[10px] font-semibold uppercase mb-1" style="color:rgba(39,174,96,.9)">Disponible</p>
+                  <p id="finLeft" class="font-display font-bold text-xl text-W">S/ 0</p>
+                </div>
+              </div>
+              <div class="mt-4 h-2 rounded-full overflow-hidden" style="background:rgba(255,255,255,.2)">
+                <div id="finBar" class="h-full rounded-full bg-S transition-all duration-700" style="width:0%"></div>
+              </div>
+              <div class="flex justify-between mt-1.5">
+                <span class="text-W/50 text-[10px]">0%</span>
+                <span id="finPct" class="text-W/80 text-[10px] font-bold">0% utilizado</span>
+                <span class="text-W/50 text-[10px]">100%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Expense list -->
+          <div class="flex justify-between items-center mt-2">
+            <h3 class="text-[11px] font-bold text-P tracking-widest uppercase">Gastos Registrados</h3>
+            <button onclick="openModal('mNewExpense')"
+                    class="flex items-center gap-1 text-S font-bold text-xs">
+              <span class="msr" style="font-size:16px">add</span> Registrar
+            </button>
+          </div>
+          <div id="expenseList" class="space-y-2.5"></div>
+        </div>
+
+      </div><!-- /tab panels -->
+
+      <div style="height:24px"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       BOTTOM NAV
+  ══════════════════════════════════════ -->
+  <nav class="bg-W border-t border-ND flex justify-around items-center px-4 py-2"
+       style="position:absolute;bottom:0;left:0;right:0;height:64px;z-index:50;box-shadow:0 -4px 12px rgba(52,73,85,.08)">
+    <button onclick="navigate('dashboard')" id="nb-dashboard"
+            class="nb flex flex-col items-center px-3 py-1.5 rounded-xl transition-all">
+      <span class="msr" style="font-size:22px">dashboard</span>
+      <span class="text-[10px] font-semibold mt-0.5">Inicio</span>
     </button>
-  </section>
+    <button onclick="navigate('projects-tab')" id="nb-projects"
+            class="nb flex flex-col items-center px-3 py-1.5 rounded-xl transition-all">
+      <span class="msr" style="font-size:22px">folder_open</span>
+      <span class="text-[10px] font-semibold mt-0.5">Proyectos</span>
+    </button>
+    <!-- FAB center -->
+    <button onclick="openModal('mQuickAdd')"
+            class="w-13 h-13 rounded-full flex items-center justify-center text-W fab g-secondary -mt-5"
+            style="width:52px;height:52px;">
+      <span class="msr font-bold" style="font-size:26px">add</span>
+    </button>
+    <button onclick="navigate('tasks-tab')" id="nb-tasks"
+            class="nb flex flex-col items-center px-3 py-1.5 rounded-xl transition-all">
+      <span class="msr" style="font-size:22px">task_alt</span>
+      <span class="text-[10px] font-semibold mt-0.5">Tareas</span>
+    </button>
+    <button onclick="navigate('profile')" id="nb-profile"
+            class="nb flex flex-col items-center px-3 py-1.5 rounded-xl transition-all">
+      <span class="msr" style="font-size:22px">person</span>
+      <span class="text-[10px] font-semibold mt-0.5">Perfil</span>
+    </button>
+  </nav>
 
-  <!-- ─── Resumen Financiero ─── -->
-  <section class="animate-in delay-4 bg-flux-surface rounded-2xl border border-flux-border p-5">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xs font-bold text-flux-accent tracking-widest uppercase">Finanzas del Mes</h2>
-      <span class="text-[10px] text-flux-text3 bg-flux-bg3 px-2 py-1 rounded-full font-medium">Julio 2025</span>
-    </div>
-    <div class="grid grid-cols-3 gap-3 mb-4">
-      <div class="text-center">
-        <p class="text-[10px] text-flux-text3 font-semibold uppercase tracking-wider mb-1">Presupuesto</p>
-        <p class="font-display font-bold text-lg text-flux-text">S/ 8,000</p>
+</div><!-- /app -->
+
+<!-- ══════════════════════════════════════
+     MODALS
+══════════════════════════════════════ -->
+
+<!-- New Project -->
+<div id="mNewProject" class="modal-wrap hidden">
+  <div class="modal-sheet">
+    <div class="mhandle"></div>
+    <h3 class="font-display font-bold text-xl text-T1 mb-5">Nuevo Proyecto</h3>
+    <div class="space-y-4">
+      <div>
+        <label class="text-[11px] font-bold text-T3 uppercase tracking-widest block mb-2">Nombre *</label>
+        <input id="inp-pName" type="text" placeholder="Ej: Campaña Verano 2025"
+               class="w-full bg-N border border-ND rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-P"/>
       </div>
-      <div class="text-center">
-        <p class="text-[10px] text-flux-red font-semibold uppercase tracking-wider mb-1">Gastado</p>
-        <p class="font-display font-bold text-lg text-flux-red">S/ 5,200</p>
+      <div>
+        <label class="text-[11px] font-bold text-T3 uppercase tracking-widest block mb-2">Descripción</label>
+        <textarea id="inp-pDesc" rows="3" placeholder="¿De qué trata este proyecto?"
+                  class="w-full bg-N border border-ND rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-P resize-none"></textarea>
       </div>
-      <div class="text-center">
-        <p class="text-[10px] text-flux-green font-semibold uppercase tracking-wider mb-1">Disponible</p>
-        <p class="font-display font-bold text-lg text-flux-green">S/ 2,800</p>
+      <div>
+        <label class="text-[11px] font-bold text-T3 uppercase tracking-widest block mb-2">Presupuesto (S/)</label>
+        <input id="inp-pBudget" type="number" placeholder="0.00" min="0"
+               class="w-full bg-N border border-ND rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-P"/>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button onclick="closeModal('mNewProject')"
+                class="flex-1 py-3 rounded-xl border border-ND text-T2 font-semibold text-sm">Cancelar</button>
+        <button onclick="createProject()"
+                class="flex-1 py-3 rounded-xl text-W font-bold text-sm g-primary sh-p">Crear Proyecto</button>
       </div>
     </div>
-    <!-- Budget bar -->
-    <div class="h-2 w-full rounded-full overflow-hidden" style="background: rgba(255,255,255,0.06)">
-      <div class="h-full rounded-full" style="width:65%; background: linear-gradient(90deg, #f97316, #ef4444)"></div>
+  </div>
+</div>
+
+<!-- New Task -->
+<div id="mNewTask" class="modal-wrap hidden">
+  <div class="modal-sheet">
+    <div class="mhandle"></div>
+    <h3 class="font-display font-bold text-xl text-T1 mb-5">Nueva Tarea</h3>
+    <div class="space-y-4">
+      <div>
+        <label class="text-[11px] font-bold text-T3 uppercase tracking-widest block mb-2">Título *</label>
+        <input id="inp-tTitle" type="text" placeholder="Ej: Diseñar brief de contenido"
+               class="w-full bg-N border border-ND rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-P"/>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-[11px] font-bold text-T3 uppercase tracking-widest block mb-2">Prioridad</label>
+          <select id="inp-tPriority"
+                  class="w-full bg-N border border-ND rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-P">
+            <option value="LOW">🟢 Baja</option>
+            <option value="MEDIUM" selected>🟡 Media</option>
+            <option value="HIGH">🟠 Alta</option>
+            <option value="CRITICAL">🔴 Crítica</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-T3 uppercase tracking-widest block mb-2">Fecha límite</label>
+          <input id="inp-tDue" type="date"
+                 class="w-full bg-N border border-ND rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-P"/>
+        </div>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button onclick="closeModal('mNewTask')"
+                class="flex-1 py-3 rounded-xl border border-ND text-T2 font-semibold text-sm">Cancelar</button>
+        <button onclick="createTask()"
+                class="flex-1 py-3 rounded-xl text-W font-bold text-sm g-primary sh-p">Crear Tarea</button>
+      </div>
     </div>
-    <p class="text-[10px] text-flux-text3 mt-2 text-right font-medium">65% del presupuesto utilizado</p>
-  </section>
+  </div>
+</div>
 
-  <div class="h-4"></div>
-</main>
+<!-- New Step -->
+<div id="mNewStep" class="modal-wrap hidden">
+  <div class="modal-sheet">
+    <div class="mhandle"></div>
+    <h3 class="font-display font-bold text-xl text-T1 mb-5">Nuevo Paso de Planificación</h3>
+    <div class="space-y-4">
+      <div>
+        <label class="text-[11px] font-bold text-T3 uppercase tracking-widest block mb-2">Paso *</label>
+        <input id="inp-sTitle" type="text" placeholder="Ej: Definir audiencia objetivo"
+               class="w-full bg-N border border-ND rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-P"/>
+      </div>
+      <div>
+        <label class="text-[11px] font-bold text-T3 uppercase tracking-widest block mb-2">Detalle</label>
+        <textarea id="inp-sBody" rows="2" placeholder="Descripción del paso..."
+                  class="w-full bg-N border border-ND rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-P resize-none"></textarea>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button onclick="closeModal('mNewStep')"
+                class="flex-1 py-3 rounded-xl border border-ND text-T2 font-semibold text-sm">Cancelar</button>
+        <button onclick="createStep()"
+                class="flex-1 py-3 rounded-xl text-W font-bold text-sm g-primary sh-p">Agregar Paso</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-<!-- ═══════════════════════════════════════
-     FAB
-═══════════════════════════════════════ -->
-<button class="fixed bottom-24 right-5 w-14 h-14 rounded-full flex items-center justify-center text-white fab-pulse transition-transform hover:scale-105 active:scale-95 z-50"
-        style="background: linear-gradient(135deg, #7c5cfc, #5a3fcc)">
-  <span class="material-symbols-rounded font-bold" style="font-size:26px">add</span>
-</button>
+<!-- New Note -->
+<div id="mNewNote" class="modal-wrap hidden">
+  <div class="modal-sheet">
+    <div class="mhandle"></div>
+    <h3 class="font-display font-bold text-xl text-T1 mb-5">Nueva Nota / Idea</h3>
+    <div class="space-y-4">
+      <div>
+        <label class="text-[11px] font-bold text-T3 uppercase tracking-widest block mb-2">Título</label>
+        <input id="inp-nTitle" type="text" placeholder="Ej: Paleta de colores"
+               class="w-full bg-N border border-ND rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-P"/>
+      </div>
+      <div>
+        <label class="text-[11px] font-bold text-T3 uppercase tracking-widest block mb-2">Idea *</label>
+        <textarea id="inp-nBody" rows="4" placeholder="Escribe tu idea aquí..."
+                  class="w-full bg-N border border-ND rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-P resize-none"></textarea>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button onclick="closeModal('mNewNote')"
+                class="flex-1 py-3 rounded-xl border border-ND text-T2 font-semibold text-sm">Cancelar</button>
+        <button onclick="createNote()"
+                class="flex-1 py-3 rounded-xl text-W font-bold text-sm g-primary sh-p">Guardar Idea</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-<!-- ═══════════════════════════════════════
-     BOTTOM NAV
-═══════════════════════════════════════ -->
-<nav class="glass fixed bottom-0 w-full z-50 border-t border-flux-border flex justify-around items-center px-4 py-2">
+<!-- New IG -->
+<div id="mNewIG" class="modal-wrap hidden">
+  <div class="modal-sheet">
+    <div class="mhandle"></div>
+    <!-- IG header deco -->
+    <div class="rounded-2xl p-4 mb-5 flex items-center gap-3"
+         style="background:linear-gradient(135deg,rgba(131,58,180,.12),rgba(193,53,132,.12),rgba(247,119,55,.12));
+                border:1.5px solid rgba(193,53,132,.25)">
+      <span class="msr text-3xl" style="font-variation-settings:'FILL' 1;
+            background:linear-gradient(135deg,#833ab4,#c13584,#f77737);
+            -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">photo_camera</span>
+      <div>
+        <p class="font-bold text-sm text-T1">Guardar Inspiración de Instagram</p>
+        <p class="text-T3 text-xs">Vincula un Reel o Post al proyecto</p>
+      </div>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="text-[11px] font-bold text-T3 uppercase tracking-widest block mb-2">URL de Instagram *</label>
+        <input id="inp-igUrl" type="url" placeholder="https://www.instagram.com/reel/..."
+               class="w-full bg-N border border-ND rounded-xl px-4 py-3 text-sm focus:outline-none"
+               style="focus:border-color:#c13584"/>
+      </div>
+      <div>
+        <label class="text-[11px] font-bold text-T3 uppercase tracking-widest block mb-2">¿Por qué te inspira? *</label>
+        <textarea id="inp-igNote" rows="3"
+                  placeholder="Ej: Me encanta el ritmo del reel, quiero algo similar para mi campaña..."
+                  class="w-full bg-N border border-ND rounded-xl px-4 py-3 text-sm focus:outline-none resize-none"></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-[11px] font-bold text-T3 uppercase tracking-widest block mb-2">Usuario IG</label>
+          <input id="inp-igAuthor" type="text" placeholder="@usuario"
+                 class="w-full bg-N border border-ND rounded-xl px-4 py-3 text-sm focus:outline-none"/>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-T3 uppercase tracking-widest block mb-2">URL miniatura</label>
+          <input id="inp-igThumb" type="url" placeholder="https://..."
+                 class="w-full bg-N border border-ND rounded-xl px-4 py-3 text-sm focus:outline-none"/>
+        </div>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button onclick="closeModal('mNewIG')"
+                class="flex-1 py-3 rounded-xl border border-ND text-T2 font-semibold text-sm">Cancelar</button>
+        <button onclick="createIG()"
+                class="flex-1 py-3 rounded-xl text-W font-bold text-sm"
+                style="background:linear-gradient(135deg,#833ab4,#c13584,#f77737);
+                       box-shadow:0 6px 16px rgba(193,53,132,.35)">
+          Guardar Inspiración
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
-  <!-- Dashboard (Active) -->
-  <a class="flex flex-col items-center justify-center px-4 py-2 rounded-xl transition-all duration-200 relative"
-     style="background: rgba(124,92,252,0.15)" href="#">
-    <span class="material-symbols-rounded text-flux-accent" style="font-variation-settings:'FILL' 1;font-size:22px">dashboard</span>
-    <span class="text-[10px] font-semibold text-flux-accent mt-0.5">Inicio</span>
-  </a>
+<!-- New Expense -->
+<div id="mNewExpense" class="modal-wrap hidden">
+  <div class="modal-sheet">
+    <div class="mhandle"></div>
+    <h3 class="font-display font-bold text-xl text-T1 mb-5">Registrar Gasto</h3>
+    <div class="space-y-4">
+      <div>
+        <label class="text-[11px] font-bold text-T3 uppercase tracking-widest block mb-2">Descripción *</label>
+        <input id="inp-eDesc" type="text" placeholder="Ej: Diseñador freelance"
+               class="w-full bg-N border border-ND rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-P"/>
+      </div>
+      <div>
+        <label class="text-[11px] font-bold text-T3 uppercase tracking-widest block mb-2">Monto (S/) *</label>
+        <input id="inp-eAmount" type="number" placeholder="0.00" min="0" step="0.01"
+               class="w-full bg-N border border-ND rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-P"/>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button onclick="closeModal('mNewExpense')"
+                class="flex-1 py-3 rounded-xl border border-ND text-T2 font-semibold text-sm">Cancelar</button>
+        <button onclick="createExpense()"
+                class="flex-1 py-3 rounded-xl text-W font-bold text-sm g-primary sh-p">Registrar Gasto</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-  <!-- Projects -->
-  <a class="flex flex-col items-center justify-center px-4 py-2 rounded-xl text-flux-text3 hover:text-flux-text hover:bg-flux-bg3 transition-all duration-200" href="#">
-    <span class="material-symbols-rounded" style="font-size:22px">folder_open</span>
-    <span class="text-[10px] font-medium mt-0.5">Proyectos</span>
-  </a>
+<!-- Quick Add -->
+<div id="mQuickAdd" class="modal-wrap hidden">
+  <div class="modal-sheet" style="max-height:60dvh">
+    <div class="mhandle"></div>
+    <h3 class="font-display font-bold text-xl text-T1 mb-4">Acción Rápida</h3>
+    <div class="space-y-3">
+      <button onclick="closeModal('mQuickAdd');openModal('mNewProject')"
+              class="lift w-full bg-N rounded-xl p-4 flex items-center gap-4 text-left border border-ND sh-card">
+        <span class="w-11 h-11 rounded-xl g-primary flex items-center justify-center text-W msr sh-p"
+              style="font-size:20px;font-variation-settings:'FILL' 1">add_circle</span>
+        <div>
+          <p class="font-bold text-sm text-T1">Nuevo Proyecto</p>
+          <p class="text-T3 text-xs mt-0.5">Crea un proyecto desde cero</p>
+        </div>
+      </button>
+      <button onclick="closeModal('mQuickAdd');quickTask()"
+              class="lift w-full bg-N rounded-xl p-4 flex items-center gap-4 text-left border border-ND sh-card">
+        <span class="w-11 h-11 rounded-xl flex items-center justify-center text-W msr"
+              style="font-size:20px;font-variation-settings:'FILL' 1;background:linear-gradient(135deg,#F39C12,#f7b731);box-shadow:0 4px 12px rgba(243,156,18,.35)">playlist_add</span>
+        <div>
+          <p class="font-bold text-sm text-T1">Nueva Tarea</p>
+          <p class="text-T3 text-xs mt-0.5">Agrega una tarea a un proyecto</p>
+        </div>
+      </button>
+      <button onclick="closeModal('mQuickAdd');quickIG()"
+              class="lift w-full bg-N rounded-xl p-4 flex items-center gap-4 text-left border border-ND sh-card">
+        <span class="w-11 h-11 rounded-xl flex items-center justify-center text-W msr"
+              style="font-size:20px;font-variation-settings:'FILL' 1;background:linear-gradient(135deg,#833ab4,#c13584,#f77737);box-shadow:0 4px 12px rgba(193,53,132,.35)">photo_camera</span>
+        <div>
+          <p class="font-bold text-sm text-T1">Inspiración de Instagram</p>
+          <p class="text-T3 text-xs mt-0.5">Vincula un Reel o Post al proyecto</p>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
 
-  <!-- Inspiration (IG) -->
-  <a class="flex flex-col items-center justify-center px-4 py-2 rounded-xl text-flux-text3 hover:text-flux-text hover:bg-flux-bg3 transition-all duration-200" href="#">
-    <span class="material-symbols-rounded" style="font-size:22px">photo_camera</span>
-    <span class="text-[10px] font-medium mt-0.5">Inspiración</span>
-  </a>
+<!-- Toast -->
+<div id="toastEl" class="toast hidden"></div>
 
-  <!-- Tasks -->
-  <a class="flex flex-col items-center justify-center px-4 py-2 rounded-xl text-flux-text3 hover:text-flux-text hover:bg-flux-bg3 transition-all duration-200" href="#">
-    <span class="material-symbols-rounded" style="font-size:22px">task_alt</span>
-    <span class="text-[10px] font-medium mt-0.5">Tareas</span>
-  </a>
-
-  <!-- Profile -->
-  <a class="flex flex-col items-center justify-center px-4 py-2 rounded-xl text-flux-text3 hover:text-flux-text hover:bg-flux-bg3 transition-all duration-200" href="#">
-    <span class="material-symbols-rounded" style="font-size:22px">person</span>
-    <span class="text-[10px] font-medium mt-0.5">Perfil</span>
-  </a>
-</nav>
-
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
 <script>
-  // Ripple effect
-  document.querySelectorAll('a, button').forEach(el => {
-    el.style.position = 'relative';
-    el.style.overflow = 'hidden';
-    el.addEventListener('click', function(e) {
-      const rect = this.getBoundingClientRect();
-      const size = Math.max(rect.width, rect.height) * 2;
-      const ripple = document.createElement('div');
-      ripple.classList.add('ripple');
-      ripple.style.width = ripple.style.height = size + 'px';
-      ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
-      ripple.style.top  = (e.clientY - rect.top  - size / 2) + 'px';
-      this.appendChild(ripple);
-      setTimeout(() => ripple.remove(), 700);
+/* ── DATA LAYER ── */
+const DB = {
+  _u(){ return 'xxxx-xxxx'.replace(/x/g,()=>(Math.random()*16|0).toString(16)); },
+  _n(){ return new Date().toISOString(); },
+  _g(k){ return JSON.parse(localStorage.getItem('flux_'+k)||'[]'); },
+  _s(k,v){ localStorage.setItem('flux_'+k,JSON.stringify(v)); },
+  /* Projects */
+  projects(){ return this._g('projects'); },
+  project(id){ return this.projects().find(p=>p.id===id)||null; },
+  createProject(d){
+    const p={id:this._u(),name:d.name,desc:d.desc||'',status:'ACTIVE',
+             budget:parseFloat(d.budget)||0,created:this._n()};
+    const a=this.projects(); a.unshift(p); this._s('projects',a); return p;
+  },
+  updateProject(id,f){
+    const a=this.projects(),i=a.findIndex(p=>p.id===id);
+    if(i<0)return; a[i]={...a[i],...f}; this._s('projects',a); return a[i];
+  },
+  deleteProject(id){
+    this._s('projects',this.projects().filter(p=>p.id!==id));
+    this._s('tasks',this.tasks().filter(t=>t.pid!==id));
+    this._s('content',this.content().filter(c=>c.pid!==id));
+    this._s('expenses',this.expenses().filter(e=>e.pid!==id));
+  },
+  progress(id){
+    const t=this.tasksByProject(id);
+    return t.length?Math.round(t.filter(x=>x.status==='DONE').length/t.length*100):0;
+  },
+  /* Tasks */
+  tasks(){ return this._g('tasks'); },
+  task(id){ return this.tasks().find(t=>t.id===id)||null; },
+  tasksByProject(pid){ return this.tasks().filter(t=>t.pid===pid); },
+  createTask(d){
+    const t={id:this._u(),pid:d.pid,title:d.title,priority:d.priority||'MEDIUM',
+             status:'TODO',due:d.due||null,created:this._n()};
+    const a=this.tasks(); a.unshift(t); this._s('tasks',a); return t;
+  },
+  updateTask(id,f){
+    const a=this.tasks(),i=a.findIndex(t=>t.id===id);
+    if(i<0)return; a[i]={...a[i],...f}; this._s('tasks',a); return a[i];
+  },
+  deleteTask(id){ this._s('tasks',this.tasks().filter(t=>t.id!==id)); },
+  /* Content (steps, notes, IG) */
+  content(){ return this._g('content'); },
+  contentByProject(pid){ return this.content().filter(c=>c.pid===pid); },
+  createContent(d){
+    const c={id:this._u(),pid:d.pid,type:d.type,title:d.title||'',
+             body:d.body||'',ig_url:d.ig_url||null,ig_thumb:d.ig_thumb||null,
+             ig_author:d.ig_author||null,ig_note:d.ig_note||null,
+             done:false,created:this._n()};
+    const a=this.content(); a.unshift(c); this._s('content',a); return c;
+  },
+  updateContent(id,f){
+    const a=this.content(),i=a.findIndex(c=>c.id===id);
+    if(i<0)return; a[i]={...a[i],...f}; this._s('content',a); return a[i];
+  },
+  deleteContent(id){ this._s('content',this.content().filter(c=>c.id!==id)); },
+  /* Expenses */
+  expenses(){ return this._g('expenses'); },
+  expensesByProject(pid){ return this.expenses().filter(e=>e.pid===pid); },
+  createExpense(d){
+    const e={id:this._u(),pid:d.pid,desc:d.desc,amount:parseFloat(d.amount),created:this._n()};
+    const a=this.expenses(); a.unshift(e); this._s('expenses',a); return e;
+  },
+  deleteExpense(id){ this._s('expenses',this.expenses().filter(e=>e.id!==id)); },
+  totalSpent(pid){ return this.expensesByProject(pid).reduce((s,e)=>s+e.amount,0); },
+  /* Stats */
+  stats(){
+    const t=this.tasks();
+    return {
+      projects:this.projects().length,
+      tasks:t.length,
+      done:t.filter(x=>x.status==='DONE').length,
+      inProgress:t.filter(x=>x.status==='IN_PROGRESS').length,
+      critical:t.filter(x=>x.priority==='CRITICAL'&&x.status!=='DONE').length,
+      ig:this.content().filter(c=>c.type==='IG').length
+    };
+  },
+  clearAll(){
+    ['projects','tasks','content','expenses'].forEach(k=>localStorage.removeItem('flux_'+k));
+  }
+};
+
+/* ── STATE ── */
+let currentProjectId = null;
+let taskFilter = 'ALL';
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded', ()=>{
+  seedDemo();
+  setDateGreeting();
+  renderDashboard();
+  setNavActive('nb-dashboard');
+  rippleAll();
+});
+
+function seedDemo(){
+  if(DB.projects().length>0) return;
+  const p1=DB.createProject({name:'Campaña Verano 2025',desc:'Estrategia de contenido para redes sociales.',budget:5000});
+  const p2=DB.createProject({name:'Rediseño de Marca',desc:'Actualización completa de identidad visual.',budget:3200});
+  const p3=DB.createProject({name:'Lanzamiento App Flux',desc:'Desarrollo y marketing del producto.',budget:12000});
+  DB.updateProject(p2.id,{status:'PLANNING'});
+  const t1=DB.createTask({pid:p1.id,title:'Diseñar brief de contenido',priority:'HIGH',due:'2025-07-20'});
+  DB.createTask({pid:p1.id,title:'Grabar vídeos de producto',priority:'HIGH'});
+  DB.createTask({pid:p1.id,title:'Editar reel principal',priority:'MEDIUM'});
+  DB.createTask({pid:p1.id,title:'Publicar en redes',priority:'LOW'});
+  DB.updateTask(t1.id,{status:'DONE'});
+  DB.createTask({pid:p2.id,title:'Investigación de competencia',priority:'MEDIUM'});
+  DB.createTask({pid:p2.id,title:'Propuesta de paleta de colores',priority:'HIGH'});
+  DB.createTask({pid:p3.id,title:'Definir MVP',priority:'CRITICAL'});
+  DB.createTask({pid:p3.id,title:'Wireframes de la app',priority:'HIGH'});
+  DB.createContent({pid:p1.id,type:'STEP',title:'Definir audiencia objetivo',body:'Mujeres 25-35, interés en moda.'});
+  DB.createContent({pid:p1.id,type:'STEP',title:'Crear calendario editorial',body:'3 posts semanales en julio.'});
+  DB.createContent({pid:p1.id,type:'NOTE',title:'Paleta de colores',body:'Tonos cálidos: naranja, coral y beige. Referencia Zara 2024.'});
+  DB.createContent({pid:p1.id,type:'IG',ig_url:'https://www.instagram.com/reel/ejemplo/',ig_author:'@influencer.moda',ig_note:'Me encanta la iluminación y el ritmo. Quiero algo similar.'});
+  DB.createExpense({pid:p1.id,desc:'Fotógrafo freelance',amount:800});
+  DB.createExpense({pid:p1.id,desc:'Ropa para shooting',amount:350});
+  DB.createExpense({pid:p3.id,desc:'Servidor y dominio',amount:450});
+}
+
+/* ── DATE / GREETING ── */
+function setDateGreeting(){
+  const h=new Date().getHours();
+  const g=h<12?'Buenos días':'h<18?Buenas tardes':h<18?'Buenas tardes':'Buenas noches';
+  const greeting=h<12?'Buenos días ☀️':h<18?'Buenas tardes 🌤':'Buenas noches 🌙';
+  const days=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const d=new Date();
+  const el=document.getElementById('dashDate');
+  if(el) el.textContent=`${days[d.getDay()]}, ${d.getDate()} de ${months[d.getMonth()]}`;
+  const gel=document.getElementById('dashGreeting');
+  if(gel) gel.textContent=greeting+', Creador 👋';
+}
+
+/* ── NAVIGATION ── */
+function navigate(page){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>{
+    b.style.background=''; b.style.color='#95a5a6';
+    b.querySelector('.msr').style.fontVariationSettings="'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24";
+  });
+
+  if(page==='dashboard'||page==='projects-tab'||page==='tasks-tab'||page==='profile'){
+    document.getElementById('v-dashboard').classList.add('active');
+    if(page==='projects-tab') scrollToProjects();
+    renderDashboard();
+    const nbId = page==='dashboard'?'nb-dashboard':
+                 page==='projects-tab'?'nb-projects':
+                 page==='tasks-tab'?'nb-tasks':'nb-profile';
+    setNavActive(nbId);
+  }
+}
+
+function setNavActive(id){
+  const btn=document.getElementById(id);
+  if(!btn) return;
+  btn.style.background='rgba(52,73,85,0.08)';
+  btn.style.color='#344955';
+  const icon=btn.querySelector('.msr');
+  if(icon) icon.style.fontVariationSettings="'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24";
+}
+
+function scrollToProjects(){
+  setTimeout(()=>{
+    const el=document.getElementById('projectList');
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  },100);
+}
+
+function openProject(id){
+  currentProjectId=id;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const pv=document.getElementById('v-project');
+  pv.classList.add('active');
+  pv.classList.add('slide-in');
+  setTimeout(()=>pv.classList.remove('slide-in'),400);
+  taskFilter='ALL';
+  renderProjectDetail(id);
+  // Reset tab
+  switchTab('tareas');
+}
+
+function goBack(){
+  const pv=document.getElementById('v-project');
+  pv.classList.add('slide-out');
+  setTimeout(()=>{
+    pv.classList.remove('slide-out','active');
+    document.getElementById('v-dashboard').classList.add('active');
+    renderDashboard();
+    setNavActive('nb-dashboard');
+  },250);
+}
+
+/* ── DASHBOARD RENDER ── */
+function renderDashboard(){
+  const stats=DB.stats();
+  setText('statProj',stats.projects);
+  setText('statTask',stats.tasks);
+  setText('statDone',stats.done);
+
+  // Update subtitle
+  const sub=document.getElementById('dashSubtitle');
+  if(sub){
+    const crit=DB.tasks().filter(t=>t.priority==='CRITICAL'&&t.status!=='DONE').length;
+    sub.innerHTML=crit>0
+      ?`Tienes <span class="font-bold" style="color:#e74c3c">${crit} tarea${crit>1?'s':''} crítica${crit>1?'s':''}</span> pendiente${crit>1?'s':''}.`
+      :`Todo va bien. ¡Sigue así! 💪`;
+  }
+
+  // Ring
+  const total=stats.tasks;
+  const done=stats.done;
+  const pct=total?done/total:0;
+  const circ=2*Math.PI*50; // r=50
+  const offset=circ*(1-pct);
+  const ring=document.getElementById('dayRing');
+  if(ring){ ring.style.strokeDashoffset=offset; ring.setAttribute('stroke-dasharray',circ); }
+  setText('dayFraction',`${done}/${total}`);
+  setText('legendUrgent',stats.critical);
+  setText('legendProgress',stats.inProgress);
+  setText('legendDone',stats.done);
+
+  // Project list
+  const pl=document.getElementById('projectList');
+  if(!pl) return;
+  const projects=DB.projects();
+  if(!projects.length){
+    pl.innerHTML=emptyState('folder_open','No hay proyectos. Toca + para crear uno.');
+    return;
+  }
+  pl.innerHTML=projects.map(p=>projectCard(p)).join('');
+}
+
+function projectCard(p){
+  const pct=DB.progress(p.id);
+  const tasks=DB.tasksByProject(p.id);
+  const done=tasks.filter(t=>t.status==='DONE').length;
+  const igCount=DB.contentByProject(p.id).filter(c=>c.type==='IG').length;
+  const spent=DB.totalSpent(p.id);
+  const statusColor={ACTIVE:'#27ae60',PLANNING:'#F39C12',COMPLETED:'#2980b9',ON_HOLD:'#95a5a6'}[p.status]||'#95a5a6';
+  const statusLabel={ACTIVE:'Activo',PLANNING:'Planificando',COMPLETED:'Completado',ON_HOLD:'En espera'}[p.status]||p.status;
+  return `
+    <div onclick="openProject('${p.id}')"
+         class="lift bg-W rounded-2xl sh-card border border-ND overflow-hidden cursor-pointer relative">
+      <!-- Color accent bar -->
+      <div class="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-2xl g-primary"></div>
+      <div class="pl-5 pr-4 py-4">
+        <div class="flex justify-between items-start mb-1">
+          <h3 class="font-display font-bold text-base text-T1 leading-tight flex-1 mr-2">${esc(p.name)}</h3>
+          <span class="text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full shrink-0"
+                style="background:${statusColor}20;color:${statusColor}">${statusLabel}</span>
+        </div>
+        ${p.desc?`<p class="text-T3 text-xs mb-3 line-clamp-1">${esc(p.desc)}</p>`:'<div class="mb-3"></div>'}
+        <!-- Progress -->
+        <div class="mb-3">
+          <div class="flex justify-between mb-1">
+            <span class="text-[10px] text-T3 font-semibold">Progreso</span>
+            <span class="text-[10px] font-bold text-P">${pct}%</span>
+          </div>
+          <div class="h-1.5 rounded-full overflow-hidden bg-N">
+            <div class="h-full rounded-full g-both transition-all duration-500" style="width:${pct}%"></div>
+          </div>
+        </div>
+        <!-- Meta chips -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="flex items-center gap-1 text-[10px] text-T2 bg-N px-2 py-1 rounded-full font-semibold">
+            <span class="msr" style="font-size:12px">task_alt</span> ${done}/${tasks.length} tareas
+          </span>
+          ${igCount>0?`<span class="text-[10px] font-semibold px-2 py-1 rounded-full"
+            style="background:rgba(193,53,132,.1);color:#c13584">📸 ${igCount} IG</span>`:''}
+          ${spent>0?`<span class="text-[10px] text-T2 bg-N px-2 py-1 rounded-full font-semibold">💰 S/ ${spent.toFixed(0)}</span>`:''}
+        </div>
+      </div>
+      <!-- Arrow -->
+      <div class="absolute right-4 top-1/2 -translate-y-1/2">
+        <span class="msr text-NDD" style="font-size:20px">chevron_right</span>
+      </div>
+    </div>`;
+}
+
+/* ── PROJECT DETAIL RENDER ── */
+function renderProjectDetail(id){
+  const p=DB.project(id);
+  if(!p) return;
+  const pct=DB.progress(id);
+  const tasks=DB.tasksByProject(id);
+  const content=DB.contentByProject(id);
+  const igItems=content.filter(c=>c.type==='IG');
+  const spent=DB.totalSpent(id);
+
+  // Hero
+  setText('projName',p.name);
+  setText('projDesc',p.desc||'');
+  setText('projPct',pct+'%');
+  document.getElementById('projBar').style.width=pct+'%';
+
+  const statusLabel={ACTIVE:'ACTIVO',PLANNING:'PLANIFICANDO',COMPLETED:'COMPLETADO',ON_HOLD:'EN ESPERA'}[p.status]||p.status;
+  setText('projStatusBadge',statusLabel);
+
+  setText('qsTasks',tasks.length);
+  setText('qsIG',igItems.length);
+  setText('qsBudget','S/ '+(p.budget||0));
+
+  renderTaskList(id);
+  renderStepList(id);
+  renderNoteList(id);
+  renderIGList(id);
+  renderFinance(id);
+}
+
+function renderTaskList(id){
+  let tasks=DB.tasksByProject(id);
+  if(taskFilter!=='ALL') tasks=tasks.filter(t=>t.status===taskFilter);
+  const el=document.getElementById('taskList');
+  if(!el) return;
+  el.innerHTML=tasks.length
+    ? tasks.map(t=>taskCard(t)).join('')
+    : emptyState('task_alt','Sin tareas. Toca + para agregar.');
+}
+
+function taskCard(t){
+  const isDone=t.status==='DONE';
+  const prColors={LOW:'#27ae60',MEDIUM:'#F39C12',HIGH:'#e67e22',CRITICAL:'#e74c3c'};
+  const prLabels={LOW:'Baja',MEDIUM:'Media',HIGH:'Alta',CRITICAL:'Crítica'};
+  const due=t.due?formatDateShort(t.due):'';
+  const overdue=t.due&&new Date(t.due)<new Date()&&!isDone;
+  return `
+    <div class="bg-W rounded-xl sh-card border border-ND flex items-center gap-3 p-3.5 relative overflow-hidden">
+      <div class="abar" style="background:${prColors[t.priority]||'#95a5a6'}"></div>
+      <div class="task-cb ${isDone?'done':''} ml-1"
+           onclick="toggleTask('${t.id}',event)">
+        ${isDone?`<span class="msr text-W" style="font-size:12px;font-variation-settings:'FILL' 1">check</span>`:''}
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold text-T1 truncate ${isDone?'line-through opacity-50':''}">${esc(t.title)}</p>
+        <div class="flex items-center gap-2 mt-1 flex-wrap">
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                style="background:${prColors[t.priority]}20;color:${prColors[t.priority]}">${prLabels[t.priority]||t.priority}</span>
+          ${due?`<span class="text-[10px] font-semibold ${overdue?'text-ERR':'text-T3'} flex items-center gap-0.5">
+            <span class="msr" style="font-size:11px">calendar_today</span>${due}</span>`:''}
+        </div>
+      </div>
+      <button onclick="deleteTaskItem('${t.id}')" class="p-1.5 rounded-lg hover:bg-N text-NDD hover:text-ERR transition-all">
+        <span class="msr" style="font-size:16px">delete</span>
+      </button>
+    </div>`;
+}
+
+function renderStepList(id){
+  const steps=DB.contentByProject(id).filter(c=>c.type==='STEP');
+  const el=document.getElementById('stepList');
+  if(!el) return;
+  el.innerHTML=steps.length
+    ? steps.map((s,i)=>`
+      <div class="bg-W rounded-xl sh-card border border-ND p-4 flex items-start gap-3">
+        <button onclick="toggleStep('${s.id}')"
+                class="w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
+                style="border-color:${s.done?'#27ae60':'#b2bec3'};background:${s.done?'#27ae60':'transparent'}">
+          ${s.done?`<span class="msr text-W" style="font-size:14px;font-variation-settings:'FILL' 1">check</span>`:''}
+        </button>
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-0.5">
+            <span class="text-[10px] font-bold text-T3 bg-N px-2 py-0.5 rounded-full">Paso ${i+1}</span>
+          </div>
+          <p class="text-sm font-semibold ${s.done?'text-T3 line-through':' text-T1'}">${esc(s.title)}</p>
+          ${s.body?`<p class="text-xs text-T3 mt-1">${esc(s.body)}</p>`:''}
+        </div>
+        <button onclick="deleteContentItem('${s.id}')" class="p-1 text-NDD hover:text-ERR transition-all">
+          <span class="msr" style="font-size:16px">delete</span>
+        </button>
+      </div>`).join('')
+    : emptyState('checklist','Sin pasos. Toca + para agregar.');
+}
+
+function renderNoteList(id){
+  const notes=DB.contentByProject(id).filter(c=>c.type==='NOTE');
+  const el=document.getElementById('noteList');
+  if(!el) return;
+  el.innerHTML=notes.length
+    ? notes.map(n=>`
+      <div class="bg-W rounded-xl sh-card border border-ND p-4 relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1" style="background:linear-gradient(90deg,#344955,#F39C12)"></div>
+        <div class="flex justify-between items-start mt-1">
+          <div class="flex-1">
+            ${n.title?`<p class="text-sm font-bold text-P mb-1">${esc(n.title)}</p>`:''}
+            <p class="text-xs text-T2 leading-relaxed">${esc(n.body)}</p>
+          </div>
+          <button onclick="deleteContentItem('${n.id}')" class="p-1 text-NDD hover:text-ERR transition-all ml-2">
+            <span class="msr" style="font-size:16px">delete</span>
+          </button>
+        </div>
+      </div>`).join('')
+    : emptyState('sticky_note_2','Sin ideas. Toca + para agregar una nota.');
+}
+
+function renderIGList(id){
+  const items=DB.contentByProject(id).filter(c=>c.type==='IG');
+  const el=document.getElementById('igList');
+  if(!el) return;
+  el.innerHTML=items.length
+    ? items.map(ig=>`
+      <div class="bg-W rounded-2xl sh-card overflow-hidden flex border border-ND"
+           style="border:1.5px solid rgba(193,53,132,.2)">
+        <!-- Thumb -->
+        <div class="w-24 flex-shrink-0 flex items-center justify-center"
+             style="background:linear-gradient(135deg,#833ab4,#c13584,#f77737);min-height:100px">
+          ${ig.ig_thumb
+            ?`<img src="${esc(ig.ig_thumb)}" class="w-full h-full object-cover" alt="IG" onerror="this.style.display='none'">`
+            :`<span class="msr text-W" style="font-size:32px;font-variation-settings:'FILL' 1">photo_camera</span>`}
+        </div>
+        <!-- Info -->
+        <div class="flex-1 p-4">
+          ${ig.ig_author?`<p class="text-[11px] font-bold mb-1" style="color:#c13584">${esc(ig.ig_author)}</p>`:''}
+          <p class="text-xs text-T2 leading-relaxed line-clamp-3">${esc(ig.ig_note||'')}</p>
+          <div class="flex gap-2 mt-3">
+            <a href="${esc(ig.ig_url||'#')}" target="_blank"
+               class="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-full text-W transition-all"
+               style="background:linear-gradient(135deg,#833ab4,#c13584)">
+              <span class="msr" style="font-size:14px">open_in_new</span> Ver en IG
+            </a>
+            <button onclick="deleteContentItem('${ig.id}')"
+                    class="px-3 py-1.5 rounded-full text-[11px] font-semibold text-ERR border border-ERR/30 bg-ERR/5 hover:bg-ERR/10 transition-all">
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>`).join('')
+    : '';
+}
+
+function renderFinance(id){
+  const p=DB.project(id);
+  if(!p) return;
+  const spent=DB.totalSpent(id);
+  const left=(p.budget||0)-spent;
+  const pct=p.budget>0?Math.min(spent/p.budget*100,100):0;
+
+  setText('finBudget','S/ '+(p.budget||0).toFixed(2));
+  setText('finSpent','S/ '+spent.toFixed(2));
+  setText('finLeft','S/ '+left.toFixed(2));
+  document.getElementById('finBar').style.width=pct+'%';
+  setText('finPct',pct.toFixed(0)+'% utilizado');
+
+  const expenses=DB.expensesByProject(id);
+  const el=document.getElementById('expenseList');
+  if(!el) return;
+  el.innerHTML=expenses.length
+    ? expenses.map(e=>`
+      <div class="bg-W rounded-xl sh-card border border-ND p-4 flex items-center justify-between">
+        <div>
+          <p class="text-sm font-semibold text-T1">${esc(e.desc)}</p>
+          <p class="text-[10px] text-T3 mt-0.5">${formatDate(e.created)}</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <p class="font-bold text-base text-ERR">S/ ${e.amount.toFixed(2)}</p>
+          <button onclick="deleteExp('${e.id}')" class="p-1.5 rounded-lg hover:bg-N text-NDD hover:text-ERR transition-all">
+            <span class="msr" style="font-size:16px">delete</span>
+          </button>
+        </div>
+      </div>`).join('')
+    : emptyState('payments','Sin gastos registrados aún.');
+}
+
+/* ── TABS ── */
+function switchTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.classList.remove('active');
+    b.style.color='#95a5a6';
+    b.style.borderBottomColor='transparent';
+    b.style.fontWeight='600';
+  });
+  const panel=document.getElementById('tp-'+name);
+  if(panel) panel.classList.add('active');
+  const btn=document.getElementById('tab-btn-'+name);
+  if(btn){
+    btn.style.color='#344955';
+    btn.style.borderBottomColor='#344955';
+    btn.style.fontWeight='700';
+  }
+}
+
+/* ── TASK FILTER ── */
+function filterTasks(btn,filter){
+  taskFilter=filter;
+  document.querySelectorAll('.fchip').forEach(c=>{
+    c.style.background='#fff'; c.style.color='#566573'; c.style.borderColor='#d5dbdd';
+  });
+  btn.style.background='#344955'; btn.style.color='#fff'; btn.style.borderColor='#344955';
+  renderTaskList(currentProjectId);
+}
+
+/* ── CRUD ACTIONS ── */
+function createProject(){
+  const name=val('inp-pName'); if(!name) return toast('⚠️ Ingresa un nombre');
+  DB.createProject({name,desc:val('inp-pDesc'),budget:val('inp-pBudget')});
+  closeModal('mNewProject');
+  clear('inp-pName','inp-pDesc','inp-pBudget');
+  renderDashboard();
+  toast('✅ Proyecto creado');
+}
+
+function createTask(){
+  const title=val('inp-tTitle'); if(!title) return toast('⚠️ Ingresa un título');
+  DB.createTask({pid:currentProjectId,title,priority:val('inp-tPriority'),due:val('inp-tDue')});
+  closeModal('mNewTask');
+  clear('inp-tTitle','inp-tDue');
+  renderTaskList(currentProjectId);
+  renderProjectDetail(currentProjectId);
+  toast('✅ Tarea creada');
+}
+
+function toggleTask(id,event){
+  event.stopPropagation();
+  const t=DB.task(id); if(!t) return;
+  const next={TODO:'IN_PROGRESS',IN_PROGRESS:'DONE',DONE:'TODO'}[t.status]||'TODO';
+  DB.updateTask(id,{status:next});
+  renderTaskList(currentProjectId);
+  renderProjectDetail(currentProjectId);
+}
+
+function deleteTaskItem(id){
+  DB.deleteTask(id);
+  renderTaskList(currentProjectId);
+  renderProjectDetail(currentProjectId);
+  toast('🗑 Tarea eliminada');
+}
+
+function createStep(){
+  const title=val('inp-sTitle'); if(!title) return toast('⚠️ Ingresa el paso');
+  DB.createContent({pid:currentProjectId,type:'STEP',title,body:val('inp-sBody')});
+  closeModal('mNewStep');
+  clear('inp-sTitle','inp-sBody');
+  renderStepList(currentProjectId);
+  toast('✅ Paso agregado');
+}
+
+function toggleStep(id){
+  const c=DB.content().find(x=>x.id===id); if(!c) return;
+  DB.updateContent(id,{done:!c.done});
+  renderStepList(currentProjectId);
+}
+
+function createNote(){
+  const body=val('inp-nBody'); if(!body) return toast('⚠️ Ingresa el contenido');
+  DB.createContent({pid:currentProjectId,type:'NOTE',title:val('inp-nTitle'),body});
+  closeModal('mNewNote');
+  clear('inp-nTitle','inp-nBody');
+  renderNoteList(currentProjectId);
+  toast('💡 Idea guardada');
+}
+
+function createIG(){
+  const url=val('inp-igUrl'); if(!url) return toast('⚠️ Ingresa la URL de Instagram');
+  const note=val('inp-igNote'); if(!note) return toast('⚠️ Ingresa tu nota de inspiración');
+  DB.createContent({pid:currentProjectId,type:'IG',ig_url:url,ig_author:val('inp-igAuthor'),ig_thumb:val('inp-igThumb'),ig_note:note});
+  closeModal('mNewIG');
+  clear('inp-igUrl','inp-igNote','inp-igAuthor','inp-igThumb');
+  renderIGList(currentProjectId);
+  renderProjectDetail(currentProjectId);
+  toast('📸 Inspiración guardada en el proyecto');
+}
+
+function deleteContentItem(id){
+  DB.deleteContent(id);
+  renderStepList(currentProjectId);
+  renderNoteList(currentProjectId);
+  renderIGList(currentProjectId);
+  renderProjectDetail(currentProjectId);
+  toast('🗑 Eliminado');
+}
+
+function createExpense(){
+  const desc=val('inp-eDesc'); if(!desc) return toast('⚠️ Ingresa la descripción');
+  const amount=parseFloat(val('inp-eAmount')); if(!amount||amount<=0) return toast('⚠️ Monto inválido');
+  DB.createExpense({pid:currentProjectId,desc,amount});
+  closeModal('mNewExpense');
+  clear('inp-eDesc','inp-eAmount');
+  renderFinance(currentProjectId);
+  toast('💰 Gasto registrado');
+}
+
+function deleteExp(id){
+  DB.deleteExpense(id);
+  renderFinance(currentProjectId);
+  toast('🗑 Gasto eliminado');
+}
+
+/* ── PROJECT MENU ── */
+function openProjectMenu(){
+  const p=DB.project(currentProjectId); if(!p) return;
+  const statuses=['ACTIVE','PLANNING','COMPLETED','ON_HOLD'];
+  const labels={ACTIVE:'Activo',PLANNING:'Planificando',COMPLETED:'Completado',ON_HOLD:'En espera'};
+  const next=statuses[(statuses.indexOf(p.status)+1)%statuses.length];
+  const ok=confirm(`¿Cambiar estado a "${labels[next]}"?\n\nCancela para ELIMINAR el proyecto.`);
+  if(ok){
+    DB.updateProject(currentProjectId,{status:next});
+    renderProjectDetail(currentProjectId);
+    toast('Estado actualizado: '+labels[next]);
+  } else {
+    if(confirm('¿ELIMINAR este proyecto y todo su contenido?')){
+      DB.deleteProject(currentProjectId);
+      goBack();
+      toast('🗑 Proyecto eliminado');
+    }
+  }
+}
+
+/* ── QUICK ACTIONS ── */
+function quickTask(){
+  if(!DB.projects().length){ openModal('mNewProject'); return; }
+  currentProjectId=DB.projects()[0].id;
+  openModal('mNewTask');
+}
+function quickIG(){
+  if(!DB.projects().length){ toast('⚠️ Crea un proyecto primero'); openModal('mNewProject'); return; }
+  currentProjectId=DB.projects()[0].id;
+  openModal('mNewIG');
+}
+
+/* ── MODALS ── */
+function openModal(id){ document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+document.addEventListener('click',e=>{
+  if(e.target.classList.contains('modal-wrap')) e.target.classList.add('hidden');
+});
+
+/* ── TOAST ── */
+let toastTimer=null;
+function toast(msg){
+  const el=document.getElementById('toastEl');
+  el.textContent=msg; el.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.add('hidden'),2500);
+}
+
+/* ── HELPERS ── */
+function val(id){ return (document.getElementById(id)||{}).value?.trim()||''; }
+function setText(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
+function clear(...ids){ ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function formatDate(iso){ return iso?new Date(iso).toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'}):''; }
+function formatDateShort(iso){ return iso?new Date(iso).toLocaleDateString('es-PE',{day:'2-digit',month:'short'}):''; }
+function emptyState(icon,text){
+  return `<div class="text-center py-8 text-T3">
+    <span class="msr block mb-2 opacity-30" style="font-size:40px">${icon}</span>
+    <p class="text-sm font-medium">${text}</p>
+  </div>`;
+}
+
+/* ── RIPPLE ── */
+function rippleAll(){
+  document.querySelectorAll('a,button').forEach(el=>{
+    el.style.position='relative'; el.style.overflow='hidden';
+    el.addEventListener('click',function(e){
+      const r=this.getBoundingClientRect();
+      const size=Math.max(r.width,r.height)*2;
+      const d=document.createElement('div');
+      d.classList.add('ripple');
+      d.style.cssText=`width:${size}px;height:${size}px;left:${e.clientX-r.left-size/2}px;top:${e.clientY-r.top-size/2}px`;
+      this.appendChild(d);
+      setTimeout(()=>d.remove(),600);
     });
   });
+}
 </script>
 </body>
 </html>
