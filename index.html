@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Gestor de Proyectos y Tareas de Alto Rendimiento con integración de inspiración de Instagram." />
+  <title>Flux — Gestor de Alto Rendimiento</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+
+  <!-- ===== APP SHELL ===== -->
+  <div id="app">
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- ===== BOTTOM NAV ===== -->
+    <nav class="bottom-nav" id="bottomNav">
+      <button class="nav-item active" data-view="dashboard" onclick="navigate('dashboard')">
+        <span class="material-symbols-rounded">dashboard</span>
+        <span class="nav-label">Inicio</span>
+      </button>
+      <button class="nav-item" data-view="projects" onclick="navigate('projects')">
+        <span class="material-symbols-rounded">folder_open</span>
+        <span class="nav-label">Proyectos</span>
+      </button>
+      <button class="nav-item fab-btn" onclick="openQuickAdd()">
+        <span class="material-symbols-rounded">add</span>
+      </button>
+      <button class="nav-item" data-view="tasks" onclick="navigate('tasks')">
+        <span class="material-symbols-rounded">task_alt</span>
+        <span class="nav-label">Tareas</span>
+      </button>
+      <button class="nav-item" data-view="settings" onclick="navigate('settings')">
+        <span class="material-symbols-rounded">person</span>
+        <span class="nav-label">Perfil</span>
+      </button>
+    </nav>
+
+    <!-- ============================= -->
+    <!-- VIEW: DASHBOARD               -->
+    <!-- ============================= -->
+    <div id="view-dashboard" class="view active">
+      <div class="view-scroll">
+        <!-- Header -->
+        <div class="page-header">
+          <div>
+            <p class="greeting" id="greetingText">Buenos días</p>
+            <h1 class="page-title">Panel <span class="gradient-text">Flux</span></h1>
+          </div>
+          <div class="header-avatar">F</div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <span class="material-symbols-rounded stat-icon">folder_open</span>
+            <div>
+              <p class="stat-value" id="statProjects">0</p>
+              <p class="stat-label">Proyectos</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <span class="material-symbols-rounded stat-icon">task_alt</span>
+            <div>
+              <p class="stat-value" id="statTasks">0</p>
+              <p class="stat-label">Tareas</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <span class="material-symbols-rounded stat-icon">check_circle</span>
+            <div>
+              <p class="stat-value" id="statDone">0</p>
+              <p class="stat-label">Completadas</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Projects -->
+        <div class="section-header">
+          <h2 class="section-title">Proyectos Activos</h2>
+          <button class="link-btn" onclick="navigate('projects')">Ver todos</button>
+        </div>
+        <div id="dashProjectList" class="card-list"></div>
+
+        <!-- Upcoming Tasks -->
+        <div class="section-header" style="margin-top:28px">
+          <h2 class="section-title">Próximas Tareas</h2>
+          <button class="link-btn" onclick="navigate('tasks')">Ver todas</button>
+        </div>
+        <div id="dashTaskList" class="card-list"></div>
+
+        <div style="height:100px"></div>
+      </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- VIEW: PROJECTS LIST           -->
+    <!-- ============================= -->
+    <div id="view-projects" class="view">
+      <div class="view-scroll">
+        <div class="page-header">
+          <h1 class="page-title">Proyectos</h1>
+          <button class="icon-btn" onclick="openModal('modalNewProject')">
+            <span class="material-symbols-rounded">add</span>
+          </button>
+        </div>
+        <div id="projectList" class="card-list"></div>
+        <div style="height:100px"></div>
+      </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- VIEW: PROJECT DETAIL          -->
+    <!-- ============================= -->
+    <div id="view-project-detail" class="view">
+      <div class="view-scroll">
+        <div class="page-header nav-back-header">
+          <button class="back-btn" onclick="navigate('projects')">
+            <span class="material-symbols-rounded">arrow_back_ios</span>
+          </button>
+          <h1 class="page-title" id="detailProjectName" style="font-size:1.3rem">Proyecto</h1>
+          <button class="icon-btn" id="detailProjectMenuBtn" onclick="openProjectMenu()">
+            <span class="material-symbols-rounded">more_vert</span>
+          </button>
+        </div>
+
+        <!-- Progress -->
+        <div class="project-progress-card" id="detailProgressCard">
+          <div class="progress-info">
+            <span class="progress-label">Progreso Global</span>
+            <span class="progress-pct" id="detailProgressPct">0%</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="detailProgressBar" style="width:0%"></div>
+          </div>
+          <div class="project-meta-row">
+            <span class="project-badge" id="detailStatusBadge">PLANNING</span>
+            <span class="project-budget" id="detailBudgetInfo"></span>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs-bar">
+          <button class="tab active" data-tab="tab-tasks" onclick="switchTab(this,'tab-tasks')">
+            <span class="material-symbols-rounded">task_alt</span> Tareas
+          </button>
+          <button class="tab" data-tab="tab-content" onclick="switchTab(this,'tab-content')">
+            <span class="material-symbols-rounded">lightbulb</span> Contenido
+          </button>
+          <button class="tab" data-tab="tab-finance" onclick="switchTab(this,'tab-finance')">
+            <span class="material-symbols-rounded">payments</span> Finanzas
+          </button>
+        </div>
+
+        <!-- Tab: Tasks -->
+        <div id="tab-tasks" class="tab-panel active">
+          <div class="section-header">
+            <h2 class="section-title">Tareas</h2>
+            <button class="icon-btn sm" onclick="openNewTask()">
+              <span class="material-symbols-rounded">add</span>
+            </button>
+          </div>
+          <div id="projectTaskList" class="card-list"></div>
+        </div>
+
+        <!-- Tab: Content (Ideas + IG Inspirations) -->
+        <div id="tab-content" class="tab-panel hidden">
+          <div class="content-type-filter">
+            <button class="chip active" onclick="filterContent(this,'ALL')">Todos</button>
+            <button class="chip" onclick="filterContent(this,'NOTE')">
+              <span class="material-symbols-rounded" style="font-size:14px">sticky_note_2</span> Notas
+            </button>
+            <button class="chip" onclick="filterContent(this,'STEP')">
+              <span class="material-symbols-rounded" style="font-size:14px">checklist</span> Pasos
+            </button>
+            <button class="chip" onclick="filterContent(this,'INSTAGRAM')">
+              <span class="material-symbols-rounded" style="font-size:14px">photo_camera</span> Instagram
+            </button>
+          </div>
+          <div class="section-header">
+            <h2 class="section-title">Banco de Contenido</h2>
+            <button class="icon-btn sm" onclick="openNewContent()">
+              <span class="material-symbols-rounded">add</span>
+            </button>
+          </div>
+          <div id="projectContentList" class="card-list content-grid"></div>
+        </div>
+
+        <!-- Tab: Finance -->
+        <div id="tab-finance" class="tab-panel hidden">
+          <div class="budget-summary-card">
+            <div class="budget-row">
+              <div class="budget-item">
+                <p class="budget-label">Presupuesto</p>
+                <p class="budget-value" id="detailBudgetTotal">S/ 0.00</p>
+              </div>
+              <div class="budget-item">
+                <p class="budget-label">Gastado</p>
+                <p class="budget-value danger" id="detailBudgetSpent">S/ 0.00</p>
+              </div>
+              <div class="budget-item">
+                <p class="budget-label">Disponible</p>
+                <p class="budget-value success" id="detailBudgetLeft">S/ 0.00</p>
+              </div>
+            </div>
+            <div class="progress-bar-wrap" style="margin-top:12px">
+              <div class="progress-bar-fill danger" id="budgetProgressBar" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="section-header" style="margin-top:20px">
+            <h2 class="section-title">Gastos</h2>
+            <button class="icon-btn sm" onclick="openNewExpense()">
+              <span class="material-symbols-rounded">add</span>
+            </button>
+          </div>
+          <div id="projectExpenseList" class="card-list"></div>
+        </div>
+
+        <div style="height:100px"></div>
+      </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- VIEW: TASK DETAIL             -->
+    <!-- ============================= -->
+    <div id="view-task-detail" class="view">
+      <div class="view-scroll">
+        <div class="page-header nav-back-header">
+          <button class="back-btn" onclick="navigate('project-detail')">
+            <span class="material-symbols-rounded">arrow_back_ios</span>
+          </button>
+          <h1 class="page-title" style="font-size:1.1rem" id="taskDetailTitle">Tarea</h1>
+          <button class="icon-btn danger-icon" onclick="deleteCurrentTask()">
+            <span class="material-symbols-rounded">delete</span>
+          </button>
+        </div>
+
+        <!-- Priority & Status badges -->
+        <div class="task-badges-row">
+          <select class="badge-select" id="taskDetailPriority" onchange="updateTaskField('priority', this.value)">
+            <option value="LOW">🟢 Baja</option>
+            <option value="MEDIUM">🟡 Media</option>
+            <option value="HIGH">🟠 Alta</option>
+            <option value="CRITICAL">🔴 Crítica</option>
+          </select>
+          <select class="badge-select" id="taskDetailStatus" onchange="updateTaskField('status', this.value)">
+            <option value="TODO">📋 Por hacer</option>
+            <option value="IN_PROGRESS">⚡ En progreso</option>
+            <option value="REVIEW">👁 Revisión</option>
+            <option value="DONE">✅ Hecho</option>
+          </select>
+        </div>
+
+        <!-- Description -->
+        <div class="detail-section">
+          <label class="detail-label">Descripción / Notas</label>
+          <textarea id="taskDetailDesc" class="rich-textarea" placeholder="Escribe notas, pasos o detalles de la tarea..." oninput="updateTaskField('description', this.value)" rows="5"></textarea>
+        </div>
+
+        <!-- Due Date -->
+        <div class="detail-section">
+          <label class="detail-label">
+            <span class="material-symbols-rounded" style="font-size:16px;vertical-align:-3px">calendar_today</span>
+            Fecha de Vencimiento
+          </label>
+          <input type="datetime-local" class="detail-input" id="taskDetailDue" onchange="updateTaskField('due_date', this.value)" />
+        </div>
+
+        <!-- Labels -->
+        <div class="detail-section">
+          <label class="detail-label">
+            <span class="material-symbols-rounded" style="font-size:16px;vertical-align:-3px">label</span>
+            Etiquetas
+          </label>
+          <div class="labels-wrap" id="taskLabelsWrap"></div>
+          <input type="text" class="detail-input" id="taskLabelInput" placeholder="Escribir etiqueta y presionar Enter" onkeydown="addLabel(event)" />
+        </div>
+
+        <!-- Stopwatch -->
+        <div class="detail-section">
+          <label class="detail-label">
+            <span class="material-symbols-rounded" style="font-size:16px;vertical-align:-3px">timer</span>
+            Cronómetro de Trabajo
+          </label>
+          <div class="stopwatch-card">
+            <div class="stopwatch-display" id="stopwatchDisplay">00:00:00</div>
+            <div class="stopwatch-total">Total acumulado: <span id="stopwatchTotal">00:00:00</span></div>
+            <div class="stopwatch-controls">
+              <button class="sw-btn start" id="swStart" onclick="startStopwatch()">
+                <span class="material-symbols-rounded">play_arrow</span> Iniciar
+              </button>
+              <button class="sw-btn stop hidden" id="swStop" onclick="stopStopwatch()">
+                <span class="material-symbols-rounded">pause</span> Pausar
+              </button>
+              <button class="sw-btn reset" onclick="resetStopwatch()">
+                <span class="material-symbols-rounded">restart_alt</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dependencies -->
+        <div class="detail-section">
+          <label class="detail-label">
+            <span class="material-symbols-rounded" style="font-size:16px;vertical-align:-3px">account_tree</span>
+            Dependencias
+          </label>
+          <div id="dependenciesList" class="card-list"></div>
+          <button class="outline-btn" style="margin-top:8px" onclick="openDependencyPicker()">
+            <span class="material-symbols-rounded">add_link</span> Agregar dependencia
+          </button>
+        </div>
+
+        <div style="height:100px"></div>
+      </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- VIEW: ALL TASKS               -->
+    <!-- ============================= -->
+    <div id="view-tasks" class="view">
+      <div class="view-scroll">
+        <div class="page-header">
+          <h1 class="page-title">Mis Tareas</h1>
+          <div class="header-actions">
+            <select class="badge-select" id="globalTaskFilter" onchange="renderGlobalTasks()">
+              <option value="ALL">Todas</option>
+              <option value="TODO">Por hacer</option>
+              <option value="IN_PROGRESS">En progreso</option>
+              <option value="DONE">Completadas</option>
+            </select>
+          </div>
+        </div>
+        <div id="globalTaskList" class="card-list"></div>
+        <div style="height:100px"></div>
+      </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- VIEW: SETTINGS / PROFILE      -->
+    <!-- ============================= -->
+    <div id="view-settings" class="view">
+      <div class="view-scroll">
+        <div class="page-header">
+          <h1 class="page-title">Perfil</h1>
+        </div>
+        <div class="profile-card">
+          <div class="profile-avatar">F</div>
+          <h2 class="profile-name">Usuario Flux</h2>
+          <p class="profile-email">usuario@flux.app</p>
+        </div>
+        <div class="settings-group">
+          <div class="settings-item">
+            <span class="material-symbols-rounded">folder_open</span>
+            <span>Total de Proyectos</span>
+            <span class="settings-val" id="profileStatProjects">0</span>
+          </div>
+          <div class="settings-item">
+            <span class="material-symbols-rounded">task_alt</span>
+            <span>Total de Tareas</span>
+            <span class="settings-val" id="profileStatTasks">0</span>
+          </div>
+          <div class="settings-item">
+            <span class="material-symbols-rounded">photo_camera</span>
+            <span>Inspiraciones IG</span>
+            <span class="settings-val" id="profileStatIG">0</span>
+          </div>
+        </div>
+        <button class="danger-btn" style="margin-top:24px" onclick="clearAllData()">
+          <span class="material-symbols-rounded">delete_sweep</span> Limpiar todos los datos
+        </button>
+        <div style="height:100px"></div>
+      </div>
+    </div>
+
+  </div><!-- /app -->
+
+  <!-- ========================================= -->
+  <!-- MODALS                                    -->
+  <!-- ========================================= -->
+
+  <!-- Modal: New Project -->
+  <div class="modal-overlay hidden" id="modalNewProject">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <h3 class="modal-title">Nuevo Proyecto</h3>
+      <div class="form-group">
+        <label>Nombre del proyecto *</label>
+        <input type="text" id="newProjectName" class="form-input" placeholder="Ej: Campaña Verano 2025" />
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea id="newProjectDesc" class="form-input" rows="3" placeholder="¿De qué trata este proyecto?"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Presupuesto (S/)</label>
+        <input type="number" id="newProjectBudget" class="form-input" placeholder="0.00" min="0" />
+      </div>
+      <div class="modal-actions">
+        <button class="outline-btn" onclick="closeModal('modalNewProject')">Cancelar</button>
+        <button class="primary-btn" onclick="createProject()">Crear Proyecto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: New Task -->
+  <div class="modal-overlay hidden" id="modalNewTask">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <h3 class="modal-title">Nueva Tarea</h3>
+      <div class="form-group">
+        <label>Título *</label>
+        <input type="text" id="newTaskTitle" class="form-input" placeholder="Ej: Diseñar mockup inicial" />
+      </div>
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label>Prioridad</label>
+          <select id="newTaskPriority" class="form-input">
+            <option value="LOW">🟢 Baja</option>
+            <option value="MEDIUM" selected>🟡 Media</option>
+            <option value="HIGH">🟠 Alta</option>
+            <option value="CRITICAL">🔴 Crítica</option>
+          </select>
+        </div>
+        <div class="form-group flex-1">
+          <label>Fecha límite</label>
+          <input type="date" id="newTaskDue" class="form-input" />
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="outline-btn" onclick="closeModal('modalNewTask')">Cancelar</button>
+        <button class="primary-btn" onclick="createTask()">Crear Tarea</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: New Content (Note / Step / Instagram) -->
+  <div class="modal-overlay hidden" id="modalNewContent">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <h3 class="modal-title">Agregar Contenido</h3>
+      <div class="content-type-selector">
+        <button class="type-btn active" data-type="NOTE" onclick="selectContentType(this,'NOTE')">
+          <span class="material-symbols-rounded">sticky_note_2</span>
+          <span>Nota</span>
+        </button>
+        <button class="type-btn" data-type="STEP" onclick="selectContentType(this,'STEP')">
+          <span class="material-symbols-rounded">checklist</span>
+          <span>Paso</span>
+        </button>
+        <button class="type-btn ig-type" data-type="INSTAGRAM" onclick="selectContentType(this,'INSTAGRAM')">
+          <span class="material-symbols-rounded">photo_camera</span>
+          <span>Instagram</span>
+        </button>
+      </div>
+
+      <!-- Fields for NOTE / STEP -->
+      <div id="contentFieldsText">
+        <div class="form-group">
+          <label>Título</label>
+          <input type="text" id="newContentTitle" class="form-input" placeholder="Ej: Investigación de mercado" />
+        </div>
+        <div class="form-group">
+          <label>Contenido *</label>
+          <textarea id="newContentBody" class="form-input" rows="4" placeholder="Escribe tu idea, nota o paso aquí..."></textarea>
+        </div>
+      </div>
+
+      <!-- Fields for INSTAGRAM -->
+      <div id="contentFieldsIG" class="hidden">
+        <div class="ig-url-field">
+          <span class="material-symbols-rounded ig-icon">photo_camera</span>
+          <div class="form-group" style="flex:1;margin:0">
+            <label>URL de Instagram (Reel / Post) *</label>
+            <input type="url" id="newContentIGUrl" class="form-input" placeholder="https://www.instagram.com/reel/..." />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>¿Por qué te inspira? *</label>
+          <textarea id="newContentIGNote" class="form-input" rows="3" placeholder="Ej: Me encanta el estilo de edición, quiero algo similar para mi campaña..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>URL de miniatura (opcional)</label>
+          <input type="url" id="newContentIGThumb" class="form-input" placeholder="https://imagen-preview.jpg" />
+        </div>
+        <div class="form-group">
+          <label>Usuario de Instagram (opcional)</label>
+          <input type="text" id="newContentIGAuthor" class="form-input" placeholder="@usuario" />
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="outline-btn" onclick="closeModal('modalNewContent')">Cancelar</button>
+        <button class="primary-btn" onclick="createContent()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: New Expense -->
+  <div class="modal-overlay hidden" id="modalNewExpense">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <h3 class="modal-title">Registrar Gasto</h3>
+      <div class="form-group">
+        <label>Descripción *</label>
+        <input type="text" id="newExpenseDesc" class="form-input" placeholder="Ej: Diseñador freelance" />
+      </div>
+      <div class="form-group">
+        <label>Monto (S/) *</label>
+        <input type="number" id="newExpenseAmount" class="form-input" placeholder="0.00" min="0" step="0.01" />
+      </div>
+      <div class="modal-actions">
+        <button class="outline-btn" onclick="closeModal('modalNewExpense')">Cancelar</button>
+        <button class="primary-btn" onclick="createExpense()">Registrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Quick Add -->
+  <div class="modal-overlay hidden" id="modalQuickAdd">
+    <div class="modal-sheet small">
+      <div class="modal-handle"></div>
+      <h3 class="modal-title">Acción Rápida</h3>
+      <div class="quick-actions-list">
+        <button class="quick-action-btn" onclick="closeModal('modalQuickAdd'); openModal('modalNewProject')">
+          <span class="material-symbols-rounded">add_circle</span>
+          <div>
+            <p class="qa-title">Nuevo Proyecto</p>
+            <p class="qa-sub">Crea un proyecto desde cero</p>
+          </div>
+        </button>
+        <button class="quick-action-btn" onclick="closeModal('modalQuickAdd'); quickAddTaskGlobal()">
+          <span class="material-symbols-rounded">playlist_add</span>
+          <div>
+            <p class="qa-title">Nueva Tarea</p>
+            <p class="qa-sub">Agrega una tarea a un proyecto</p>
+          </div>
+        </button>
+        <button class="quick-action-btn ig-action" onclick="closeModal('modalQuickAdd'); quickAddIG()">
+          <span class="material-symbols-rounded">photo_camera</span>
+          <div>
+            <p class="qa-title">Guardar Inspiración IG</p>
+            <p class="qa-sub">Vincula un Reel o Post a un proyecto</p>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Dependency Picker -->
+  <div class="modal-overlay hidden" id="modalDependencies">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <h3 class="modal-title">Seleccionar Dependencia</h3>
+      <p class="modal-sub">Selecciona las tareas que deben completarse antes:</p>
+      <div id="dependencyPickerList" class="card-list" style="max-height:300px;overflow-y:auto"></div>
+      <div class="modal-actions">
+        <button class="primary-btn full" onclick="closeModal('modalDependencies')">Listo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Content Detail (IG / Note view) -->
+  <div class="modal-overlay hidden" id="modalContentDetail">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div id="contentDetailBody"></div>
+      <div class="modal-actions">
+        <button class="danger-btn" onclick="deleteCurrentContent()">
+          <span class="material-symbols-rounded">delete</span> Eliminar
+        </button>
+        <button class="primary-btn" onclick="closeModal('modalContentDetail')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
