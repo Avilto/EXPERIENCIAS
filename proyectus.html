@@ -648,6 +648,11 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
                   style="padding:6px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">
             🖼️ Subir foto
           </button>
+          <button class="insp-type" data-type="web"
+                  onclick="selectInspType(this,'web')"
+                  style="padding:6px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">
+            🌐 Web URL
+          </button>
         </div>
         <div id="insp-url-field" style="display:none">
           <input id="inp-tInspUrl" class="form-input" type="url" placeholder="https://www.instagram.com/reel/... o Pinterest URL"/>
@@ -1358,7 +1363,7 @@ function taskCard(t){
   const impLabels={CRITICAL:'🔴 Crítica',HIGH:'🟠 Alta',MEDIUM:'🟡 Media',LOW:'🟢 Baja'};
   const due=t.date?new Date(t.date).toLocaleDateString('es-PE',{day:'2-digit',month:'short'}):'';
   const overdue=t.date&&new Date(t.date+'T'+(t.time||'23:59'))<new Date()&&!isDone;
-  const inspIcons={instagram:'📸',pinterest:'📌',photo:'🖼️'};
+  const inspIcons={instagram:'📸',pinterest:'📌',photo:'🖼️',web:'🌐'};
 
   return `
   <div class="task-card" style="${isDone?'opacity:0.65;':''}border-left:4px solid ${impColors[t.importance||'MEDIUM']}">
@@ -1731,10 +1736,11 @@ function selectInspType(btn, type){
     b.style.background='#fff'; b.style.color='var(--t2)'; b.style.borderColor='var(--border)';
   });
   btn.style.background='var(--blue)'; btn.style.color='#fff'; btn.style.borderColor='var(--blue)';
-  document.getElementById('insp-url-field').style.display=(type==='instagram'||type==='pinterest')?'block':'none';
+  document.getElementById('insp-url-field').style.display=(type==='instagram'||type==='pinterest'||type==='web')?'block':'none';
   document.getElementById('insp-photo-field').style.display=type==='photo'?'block':'none';
   const labels={instagram:'Pega la URL del Reel, Post o Story de Instagram',
-                pinterest:'Pega la URL del Pin o tablero de Pinterest'};
+                pinterest:'Pega la URL del Pin o tablero de Pinterest',
+                web:'Pega el enlace de la página web'};
   if(document.getElementById('insp-url-label')) document.getElementById('insp-url-label').textContent=labels[type]||'';
 }
 
