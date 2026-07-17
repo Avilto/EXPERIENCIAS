@@ -243,62 +243,84 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
       <!-- ─── VIEW: DASHBOARD ─── -->
       <div id="v-dashboard" class="view active" style="background:var(--surface)">
 
-        <div>
-          <p id="dash-date" style="font-size:12px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px"></p>
-          <h1 style="font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--t1)">Panel de Control <span style="color:var(--blue)">·</span></h1>
-          <p style="font-size:14px;color:var(--t2);margin-top:4px">Resumen general de todos tus proyectos activos.</p>
+        <!-- Date + Quick action -->
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <p id="dash-date" style="font-size:11px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px"></p>
+            <h1 style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--t1)">Panel de Control</h1>
+          </div>
+          <button class="btn-primary" onclick="openModal('mNewProject')">
+            <span class="msr" style="font-size:16px">add</span> Nuevo Proyecto
+          </button>
         </div>
 
-        <!-- Stats -->
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
-          <div class="stat-card au">
-            <div class="stat-icon" style="background:var(--blue-muted)">
-              <span class="msr filled" style="color:var(--blue);font-size:22px">folder_open</span>
-            </div>
-            <div>
-              <div class="stat-value" id="ds-projects">0</div>
-              <div class="stat-label">Proyectos</div>
-            </div>
-          </div>
-          <div class="stat-card au">
-            <div class="stat-icon" style="background:#F0FDF4">
-              <span class="msr filled" style="color:#16A34A;font-size:22px">task_alt</span>
-            </div>
-            <div>
-              <div class="stat-value" id="ds-tasks">0</div>
-              <div class="stat-label">Tareas totales</div>
-            </div>
-          </div>
-          <div class="stat-card au">
-            <div class="stat-icon" style="background:#FEF2F2">
-              <span class="msr filled" style="color:#DC2626;font-size:22px">warning</span>
-            </div>
-            <div>
-              <div class="stat-value" id="ds-risks">0</div>
-              <div class="stat-label">Riesgos activos</div>
-            </div>
-          </div>
-          <div class="stat-card au">
-            <div class="stat-icon" style="background:var(--yellow-muted)">
-              <span class="msr filled" style="color:var(--yellow-dark);font-size:22px">payments</span>
-            </div>
-            <div>
-              <div class="stat-value" id="ds-budget">S/0</div>
-              <div class="stat-label">Capital total</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Project overview list -->
-        <div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-            <h2 style="font-size:14px;font-weight:700;color:var(--t1)">Proyectos recientes</h2>
-            <button class="btn-ghost" onclick="navigate('projects')" style="padding:7px 14px;font-size:12px">
-              Ver todos <span class="msr" style="font-size:14px">arrow_forward</span>
+        <!-- ══ SECCIÓN 1: PROYECTOS ══ -->
+        <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:28px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+            <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:10px">
+              <span style="display:inline-block;width:5px;height:22px;background:var(--blue);border-radius:99px"></span>
+              PROYECTOS
+            </h2>
+            <button class="btn-ghost" onclick="navigate('projects')" style="font-size:12px;font-weight:700;padding:8px 18px">
+              VER TODOS <span class="msr" style="font-size:15px">arrow_forward</span>
             </button>
           </div>
-          <div id="dash-proj-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px"></div>
+          <div id="dash-proj-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px"></div>
+          <div id="dash-proj-empty" style="display:none;text-align:center;padding:40px;color:var(--t3)">
+            <span class="msr" style="font-size:40px;display:block;margin-bottom:10px;opacity:.3">folder_open</span>
+            <p style="font-size:13px">No hay proyectos. Crea el primero.</p>
+          </div>
         </div>
+
+        <!-- ══ SECCIÓN 2: TAREAS IMPORTANTES ══ -->
+        <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:28px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+            <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:10px">
+              <span style="display:inline-block;width:5px;height:22px;background:var(--yellow-dark);border-radius:99px"></span>
+              TAREAS IMPORTANTES
+            </h2>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="position:relative">
+                <select id="dash-task-filter" onchange="renderDashTasks()"
+                        style="appearance:none;padding:8px 36px 8px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;font-family:inherit;outline:none;transition:all .2s">
+                  <option value="ALL">FILTROS: Todas</option>
+                  <option value="CRITICAL">🔴 Críticas</option>
+                  <option value="HIGH">🟠 Altas</option>
+                  <option value="MEDIUM">🟡 Medias</option>
+                  <option value="TODO">📋 Por hacer</option>
+                  <option value="IN_PROGRESS">⚡ En progreso</option>
+                </select>
+                <span class="msr" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--t3);pointer-events:none">expand_more</span>
+              </div>
+              <button class="btn-ghost" onclick="navigate('projects')" style="font-size:12px;font-weight:700;padding:8px 18px">
+                VER TODO <span class="msr" style="font-size:15px">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+          <div id="dash-task-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px"></div>
+          <div id="dash-task-empty" style="display:none;text-align:center;padding:40px;color:var(--t3)">
+            <span class="msr" style="font-size:40px;display:block;margin-bottom:10px;opacity:.3">task_alt</span>
+            <p style="font-size:13px">Sin tareas importantes pendientes.</p>
+          </div>
+        </div>
+
+        <!-- ══ SECCIÓN 3: FINANZAS ══ -->
+        <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:28px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+            <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:10px">
+              <span style="display:inline-block;width:5px;height:22px;background:#16A34A;border-radius:99px"></span>
+              FINANZAS
+            </h2>
+            <span class="badge" id="dash-fin-total" style="font-size:12px;font-weight:700;padding:7px 16px;background:#F0FDF4;color:#16A34A">Capital total: S/ 0</span>
+          </div>
+          <div id="dash-fin-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px"></div>
+          <div id="dash-fin-empty" style="display:none;text-align:center;padding:40px;color:var(--t3)">
+            <span class="msr" style="font-size:40px;display:block;margin-bottom:10px;opacity:.3">payments</span>
+            <p style="font-size:13px">Crea proyectos con capital para ver el resumen financiero.</p>
+          </div>
+        </div>
+
+        <div style="height:8px"></div>
       </div>
 
       <!-- ─── VIEW: PROJECTS ─── -->
@@ -950,16 +972,166 @@ function openProject(id){
 
 /* ══ DASHBOARD ══ */
 function renderDashboard(){
-  const s=DB.stats();
-  setText('ds-projects',s.projects);
-  setText('ds-tasks',s.tasks);
-  setText('ds-risks',s.risks);
-  setText('ds-budget','S/ '+s.capital.toLocaleString());
-  const list=document.getElementById('dash-proj-list');
-  if(!list) return;
-  const projs=DB.projects().slice(0,6);
-  list.innerHTML=projs.length?projs.map(p=>projCard(p)).join('')
-    :'<div class="empty" style="grid-column:1/-1"><span class="msr">folder_open</span><p>No hay proyectos. Crea el primero.</p></div>';
+  setDate();
+  // ── Section 1: Proyectos ──
+  const projs=DB.projects();
+  const pList=document.getElementById('dash-proj-list');
+  const pEmpty=document.getElementById('dash-proj-empty');
+  if(pList){
+    const show=projs.slice(0,3);
+    if(show.length){ pList.innerHTML=show.map(p=>dashProjCard(p)).join(''); pList.style.display='grid'; if(pEmpty) pEmpty.style.display='none'; }
+    else { pList.style.display='none'; if(pEmpty) pEmpty.style.display='block'; }
+  }
+  // ── Section 2: Tareas Importantes ──
+  renderDashTasks();
+  // ── Section 3: Finanzas ──
+  renderDashFinance();
+}
+
+function renderDashTasks(){
+  const filter=(document.getElementById('dash-task-filter')||{}).value||'ALL';
+  let tasks=DB.tasks();
+  // Apply filter
+  if(filter==='CRITICAL')      tasks=tasks.filter(t=>t.importance==='CRITICAL'&&t.status!=='DONE');
+  else if(filter==='HIGH')     tasks=tasks.filter(t=>t.importance==='HIGH'&&t.status!=='DONE');
+  else if(filter==='MEDIUM')   tasks=tasks.filter(t=>t.importance==='MEDIUM'&&t.status!=='DONE');
+  else if(filter==='TODO')     tasks=tasks.filter(t=>t.status==='TODO');
+  else if(filter==='IN_PROGRESS') tasks=tasks.filter(t=>t.status==='IN_PROGRESS');
+  else { // ALL: show important+pending first
+    tasks=tasks.filter(t=>t.status!=='DONE')
+      .sort((a,b)=>{ const o={CRITICAL:0,HIGH:1,MEDIUM:2,LOW:3}; return (o[a.importance]||2)-(o[b.importance]||2); });
+  }
+  const show=tasks.slice(0,3);
+  const tList=document.getElementById('dash-task-list');
+  const tEmpty=document.getElementById('dash-task-empty');
+  if(!tList) return;
+  if(show.length){
+    tList.innerHTML=show.map(t=>dashTaskCard(t)).join('');
+    tList.style.display='grid'; if(tEmpty) tEmpty.style.display='none';
+  } else {
+    tList.style.display='none'; if(tEmpty) tEmpty.style.display='block';
+  }
+}
+
+function renderDashFinance(){
+  const projs=DB.projects();
+  const totalCapital=projs.reduce((s,p)=>s+parseFloat(p.capital||0),0);
+  setText('dash-fin-total','Capital total: S/ '+totalCapital.toLocaleString('es-PE',{minimumFractionDigits:2}));
+  const fList=document.getElementById('dash-fin-list');
+  const fEmpty=document.getElementById('dash-fin-empty');
+  if(!fList) return;
+  const show=projs.filter(p=>parseFloat(p.capital||0)>0).slice(0,3);
+  if(show.length){
+    fList.innerHTML=show.map(p=>dashFinCard(p)).join('');
+    fList.style.display='grid'; if(fEmpty) fEmpty.style.display='none';
+  } else {
+    fList.style.display='none'; if(fEmpty) fEmpty.style.display='block';
+  }
+}
+
+function dashProjCard(p){
+  const pct=DB.projectProgress(p.id);
+  const tasks=DB.tasksByProject(p.id);
+  const done=tasks.filter(t=>t.status==='DONE').length;
+  const impColors={CRITICAL:'#DC2626',HIGH:'#EA580C',MEDIUM:'#D4A848',LOW:'#16A34A'};
+  const impLabels={CRITICAL:'Crítico',HIGH:'Alto',MEDIUM:'Medio',LOW:'Bajo'};
+  const accentColor=impColors[p.importance||'MEDIUM'];
+  return `
+  <div onclick="openProject('${p.id}')"
+       style="border:1.5px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .2s;background:#fff"
+       onmouseover="this.style.borderColor='var(--blue)';this.style.boxShadow='0 4px 16px rgba(19,86,219,0.12)'"
+       onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+    <div style="height:4px;background:${accentColor}"></div>
+    <div style="padding:18px">
+      <div style="margin-bottom:10px">
+        <h3 style="font-weight:700;font-size:14px;color:var(--t1);margin-bottom:4px;line-height:1.3">${esc(p.title)}</h3>
+        <span class="badge" style="background:${accentColor}18;color:${accentColor};font-size:10px">${impLabels[p.importance||'MEDIUM']}</span>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+          <span style="font-size:10px;color:var(--t3);font-weight:600">Progreso</span>
+          <span style="font-size:10px;font-weight:700;color:var(--blue)">${pct}%</span>
+        </div>
+        <div class="progress-wrap"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;color:var(--t3);font-weight:500">${done}/${tasks.length} tareas</span>
+        <span style="font-size:11px;color:var(--t3);font-weight:500">${p.time||'—'}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function dashTaskCard(t){
+  const impColors={CRITICAL:'#DC2626',HIGH:'#EA580C',MEDIUM:'#D4A848',LOW:'#16A34A'};
+  const impLabels={CRITICAL:'🔴 Crítica',HIGH:'🟠 Alta',MEDIUM:'🟡 Media',LOW:'🟢 Baja'};
+  const statusLabels={TODO:'📋 Por hacer',IN_PROGRESS:'⚡ En progreso',DONE:'✅ Hecha'};
+  const proj=DB.project(t.pid);
+  const due=t.date?new Date(t.date+'T12:00').toLocaleDateString('es-PE',{day:'2-digit',month:'short'})+( t.time?' · '+t.time:''):'Sin fecha';
+  const overdue=t.date&&new Date(t.date+'T'+(t.time||'23:59'))<new Date()&&t.status!=='DONE';
+  const c=impColors[t.importance||'MEDIUM'];
+  return `
+  <div style="border:1.5px solid var(--border);border-left:4px solid ${c};border-radius:12px;padding:18px;background:#fff;cursor:pointer;transition:all .2s"
+       onclick="currentProjectId='${t.pid}';navigate('project-detail')"
+       onmouseover="this.style.boxShadow='0 4px 14px rgba(0,0,0,0.07)'"
+       onmouseout="this.style.boxShadow='none'">
+    <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:6px">
+      📁 ${esc(proj?proj.title:'—')}
+    </p>
+    <p style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:10px;line-height:1.4">${esc(t.title)}</p>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="msr" style="font-size:13px;color:var(--t3)">calendar_today</span>
+        <span style="font-size:11px;font-weight:600;color:${overdue?'#DC2626':'var(--t3)'}">${due}</span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+        <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:${c}15;color:${c}">${impLabels[t.importance||'MEDIUM']}</span>
+        <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--surface);color:var(--t3)">${statusLabels[t.status]||t.status}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function dashFinCard(p){
+  const capital=parseFloat(p.capital||0);
+  const spent=DB.totalSpent(p.id);
+  const left=capital-spent;
+  const pct=capital>0?Math.min(spent/capital*100,100):0;
+  const barColor=pct>85?'#DC2626':pct>60?'#EA580C':'#D4A848';
+  const impColors={CRITICAL:'#DC2626',HIGH:'#EA580C',MEDIUM:'#D4A848',LOW:'#16A34A'};
+  const accentColor=impColors[p.importance||'MEDIUM'];
+  return `
+  <div onclick="openProject('${p.id}')"
+       style="border:1.5px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .2s;background:#fff"
+       onmouseover="this.style.borderColor='var(--blue)';this.style.boxShadow='0 4px 16px rgba(19,86,219,0.12)'"
+       onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+    <div style="height:4px;background:${accentColor}"></div>
+    <div style="padding:18px">
+      <p style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Proyecto</p>
+      <p style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:16px;line-height:1.3">${esc(p.title)}</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="background:var(--surface);border-radius:10px;padding:10px">
+          <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:3px">Presupuesto</p>
+          <p style="font-size:14px;font-weight:800;color:var(--t1)">S/ ${capital.toLocaleString('es-PE',{minimumFractionDigits:0})}</p>
+        </div>
+        <div style="background:#FEF2F2;border-radius:10px;padding:10px">
+          <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#DC2626;margin-bottom:3px">Gastado</p>
+          <p style="font-size:14px;font-weight:800;color:#DC2626">S/ ${spent.toLocaleString('es-PE',{minimumFractionDigits:0})}</p>
+        </div>
+      </div>
+      <div style="background:#F0FDF4;border-radius:10px;padding:10px;margin-bottom:12px">
+        <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#16A34A;margin-bottom:3px">Disponible</p>
+        <p style="font-size:15px;font-weight:800;color:#16A34A">S/ ${left.toLocaleString('es-PE',{minimumFractionDigits:0})}</p>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+          <span style="font-size:10px;color:var(--t3);font-weight:600">Uso del presupuesto</span>
+          <span style="font-size:10px;font-weight:700;color:${barColor}">${pct.toFixed(0)}%</span>
+        </div>
+        <div class="progress-wrap"><div class="progress-fill" style="width:${pct}%;background:${barColor}"></div></div>
+      </div>
+    </div>
+  </div>`;
 }
 
 /* ══ PROJECTS LIST ══ */
