@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Proyectus — Gestión de Proyectos</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        blue:  { eb: '#1356DB', edark:'#0D3FA3', elight:'#3B74F5', emuted:'#EAF0FF' },
+        yel:   { base:'#D4A848', dark:'#A07828', light:'#F0C96A', muted:'#FDF6E3' },
+        slate: { 50:'#F8FAFC', 100:'#F1F5F9', 200:'#E2E8F0', 300:'#CBD5E1', 400:'#94A3B8', 500:'#64748B', 600:'#475569', 700:'#334155', 800:'#1E293B', 900:'#0F172A' },
+        ok:    '#16A34A',
+        warn:  '#EA580C',
+        err:   '#DC2626',
+      },
+      fontFamily: { sans:['Inter','sans-serif'], display:['Syne','sans-serif'] }
+    }
+  }
+}
+</script>
+<style>
+:root {
+  --blue: #1356DB;
+  --blue-dark: #0D3FA3;
+  --blue-light: #3B74F5;
+  --blue-muted: #EAF0FF;
+  --yellow: #D4A848;
+  --yellow-dark: #A07828;
+  --yellow-light: #F0C96A;
+  --yellow-muted: #FDF6E3;
+  --bg: #FFFFFF;
+  --surface: #F8FAFC;
+  --border: #E2E8F0;
+  --t1: #0F172A;
+  --t2: #475569;
+  --t3: #94A3B8;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+
+.msr { font-family:'Material Symbols Rounded'; font-style:normal; display:inline-block; line-height:1; vertical-align:middle; font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+.msr.filled { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+/* ── LAYOUT ── */
+#app { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+#main { flex: 1; display: flex; overflow: hidden; }
+#sidebar { width: 240px; background: var(--blue); display: flex; flex-direction: column; flex-shrink: 0; transition: width .3s ease; }
+#content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
+/* ── VIEWS ── */
+.view { display: none; flex: 1; overflow-y: auto; padding: 32px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.view.active { display: flex; flex-direction: column; gap: 24px; }
+.view::-webkit-scrollbar { width: 6px; }
+.view::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+/* ── TOPBAR ── */
+#topbar { height: 60px; background: #fff; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; flex-shrink: 0; z-index: 10; }
+
+/* ── SIDEBAR ── */
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: rgba(255,255,255,0.65); cursor: pointer; transition: all .2s; border-radius: 0; font-size: 14px; font-weight: 500; border: none; background: none; width: 100%; text-align: left; }
+.nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+.nav-item.active { background: rgba(255,255,255,0.18); color: white; font-weight: 700; }
+.nav-item .msr { font-size: 20px; }
+
+/* ── CARDS ── */
+.card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px; transition: all .2s ease; }
+.card:hover { box-shadow: 0 4px 20px rgba(19,86,219,0.1); border-color: rgba(19,86,219,0.2); transform: translateY(-1px); }
+.card-sm { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+
+/* ── BUTTONS ── */
+.btn-primary { background: var(--blue); color: #fff; border: none; border-radius: 10px; padding: 10px 20px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 8px; transition: all .2s; box-shadow: 0 4px 14px rgba(19,86,219,0.3); }
+.btn-primary:hover { background: var(--blue-dark); box-shadow: 0 6px 20px rgba(19,86,219,0.4); transform: translateY(-1px); }
+.btn-secondary { background: var(--yellow-muted); color: var(--yellow-dark); border: 1.5px solid var(--yellow-light); border-radius: 10px; padding: 10px 20px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 8px; transition: all .2s; }
+.btn-secondary:hover { background: var(--yellow-light); }
+.btn-ghost { background: transparent; color: var(--t2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 20px; font-weight: 600; font-size: 14px; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 8px; transition: all .2s; }
+.btn-ghost:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-muted); }
+.btn-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--t3); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+.btn-icon:hover { color: var(--blue); border-color: var(--blue); background: var(--blue-muted); }
+.btn-danger { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all .2s; }
+.btn-danger:hover { background: #FEE2E2; }
+
+/* ── BADGES ── */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+.badge-blue { background: var(--blue-muted); color: var(--blue); }
+.badge-yellow { background: var(--yellow-muted); color: var(--yellow-dark); }
+.badge-green { background: #F0FDF4; color: #16A34A; }
+.badge-red { background: #FEF2F2; color: #DC2626; }
+.badge-orange { background: #FFF7ED; color: #EA580C; }
+.badge-slate { background: #F1F5F9; color: #64748B; }
+
+/* ── FORMS ── */
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--t3); }
+.form-input { width: 100%; background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 14px; font-size: 14px; font-family: inherit; color: var(--t1); transition: border-color .2s; outline: none; }
+.form-input:focus { border-color: var(--blue); background: #fff; }
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-select { appearance: none; cursor: pointer; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* ── TABS ── */
+.tabs { display: flex; gap: 2px; background: var(--surface); border-radius: 12px; padding: 4px; }
+.tab-btn { flex: 1; padding: 9px 12px; border-radius: 9px; border: none; background: none; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--t3); font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all .2s; white-space: nowrap; }
+.tab-btn.active { background: #fff; color: var(--blue); box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-weight: 700; }
+.tab-btn .msr { font-size: 16px; }
+.tab-panel { display: none; }
+.tab-panel.active { display: flex; flex-direction: column; gap: 16px; }
+
+/* ── MODAL ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+.modal-overlay.hidden { display: none; }
+.modal-box { background: #fff; border-radius: 20px; width: 100%; max-width: 560px; max-height: 90dvh; overflow-y: auto; padding: 28px; box-shadow: 0 24px 60px rgba(0,0,0,0.2); scrollbar-width: thin; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.modal-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: var(--t1); }
+.modal-actions { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; }
+
+/* ── PROGRESS ── */
+.progress-wrap { height: 8px; background: var(--surface); border-radius: 99px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--blue), var(--blue-light)); transition: width .6s ease; }
+.progress-fill.yellow { background: linear-gradient(90deg, var(--yellow-dark), var(--yellow)); }
+.progress-fill.green { background: linear-gradient(90deg, #16A34A, #4ADE80); }
+.progress-fill.red { background: linear-gradient(90deg, #DC2626, #F87171); }
+
+/* ── STAT CARD ── */
+.stat-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; align-items: flex-start; gap: 16px; }
+.stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.stat-value { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 700; color: var(--t1); line-height: 1; }
+.stat-label { font-size: 12px; color: var(--t3); margin-top: 4px; font-weight: 500; }
+
+/* ── PROJECT CARD ── */
+.proj-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; cursor: pointer; transition: all .25s ease; }
+.proj-card:hover { box-shadow: 0 8px 30px rgba(19,86,219,0.12); border-color: rgba(19,86,219,0.3); transform: translateY(-2px); }
+.proj-card-accent { height: 5px; background: linear-gradient(90deg, var(--blue), var(--blue-light)); }
+.proj-card-accent.yellow { background: linear-gradient(90deg, var(--yellow-dark), var(--yellow-light)); }
+.proj-card-accent.green { background: linear-gradient(90deg, #16A34A, #4ADE80); }
+
+/* ── TASK CARD ── */
+.task-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; align-items: flex-start; gap: 14px; transition: all .2s; }
+.task-card:hover { border-color: var(--blue-light); box-shadow: 0 2px 12px rgba(19,86,219,0.08); }
+.task-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; }
+.task-check.done { background: var(--blue); border-color: var(--blue); }
+
+/* ── RISK CARD ── */
+.risk-card { background: #fff; border: 1.5px solid var(--border); border-radius: 12px; padding: 18px; position: relative; overflow: hidden; }
+.risk-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.risk-card.HIGH::before { background: #DC2626; }
+.risk-card.MEDIUM::before { background: #EA580C; }
+.risk-card.LOW::before { background: #D4A848; }
+
+/* ── TIMELINE ── */
+.timeline-item { display: flex; gap: 16px; }
+.tl-line { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.tl-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--blue); flex-shrink: 0; margin-top: 4px; }
+.tl-connector { width: 2px; flex: 1; background: var(--border); margin: 4px 0; min-height: 20px; }
+.tl-content { flex: 1; padding-bottom: 20px; }
+
+/* ── FINANCE ── */
+.fin-overview { background: linear-gradient(135deg, var(--blue) 0%, var(--blue-light) 100%); border-radius: 16px; padding: 24px; color: #fff; position: relative; overflow: hidden; }
+.fin-overview::before { content: ''; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,255,255,0.08); }
+
+/* ── FILE UPLOAD ── */
+.file-drop { border: 2px dashed var(--border); border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; transition: all .2s; }
+.file-drop:hover { border-color: var(--blue); background: var(--blue-muted); }
+.file-drop.has-file { border-color: var(--blue); background: var(--blue-muted); }
+
+/* ── INSPIRATION LINK ── */
+.insp-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 700; border: 1.5px solid; transition: all .2s; }
+.insp-chip.ig { background: linear-gradient(135deg, #833AB4, #C13584, #F77737); color: white; border-color: transparent; }
+.insp-chip.pinterest { background: #E60023; color: white; border-color: transparent; }
+.insp-chip.photo { background: var(--blue-muted); color: var(--blue); border-color: var(--blue-light); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.au { animation: fadeUp .35s ease forwards; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── EMPTY STATE ── */
+.empty { text-align: center; padding: 48px 20px; color: var(--t3); }
+.empty .msr { font-size: 48px; display: block; margin-bottom: 12px; opacity: 0.35; }
+
+/* ── TOAST ── */
+#toast-el { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--t1); color: #fff; padding: 12px 24px; border-radius: 99px; font-size: 13px; font-weight: 600; z-index: 999; white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.2); transition: all .3s; }
+#toast-el.hidden { opacity: 0; transform: translateX(-50%) translateY(10px); pointer-events: none; }
+
+/* ── IMPORTANCE VISUAL ── */
+.imp-stars { display: flex; gap: 3px; }
+.imp-star { font-size: 14px; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ TOPBAR ══ -->
+  <div id="topbar">
+    <div class="flex items-center gap-3">
+      <div style="width:36px;height:36px;border-radius:10px;background:var(--blue);display:flex;align-items:center;justify-content:center;">
+        <span class="msr filled" style="color:#fff;font-size:20px">rocket_launch</span>
+      </div>
+      <span style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--blue)">Proyectus</span>
+    </div>
+    <div style="flex:1"></div>
+    <div id="topbar-breadcrumb" style="font-size:13px;color:var(--t3);font-weight:500"></div>
+    <div style="flex:1"></div>
+    <button class="btn-icon" onclick="openModal('mSearch')"><span class="msr" style="font-size:18px">search</span></button>
+    <button class="btn-primary" id="topbar-action" onclick="openModal('mNewProject')">
+      <span class="msr" style="font-size:16px">add</span> Nuevo Proyecto
+    </button>
+  </div>
+
+  <div id="main">
+    <!-- ══ SIDEBAR ══ -->
+    <div id="sidebar">
+      <div style="padding:24px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.12)">
+        <p style="font-size:11px;color:rgba(255,255,255,0.45);font-weight:700;letter-spacing:0.1em;text-transform:uppercase">Menú principal</p>
+      </div>
+      <nav style="padding:12px 8px;flex:1">
+        <button class="nav-item active" id="nb-dashboard" onclick="navigate('dashboard')">
+          <span class="msr filled">dashboard</span> Dashboard
+        </button>
+        <button class="nav-item" id="nb-projects" onclick="navigate('projects')">
+          <span class="msr">folder_open</span> Proyectos
+        </button>
+      </nav>
+      <div style="padding:16px 20px 24px;border-top:1px solid rgba(255,255,255,0.12)">
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:500">v1.0 · Proyectus</div>
+      </div>
+    </div>
+
+    <!-- ══ CONTENT ══ -->
+    <div id="content">
+
+      <!-- ─── VIEW: DASHBOARD ─── -->
+      <div id="v-dashboard" class="view active" style="background:var(--surface)">
+
+        <div>
+          <p id="dash-date" style="font-size:12px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px"></p>
+          <h1 style="font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--t1)">Panel de Control <span style="color:var(--blue)">·</span></h1>
+          <p style="font-size:14px;color:var(--t2);margin-top:4px">Resumen general de todos tus proyectos activos.</p>
+        </div>
+
+        <!-- Stats -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+          <div class="stat-card au">
+            <div class="stat-icon" style="background:var(--blue-muted)">
+              <span class="msr filled" style="color:var(--blue);font-size:22px">folder_open</span>
+            </div>
+            <div>
+              <div class="stat-value" id="ds-projects">0</div>
+              <div class="stat-label">Proyectos</div>
+            </div>
+          </div>
+          <div class="stat-card au">
+            <div class="stat-icon" style="background:#F0FDF4">
+              <span class="msr filled" style="color:#16A34A;font-size:22px">task_alt</span>
+            </div>
+            <div>
+              <div class="stat-value" id="ds-tasks">0</div>
+              <div class="stat-label">Tareas totales</div>
+            </div>
+          </div>
+          <div class="stat-card au">
+            <div class="stat-icon" style="background:#FEF2F2">
+              <span class="msr filled" style="color:#DC2626;font-size:22px">warning</span>
+            </div>
+            <div>
+              <div class="stat-value" id="ds-risks">0</div>
+              <div class="stat-label">Riesgos activos</div>
+            </div>
+          </div>
+          <div class="stat-card au">
+            <div class="stat-icon" style="background:var(--yellow-muted)">
+              <span class="msr filled" style="color:var(--yellow-dark);font-size:22px">payments</span>
+            </div>
+            <div>
+              <div class="stat-value" id="ds-budget">S/0</div>
+              <div class="stat-label">Capital total</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project overview list -->
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h2 style="font-size:14px;font-weight:700;color:var(--t1)">Proyectos recientes</h2>
+            <button class="btn-ghost" onclick="navigate('projects')" style="padding:7px 14px;font-size:12px">
+              Ver todos <span class="msr" style="font-size:14px">arrow_forward</span>
+            </button>
+          </div>
+          <div id="dash-proj-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px"></div>
+        </div>
+      </div>
+
+      <!-- ─── VIEW: PROJECTS ─── -->
+      <div id="v-projects" class="view" style="background:var(--surface)">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <h1 style="font-family:'Syne',sans-serif;font-size:24px;font-weight:700">Todos los Proyectos</h1>
+            <p style="font-size:13px;color:var(--t2);margin-top:2px">Gestiona y visualiza el progreso de cada proyecto.</p>
+          </div>
+          <button class="btn-primary" onclick="openModal('mNewProject')">
+            <span class="msr" style="font-size:16px">add</span> Nuevo Proyecto
+          </button>
+        </div>
+        <!-- Filters -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="pf-btn active" onclick="filterProjects(this,'ALL')"
+                  style="padding:6px 16px;border-radius:99px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">Todos</button>
+          <button class="pf-btn" onclick="filterProjects(this,'ACTIVE')"
+                  style="padding:6px 16px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s">Activos</button>
+          <button class="pf-btn" onclick="filterProjects(this,'PLANNING')"
+                  style="padding:6px 16px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s">En Planificación</button>
+          <button class="pf-btn" onclick="filterProjects(this,'COMPLETED')"
+                  style="padding:6px 16px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s">Completados</button>
+        </div>
+        <div id="all-proj-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px"></div>
+      </div>
+
+      <!-- ─── VIEW: PROJECT DETAIL ─── -->
+      <div id="v-project-detail" class="view" style="background:var(--surface)">
+
+        <!-- Project hero banner -->
+        <div style="background:linear-gradient(135deg,var(--blue) 0%,var(--blue-light) 100%);border-radius:20px;padding:28px;color:#fff;position:relative;overflow:hidden">
+          <div style="position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.07)"></div>
+          <div style="position:absolute;bottom:-40px;left:60%;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.05)"></div>
+          <div style="position:relative;z-index:1">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+              <div>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                  <span id="det-status-badge" class="badge" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3)">ACTIVO</span>
+                  <span id="det-importance" class="badge" style="background:rgba(212,168,72,0.3);color:#F0C96A;border:1px solid rgba(212,168,72,0.4)"></span>
+                </div>
+                <h1 id="det-name" style="font-family:'Syne',sans-serif;font-size:26px;font-weight:700;margin-bottom:4px">Proyecto</h1>
+                <p id="det-desc" style="font-size:13px;color:rgba(255,255,255,0.75);max-width:600px"></p>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn-icon" onclick="openEditProject()" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:#fff">
+                  <span class="msr" style="font-size:18px">edit</span>
+                </button>
+                <button class="btn-icon" onclick="deleteCurrentProject()" style="background:rgba(220,38,38,0.2);border-color:rgba(220,38,38,0.4);color:#fca5a5">
+                  <span class="msr" style="font-size:18px">delete</span>
+                </button>
+              </div>
+            </div>
+            <!-- Progress & Meta -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px">
+              <div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:14px">
+                <p style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Progreso</p>
+                <p id="det-pct" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700">0%</p>
+                <div style="height:4px;background:rgba(255,255,255,0.2);border-radius:99px;margin-top:8px;overflow:hidden">
+                  <div id="det-pct-bar" style="height:100%;border-radius:99px;background:#fff;transition:width .6s ease;width:0%"></div>
+                </div>
+              </div>
+              <div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:14px">
+                <p style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Tiempo</p>
+                <p id="det-time" style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700">—</p>
+              </div>
+              <div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:14px">
+                <p style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Tareas</p>
+                <p id="det-task-count" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700">0/0</p>
+              </div>
+              <div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:14px">
+                <p style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Capital</p>
+                <p id="det-capital" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700">S/ 0</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs" id="project-tabs">
+          <button class="tab-btn active" onclick="switchProjectTab('tasks')" id="ptab-tasks">
+            <span class="msr" style="font-size:16px">task_alt</span> Tareas
+          </button>
+          <button class="tab-btn" onclick="switchProjectTab('timeline')" id="ptab-timeline">
+            <span class="msr" style="font-size:16px">timeline</span> Línea de Tiempo
+          </button>
+          <button class="tab-btn" onclick="switchProjectTab('risks')" id="ptab-risks">
+            <span class="msr" style="font-size:16px">warning</span> Riesgos
+          </button>
+          <button class="tab-btn" onclick="switchProjectTab('finance')" id="ptab-finance">
+            <span class="msr" style="font-size:16px">payments</span> Finanzas
+          </button>
+        </div>
+
+        <!-- ── TASKS TAB ── -->
+        <div id="tp-tasks" class="tab-panel active">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3 style="font-size:14px;font-weight:700;color:var(--t1)">Lista de Tareas</h3>
+            <button class="btn-primary" onclick="openModal('mNewTask')">
+              <span class="msr" style="font-size:16px">add</span> Nueva Tarea
+            </button>
+          </div>
+          <!-- Task filters -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap" id="task-filters">
+            <button class="tf-btn active" onclick="filterTasks(this,'ALL')"
+                    style="padding:5px 14px;border-radius:99px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Todas</button>
+            <button class="tf-btn" onclick="filterTasks(this,'TODO')"
+                    style="padding:5px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">Por hacer</button>
+            <button class="tf-btn" onclick="filterTasks(this,'IN_PROGRESS')"
+                    style="padding:5px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">En progreso</button>
+            <button class="tf-btn" onclick="filterTasks(this,'DONE')"
+                    style="padding:5px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">Completadas</button>
+          </div>
+          <div id="task-list" style="display:flex;flex-direction:column;gap:12px"></div>
+        </div>
+
+        <!-- ── TIMELINE TAB ── -->
+        <div id="tp-timeline" class="tab-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3 style="font-size:14px;font-weight:700;color:var(--t1)">Línea de Tiempo del Proyecto</h3>
+            <span class="badge badge-blue" id="tl-count">0 eventos</span>
+          </div>
+          <div id="timeline-list" style="display:flex;flex-direction:column;gap:0"></div>
+        </div>
+
+        <!-- ── RISKS TAB ── -->
+        <div id="tp-risks" class="tab-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3 style="font-size:14px;font-weight:700;color:var(--t1)">Gestión de Riesgos</h3>
+            <button class="btn-primary" onclick="openModal('mNewRisk')" style="background:#DC2626;box-shadow:0 4px 14px rgba(220,38,38,0.3)">
+              <span class="msr" style="font-size:16px">add</span> Nuevo Riesgo
+            </button>
+          </div>
+          <div id="risk-list" style="display:flex;flex-direction:column;gap:14px"></div>
+        </div>
+
+        <!-- ── FINANCE TAB ── -->
+        <div id="tp-finance" class="tab-panel">
+
+          <!-- Finance overview -->
+          <div class="fin-overview">
+            <div style="position:relative;z-index:1">
+              <p style="font-size:11px;color:rgba(255,255,255,0.65);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Resumen Financiero</p>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:16px">
+                <div>
+                  <p style="font-size:11px;color:rgba(255,255,255,0.6)">Capital del Proyecto</p>
+                  <p id="fin-capital" style="font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:#fff">S/ 0.00</p>
+                </div>
+                <div>
+                  <p style="font-size:11px;color:rgba(255,255,255,0.6)">Total Gastado</p>
+                  <p id="fin-spent" style="font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:#F0C96A">S/ 0.00</p>
+                </div>
+                <div>
+                  <p style="font-size:11px;color:rgba(255,255,255,0.6)">Disponible</p>
+                  <p id="fin-left" style="font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:#4ADE80">S/ 0.00</p>
+                </div>
+              </div>
+              <div style="margin-top:16px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                  <span style="font-size:11px;color:rgba(255,255,255,0.6)">Uso del presupuesto</span>
+                  <span id="fin-pct" style="font-size:11px;color:#fff;font-weight:700">0%</span>
+                </div>
+                <div style="height:8px;background:rgba(255,255,255,0.2);border-radius:99px;overflow:hidden">
+                  <div id="fin-bar" style="height:100%;border-radius:99px;background:#F0C96A;transition:width .6s ease;width:0%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+            <h3 style="font-size:14px;font-weight:700;color:var(--t1)">Gastos Registrados</h3>
+            <button class="btn-secondary" onclick="openModal('mNewExpense')">
+              <span class="msr" style="font-size:16px">add</span> Registrar Gasto
+            </button>
+          </div>
+
+          <div id="expense-list" style="display:flex;flex-direction:column;gap:12px"></div>
+        </div>
+
+      </div><!-- /project detail view -->
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════ -->
+
+<!-- ── New / Edit Project ── -->
+<div id="mNewProject" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title" id="mProjTitle">Nuevo Proyecto</h2>
+      <button class="btn-icon" onclick="closeModal('mNewProject')"><span class="msr" style="font-size:20px">close</span></button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="form-group">
+        <label class="form-label">Nombre del proyecto *</label>
+        <input id="inp-pName" class="form-input" type="text" placeholder="Ej: Lanzamiento de Producto Q3"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <textarea id="inp-pDesc" class="form-input form-textarea" placeholder="¿Cuál es el objetivo de este proyecto?"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tiempo de ejecución *</label>
+          <select id="inp-pTime" class="form-input form-select">
+            <option value="">Seleccionar duración</option>
+            <option value="1 semana">1 semana</option>
+            <option value="2 semanas">2 semanas</option>
+            <option value="1 mes">1 mes</option>
+            <option value="2 meses">2 meses</option>
+            <option value="3 meses">3 meses</option>
+            <option value="6 meses">6 meses</option>
+            <option value="1 año">1 año</option>
+            <option value="Indefinido">Indefinido</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nivel de importancia *</label>
+          <select id="inp-pImportance" class="form-input form-select">
+            <option value="CRITICAL">🔴 Crítico</option>
+            <option value="HIGH">🟠 Alto</option>
+            <option value="MEDIUM" selected>🟡 Medio</option>
+            <option value="LOW">🟢 Bajo</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Fecha de inicio</label>
+          <input id="inp-pStart" class="form-input" type="date"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de cierre estimada</label>
+          <input id="inp-pEnd" class="form-input" type="date"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Capital inicial (S/)</label>
+        <input id="inp-pCapital" class="form-input" type="number" placeholder="0.00" min="0" step="0.01"/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('mNewProject')">Cancelar</button>
+      <button class="btn-primary" id="btn-save-project" onclick="saveProject()">
+        <span class="msr" style="font-size:16px">save</span> Crear Proyecto
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── New Task ── -->
+<div id="mNewTask" class="modal-overlay hidden">
+  <div class="modal-box" style="max-width:620px">
+    <div class="modal-header">
+      <h2 class="modal-title">Nueva Tarea</h2>
+      <button class="btn-icon" onclick="closeModal('mNewTask')"><span class="msr" style="font-size:20px">close</span></button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="form-group">
+        <label class="form-label">Concepto de la tarea *</label>
+        <input id="inp-tTitle" class="form-input" type="text" placeholder="Ej: Diseñar mockup de portada"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Justificador de creación <span style="color:var(--t3)">(¿Por qué es necesaria esta tarea?)</span></label>
+        <textarea id="inp-tJustify" class="form-input form-textarea" placeholder="Esta tarea es necesaria porque..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nivel de importancia *</label>
+          <select id="inp-tImportance" class="form-input form-select">
+            <option value="CRITICAL">🔴 Crítica</option>
+            <option value="HIGH">🟠 Alta</option>
+            <option value="MEDIUM" selected>🟡 Media</option>
+            <option value="LOW">🟢 Baja</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado inicial</label>
+          <select id="inp-tStatus" class="form-input form-select">
+            <option value="TODO">📋 Por hacer</option>
+            <option value="IN_PROGRESS">⚡ En progreso</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Fecha límite *</label>
+          <input id="inp-tDate" class="form-input" type="date"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hora límite</label>
+          <input id="inp-tTime" class="form-input" type="time"/>
+        </div>
+      </div>
+
+      <!-- Inspiration section -->
+      <div style="border:1.5px solid var(--border);border-radius:12px;padding:16px;background:var(--surface)">
+        <p style="font-size:12px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">
+          <span class="msr" style="font-size:16px;vertical-align:-3px;color:var(--blue)">auto_awesome</span>
+          Inspiración (opcional)
+        </p>
+        <!-- Type selector -->
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+          <button class="insp-type active" data-type="none"
+                  onclick="selectInspType(this,'none')"
+                  style="padding:6px 14px;border-radius:99px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">
+            Sin inspiración
+          </button>
+          <button class="insp-type" data-type="instagram"
+                  onclick="selectInspType(this,'instagram')"
+                  style="padding:6px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">
+            📸 Instagram
+          </button>
+          <button class="insp-type" data-type="pinterest"
+                  onclick="selectInspType(this,'pinterest')"
+                  style="padding:6px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">
+            📌 Pinterest
+          </button>
+          <button class="insp-type" data-type="photo"
+                  onclick="selectInspType(this,'photo')"
+                  style="padding:6px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">
+            🖼️ Subir foto
+          </button>
+        </div>
+        <div id="insp-url-field" style="display:none">
+          <input id="inp-tInspUrl" class="form-input" type="url" placeholder="https://www.instagram.com/reel/... o Pinterest URL"/>
+          <p id="insp-url-label" style="font-size:11px;color:var(--t3);margin-top:5px"></p>
+        </div>
+        <div id="insp-photo-field" style="display:none">
+          <div class="file-drop" id="task-photo-drop" onclick="document.getElementById('inp-tPhoto').click()">
+            <span class="msr" style="font-size:32px;color:var(--t3);display:block;margin-bottom:8px">cloud_upload</span>
+            <p style="font-size:13px;font-weight:600;color:var(--t2)">Toca para subir una imagen</p>
+            <p style="font-size:11px;color:var(--t3);margin-top:4px">JPG, PNG, WEBP — máx. 2MB</p>
+          </div>
+          <input id="inp-tPhoto" type="file" accept="image/*" style="display:none" onchange="previewTaskPhoto(this)"/>
+          <img id="task-photo-preview" src="" alt="" style="display:none;margin-top:12px;border-radius:10px;max-height:180px;object-fit:cover;width:100%"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notas adicionales</label>
+        <textarea id="inp-tNotes" class="form-input" rows="2" placeholder="Contexto adicional, recursos necesarios..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('mNewTask')">Cancelar</button>
+      <button class="btn-primary" onclick="createTask()">
+        <span class="msr" style="font-size:16px">add_task</span> Crear Tarea
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── New Risk ── -->
+<div id="mNewRisk" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title" style="color:#DC2626">⚠️ Nuevo Riesgo</h2>
+      <button class="btn-icon" onclick="closeModal('mNewRisk')"><span class="msr" style="font-size:20px">close</span></button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="form-group">
+        <label class="form-label">Nombre / Título del riesgo *</label>
+        <input id="inp-rTitle" class="form-input" type="text" placeholder="Ej: Retraso en entrega de materiales"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Justificador del riesgo <span style="color:var(--t3)">(¿Por qué puede ocurrir?)</span></label>
+        <textarea id="inp-rJustify" class="form-input form-textarea" placeholder="Este riesgo existe porque..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Posible solución *</label>
+        <textarea id="inp-rSolution" class="form-input form-textarea" placeholder="Para mitigar este riesgo, se propone..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nivel de riesgo *</label>
+        <select id="inp-rLevel" class="form-input form-select">
+          <option value="HIGH">🔴 Alto — Impacto severo, alta probabilidad</option>
+          <option value="MEDIUM" selected>🟠 Medio — Impacto moderado</option>
+          <option value="LOW">🟡 Bajo — Impacto menor</option>
+        </select>
+      </div>
+      <div style="border:1.5px solid #FECACA;border-radius:12px;padding:16px;background:#FEF2F2">
+        <p style="font-size:12px;font-weight:700;color:#DC2626;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">
+          Inspiración para solucionar el riesgo (opcional)
+        </p>
+        <input id="inp-rInspUrl" class="form-input" type="url" placeholder="URL de referencia, artículo, caso de estudio..."/>
+        <p style="font-size:11px;color:var(--t3);margin-top:5px">Enlace a un recurso que ayude a mitigar este riesgo</p>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('mNewRisk')">Cancelar</button>
+      <button class="btn-primary" onclick="createRisk()" style="background:#DC2626;box-shadow:0 4px 14px rgba(220,38,38,0.3)">
+        <span class="msr" style="font-size:16px">warning</span> Registrar Riesgo
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── New Expense ── -->
+<div id="mNewExpense" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">Registrar Gasto</h2>
+      <button class="btn-icon" onclick="closeModal('mNewExpense')"><span class="msr" style="font-size:20px">close</span></button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="form-group">
+        <label class="form-label">Concepto del gasto *</label>
+        <input id="inp-eConcepto" class="form-input" type="text" placeholder="Ej: Diseñador freelance — Mockups"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Monto (S/) *</label>
+          <input id="inp-eAmount" class="form-input" type="number" placeholder="0.00" min="0" step="0.01"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha del gasto *</label>
+          <input id="inp-eDate" class="form-input" type="date"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Proveedor / Tienda</label>
+        <input id="inp-eProvider" class="form-input" type="text" placeholder="Ej: Freelancer.com, Canva Pro, Sodimac..."/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Categoría</label>
+        <select id="inp-eCategory" class="form-input form-select">
+          <option value="DESIGN">🎨 Diseño</option>
+          <option value="TECH">💻 Tecnología</option>
+          <option value="MARKETING">📣 Marketing</option>
+          <option value="TEAM">👥 Equipo / RRHH</option>
+          <option value="TOOLS">🔧 Herramientas</option>
+          <option value="MATERIALS">📦 Materiales</option>
+          <option value="OTHER">📋 Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Comprobante / Foto del recibo</label>
+        <div class="file-drop" id="expense-drop" onclick="document.getElementById('inp-eReceipt').click()">
+          <span class="msr" style="font-size:28px;color:var(--t3);display:block;margin-bottom:6px">receipt_long</span>
+          <p style="font-size:13px;font-weight:600;color:var(--t2)">Subir comprobante</p>
+          <p style="font-size:11px;color:var(--t3);margin-top:2px">Foto o PDF del recibo (máx. 2MB)</p>
+        </div>
+        <input id="inp-eReceipt" type="file" accept="image/*,.pdf" style="display:none" onchange="previewReceipt(this)"/>
+        <img id="expense-preview" src="" alt="" style="display:none;margin-top:10px;border-radius:10px;max-height:140px;object-fit:cover;width:100%"/>
+        <p id="expense-file-name" style="display:none;font-size:11px;color:var(--ok);margin-top:6px;font-weight:600"></p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas adicionales</label>
+        <input id="inp-eNotes" class="form-input" type="text" placeholder="Referencia de pago, número de factura..."/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('mNewExpense')">Cancelar</button>
+      <button class="btn-primary" onclick="createExpense()">
+        <span class="msr" style="font-size:16px">payments</span> Registrar Gasto
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast-el" class="hidden"></div>
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
+<script>
+/* ══ DB LAYER ══ */
+const DB = {
+  _id(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); },
+  _ts(){ return new Date().toISOString(); },
+  _g(k){ return JSON.parse(localStorage.getItem('ptus_'+k)||'[]'); },
+  _s(k,v){ try{ localStorage.setItem('ptus_'+k,JSON.stringify(v)); }catch(e){ toast('⚠️ Almacenamiento lleno. Elimina archivos adjuntos.'); } },
+
+  /* ─ PROJECTS ─ */
+  projects(){ return this._g('projects'); },
+  project(id){ return this.projects().find(p=>p.id===id)||null; },
+  saveProject(data){
+    const all=this.projects();
+    if(data.id){ const i=all.findIndex(p=>p.id===data.id); if(i>=0){ all[i]={...all[i],...data,updated:this._ts()}; } }
+    else{ all.unshift({...data,id:this._id(),status:'ACTIVE',created:this._ts(),updated:this._ts()}); }
+    this._s('projects',all); return all[0];
+  },
+  deleteProject(id){
+    this._s('projects',this.projects().filter(p=>p.id!==id));
+    this._s('tasks',this.tasks().filter(t=>t.pid!==id));
+    this._s('risks',this.risks().filter(r=>r.pid!==id));
+    this._s('expenses',this.expenses().filter(e=>e.pid!==id));
+    this._s('events',this.events().filter(e=>e.pid!==id));
+  },
+  projectProgress(id){
+    const t=this.tasksByProject(id);
+    return t.length?Math.round(t.filter(x=>x.status==='DONE').length/t.length*100):0;
+  },
+
+  /* ─ TASKS ─ */
+  tasks(){ return this._g('tasks'); },
+  tasksByProject(pid){ return this.tasks().filter(t=>t.pid===pid); },
+  createTask(d){
+    const t={...d,id:this._id(),status:d.status||'TODO',created:this._ts(),updated:this._ts()};
+    const all=this.tasks(); all.unshift(t); this._s('tasks',all);
+    this.addEvent(d.pid,'TASK_CREATED',`Tarea creada: "${d.title}"`,d.importance||'MEDIUM');
+    return t;
+  },
+  updateTask(id,fields){
+    const all=this.tasks(),i=all.findIndex(t=>t.id===id);
+    if(i<0)return;
+    const old=all[i];
+    all[i]={...old,...fields,updated:this._ts()};
+    this._s('tasks',all);
+    if(fields.status && fields.status!==old.status){
+      this.addEvent(old.pid,'TASK_UPDATED',`Tarea "${old.title}": ${statusLabel(old.status)} → ${statusLabel(fields.status)}`,old.importance);
+    }
+    return all[i];
+  },
+  deleteTask(id){
+    const t=this.tasks().find(x=>x.id===id);
+    if(t) this.addEvent(t.pid,'TASK_DELETED',`Tarea eliminada: "${t.title}"`,t.importance);
+    this._s('tasks',this.tasks().filter(t=>t.id!==id));
+  },
+
+  /* ─ RISKS ─ */
+  risks(){ return this._g('risks'); },
+  risksByProject(pid){ return this.risks().filter(r=>r.pid===pid); },
+  createRisk(d){
+    const r={...d,id:this._id(),created:this._ts()};
+    const all=this.risks(); all.unshift(r); this._s('risks',all);
+    this.addEvent(d.pid,'RISK_ADDED',`Riesgo registrado: "${d.title}"`,d.level);
+    return r;
+  },
+  deleteRisk(id){
+    const r=this.risks().find(x=>x.id===id);
+    if(r) this.addEvent(r.pid,'RISK_RESOLVED',`Riesgo resuelto/eliminado: "${r.title}"`,r.level);
+    this._s('risks',this.risks().filter(r=>r.id!==id));
+  },
+
+  /* ─ EXPENSES ─ */
+  expenses(){ return this._g('expenses'); },
+  expensesByProject(pid){ return this.expenses().filter(e=>e.pid===pid); },
+  createExpense(d){
+    const e={...d,id:this._id(),created:this._ts()};
+    const all=this.expenses(); all.unshift(e); this._s('expenses',all);
+    this.addEvent(d.pid,'EXPENSE_ADDED',`Gasto registrado: "${d.concepto}" — S/ ${parseFloat(d.amount).toFixed(2)}`,'MEDIUM');
+    return e;
+  },
+  deleteExpense(id){
+    this._s('expenses',this.expenses().filter(e=>e.id!==id));
+  },
+  totalSpent(pid){ return this.expensesByProject(pid).reduce((s,e)=>s+parseFloat(e.amount||0),0); },
+
+  /* ─ EVENTS (Timeline) ─ */
+  events(){ return this._g('events'); },
+  eventsByProject(pid){ return this.events().filter(e=>e.pid===pid).sort((a,b)=>new Date(b.ts)-new Date(a.ts)); },
+  addEvent(pid,type,desc,level){
+    const e={id:this._id(),pid,type,desc,level:level||'LOW',ts:this._ts()};
+    const all=this.events(); all.unshift(e); this._s('events',all);
+  },
+
+  /* ─ STATS ─ */
+  stats(){
+    const projs=this.projects();
+    const tasks=this.tasks();
+    const risks=this.risks();
+    const capital=projs.reduce((s,p)=>s+parseFloat(p.capital||0),0);
+    return { projects:projs.length, tasks:tasks.length, done:tasks.filter(t=>t.status==='DONE').length, risks:risks.length, capital };
+  }
+};
+
+/* ══ STATE ══ */
+let currentProjectId=null;
+let taskFilter='ALL';
+let projectFilter='ALL';
+let editingProjectId=null;
+let currentInspType='none';
+let taskPhotoData=null;
+let receiptData=null;
+
+/* ══ INIT ══ */
+document.addEventListener('DOMContentLoaded',()=>{
+  seedDemo();
+  setDate();
+  navigate('dashboard');
+  renderDashboard();
+});
+
+function seedDemo(){
+  if(DB.projects().length>0) return;
+  const p1=DB.saveProject({title:'Campaña de Lanzamiento Q3',desc:'Estrategia integral de marketing para el lanzamiento del producto estrella.',time:'3 meses',importance:'HIGH',capital:15000,start:'2025-07-01',end:'2025-09-30'});
+  const p2=DB.saveProject({title:'Rediseño de Identidad Visual',desc:'Renovación completa del branding corporativo.',time:'2 meses',importance:'MEDIUM',capital:8000,start:'2025-08-01',end:'2025-10-01'});
+  DB.createTask({pid:p1.id,title:'Definir buyer persona y segmentos',justify:'Necesario para orientar toda la estrategia de comunicación.',importance:'HIGH',date:'2025-07-15',time:'10:00',inspType:'none',status:'DONE'});
+  DB.createTask({pid:p1.id,title:'Diseñar brief creativo de campaña',justify:'Documento guía para todos los creativos del equipo.',importance:'CRITICAL',date:'2025-07-20',time:'17:00',inspType:'instagram',inspUrl:'https://www.instagram.com/reel/ejemplo',status:'IN_PROGRESS'});
+  DB.createTask({pid:p1.id,title:'Producir videos para redes sociales',justify:'El contenido visual es el principal canal de la campaña.',importance:'HIGH',date:'2025-08-05',time:'12:00',inspType:'none',status:'TODO'});
+  DB.createTask({pid:p2.id,title:'Investigación de referencias visuales',justify:'Necesario para proponer un estilo coherente.',importance:'MEDIUM',date:'2025-08-10',time:'09:00',inspType:'pinterest',inspUrl:'https://pinterest.com/ejemplo',status:'TODO'});
+  DB.createRisk({pid:p1.id,title:'Retraso en aprobación de piezas creativas',justify:'El cliente suele tardar más de lo esperado en revisiones.',solution:'Establecer plazos de aprobación contractuales de 48h.',level:'HIGH',inspUrl:''});
+  DB.createRisk({pid:p1.id,title:'Presupuesto insuficiente en medios pagados',justify:'El costo por clic puede aumentar en temporada alta.',solution:'Reservar 20% del capital como contingencia de medios.',level:'MEDIUM',inspUrl:''});
+  DB.createExpense({pid:p1.id,concepto:'Diseñador UX/UI freelance',amount:2500,date:'2025-07-05',provider:'Workana.com',category:'DESIGN',notes:'Pago inicial 50%',receipt:null});
+  DB.createExpense({pid:p1.id,concepto:'Suscripción herramientas de diseño',amount:180,date:'2025-07-01',provider:'Adobe Creative Cloud',category:'TOOLS',notes:'Plan anual',receipt:null});
+}
+
+function setDate(){
+  const days=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const d=new Date();
+  const el=document.getElementById('dash-date');
+  if(el) el.textContent=`${days[d.getDay()]}, ${d.getDate()} de ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/* ══ NAVIGATION ══ */
+function navigate(page){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+
+  if(page==='dashboard'){
+    document.getElementById('v-dashboard').classList.add('active');
+    document.getElementById('nb-dashboard').classList.add('active');
+    document.getElementById('topbar-breadcrumb').textContent='';
+    document.getElementById('topbar-action').textContent='';
+    document.getElementById('topbar-action').innerHTML='<span class="msr" style="font-size:16px">add</span> Nuevo Proyecto';
+    document.getElementById('topbar-action').onclick=()=>openModal('mNewProject');
+    renderDashboard();
+  } else if(page==='projects'){
+    document.getElementById('v-projects').classList.add('active');
+    document.getElementById('nb-projects').classList.add('active');
+    document.getElementById('topbar-breadcrumb').textContent='Todos los Proyectos';
+    document.getElementById('topbar-action').innerHTML='<span class="msr" style="font-size:16px">add</span> Nuevo Proyecto';
+    document.getElementById('topbar-action').onclick=()=>openModal('mNewProject');
+    renderProjectsList();
+  } else if(page==='project-detail'){
+    document.getElementById('v-project-detail').classList.add('active');
+    document.getElementById('nb-projects').classList.add('active');
+    const p=DB.project(currentProjectId);
+    if(p) document.getElementById('topbar-breadcrumb').textContent=p.title;
+    document.getElementById('topbar-action').innerHTML='<span class="msr" style="font-size:16px">add_task</span> Nueva Tarea';
+    document.getElementById('topbar-action').onclick=()=>openModal('mNewTask');
+    renderProjectDetail();
+    switchProjectTab('tasks');
+  }
+}
+
+function openProject(id){
+  currentProjectId=id;
+  navigate('project-detail');
+}
+
+/* ══ DASHBOARD ══ */
+function renderDashboard(){
+  const s=DB.stats();
+  setText('ds-projects',s.projects);
+  setText('ds-tasks',s.tasks);
+  setText('ds-risks',s.risks);
+  setText('ds-budget','S/ '+s.capital.toLocaleString());
+  const list=document.getElementById('dash-proj-list');
+  if(!list) return;
+  const projs=DB.projects().slice(0,6);
+  list.innerHTML=projs.length?projs.map(p=>projCard(p)).join('')
+    :'<div class="empty" style="grid-column:1/-1"><span class="msr">folder_open</span><p>No hay proyectos. Crea el primero.</p></div>';
+}
+
+/* ══ PROJECTS LIST ══ */
+function renderProjectsList(){
+  const list=document.getElementById('all-proj-list');
+  if(!list) return;
+  let projs=DB.projects();
+  if(projectFilter!=='ALL') projs=projs.filter(p=>p.status===projectFilter);
+  list.innerHTML=projs.length?projs.map(p=>projCard(p)).join('')
+    :'<div class="empty" style="grid-column:1/-1"><span class="msr">folder_open</span><p>Sin proyectos en esta categoría.</p></div>';
+}
+
+function filterProjects(btn,filter){
+  projectFilter=filter;
+  document.querySelectorAll('.pf-btn').forEach(b=>{
+    b.style.background='#fff'; b.style.color='var(--t2)'; b.style.borderColor='var(--border)';
+  });
+  btn.style.background='var(--blue)'; btn.style.color='#fff'; btn.style.borderColor='var(--blue)';
+  renderProjectsList();
+}
+
+function projCard(p){
+  const pct=DB.projectProgress(p.id);
+  const tasks=DB.tasksByProject(p.id);
+  const done=tasks.filter(t=>t.status==='DONE').length;
+  const risks=DB.risksByProject(p.id);
+  const spent=DB.totalSpent(p.id);
+  const impColors={CRITICAL:'#DC2626',HIGH:'#EA580C',MEDIUM:'#D4A848',LOW:'#16A34A'};
+  const impLabels={CRITICAL:'Crítico',HIGH:'Alto',MEDIUM:'Medio',LOW:'Bajo'};
+  const statusColors={ACTIVE:'blue',PLANNING:'yellow',COMPLETED:'green'};
+  const accent=statusColors[p.status]||'blue';
+  return `
+  <div class="proj-card" onclick="openProject('${p.id}')">
+    <div class="proj-card-accent ${accent}"></div>
+    <div style="padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--t1);flex:1;margin-right:10px;line-height:1.3">${esc(p.title)}</h3>
+        <span class="badge" style="background:${impColors[p.importance||'MEDIUM']}18;color:${impColors[p.importance||'MEDIUM']};flex-shrink:0">${impLabels[p.importance||'MEDIUM']}</span>
+      </div>
+      ${p.desc?`<p style="font-size:12px;color:var(--t3);margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(p.desc)}</p>`:''}
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+          <span style="font-size:11px;color:var(--t3);font-weight:600">Progreso</span>
+          <span style="font-size:11px;font-weight:700;color:var(--blue)">${pct}%</span>
+        </div>
+        <div class="progress-wrap"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="badge badge-blue"><span class="msr" style="font-size:12px">task_alt</span> ${done}/${tasks.length}</span>
+        ${risks.length?`<span class="badge badge-red"><span class="msr" style="font-size:12px">warning</span> ${risks.length} riesgo${risks.length>1?'s':''}</span>`:''}
+        ${spent>0?`<span class="badge badge-yellow">S/ ${spent.toLocaleString()}</span>`:''}
+        ${p.time?`<span class="badge badge-slate"><span class="msr" style="font-size:12px">schedule</span> ${esc(p.time)}</span>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ══ PROJECT DETAIL ══ */
+function renderProjectDetail(){
+  const p=DB.project(currentProjectId);
+  if(!p) return;
+  const pct=DB.projectProgress(currentProjectId);
+  const tasks=DB.tasksByProject(currentProjectId);
+  const done=tasks.filter(t=>t.status==='DONE').length;
+  const spent=DB.totalSpent(currentProjectId);
+  const impLabels={CRITICAL:'🔴 Crítico',HIGH:'🟠 Alta Importancia',MEDIUM:'🟡 Importancia Media',LOW:'🟢 Baja Importancia'};
+  const statusLabels={ACTIVE:'ACTIVO',PLANNING:'PLANIFICANDO',COMPLETED:'COMPLETADO',ON_HOLD:'EN ESPERA'};
+
+  setText('det-name',p.title);
+  setText('det-desc',p.desc||'');
+  setText('det-status-badge',statusLabels[p.status]||p.status);
+  setText('det-importance',impLabels[p.importance]||'');
+  setText('det-pct',pct+'%');
+  document.getElementById('det-pct-bar').style.width=pct+'%';
+  setText('det-time',p.time||'—');
+  setText('det-task-count',`${done}/${tasks.length}`);
+  setText('det-capital','S/ '+(parseFloat(p.capital||0)).toLocaleString());
+
+  renderTaskList();
+  renderTimeline();
+  renderRiskList();
+  renderFinance();
+}
+
+/* ── Tasks ── */
+function renderTaskList(){
+  let tasks=DB.tasksByProject(currentProjectId);
+  if(taskFilter!=='ALL') tasks=tasks.filter(t=>t.status===taskFilter);
+  tasks.sort((a,b)=>{
+    const order={CRITICAL:0,HIGH:1,MEDIUM:2,LOW:3};
+    return (order[a.importance]||2)-(order[b.importance]||2);
+  });
+  const el=document.getElementById('task-list');
+  if(!el) return;
+  el.innerHTML=tasks.length?tasks.map(t=>taskCard(t)).join('')
+    :'<div class="empty"><span class="msr">task_alt</span><p>Sin tareas. Crea la primera.</p></div>';
+}
+
+function taskCard(t){
+  const isDone=t.status==='DONE';
+  const isIP=t.status==='IN_PROGRESS';
+  const impColors={CRITICAL:'#DC2626',HIGH:'#EA580C',MEDIUM:'#D4A848',LOW:'#16A34A'};
+  const impLabels={CRITICAL:'🔴 Crítica',HIGH:'🟠 Alta',MEDIUM:'🟡 Media',LOW:'🟢 Baja'};
+  const due=t.date?new Date(t.date).toLocaleDateString('es-PE',{day:'2-digit',month:'short'}):'';
+  const overdue=t.date&&new Date(t.date+'T'+(t.time||'23:59'))<new Date()&&!isDone;
+  const inspIcons={instagram:'📸',pinterest:'📌',photo:'🖼️'};
+
+  return `
+  <div class="task-card" style="${isDone?'opacity:0.65;':''}border-left:4px solid ${impColors[t.importance||'MEDIUM']}">
+    <div class="task-check ${isDone?'done':''}" onclick="cycleTaskStatus('${t.id}')">
+      ${isDone?`<span class="msr filled" style="font-size:13px;color:#fff">check</span>`:
+        isIP?`<span class="msr filled" style="font-size:13px;color:var(--blue)">play_arrow</span>`:''}
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:6px">
+        <p style="font-size:14px;font-weight:600;color:var(--t1);${isDone?'text-decoration:line-through;color:var(--t3);':''}">${esc(t.title)}</p>
+        <span class="badge" style="flex-shrink:0;background:${impColors[t.importance||'MEDIUM']}15;color:${impColors[t.importance||'MEDIUM']}">${impLabels[t.importance||'MEDIUM']}</span>
+      </div>
+      ${t.justify?`<p style="font-size:11px;color:var(--t3);margin-bottom:8px;font-style:italic">"${esc(t.justify)}"</p>`:''}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        ${due?`<span class="badge ${overdue?'badge-red':'badge-slate'}" style="font-size:10px">
+          <span class="msr" style="font-size:12px">calendar_today</span> ${due}${t.time?' · '+t.time:''}</span>`:''}
+        ${t.inspType&&t.inspType!=='none'?`<span class="badge badge-blue" style="font-size:10px">
+          ${inspIcons[t.inspType]||'🔗'} Inspiración</span>`:''}
+        <span class="badge ${isDone?'badge-green':isIP?'badge-blue':'badge-slate'}" style="font-size:10px">
+          ${isDone?'✅ Hecha':isIP?'⚡ En progreso':'📋 Por hacer'}</span>
+      </div>
+      ${t.notes?`<p style="font-size:11px;color:var(--t3);margin-top:6px">${esc(t.notes)}</p>`:''}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+      <button class="btn-icon" onclick="cycleTaskStatus('${t.id}')" title="Cambiar estado">
+        <span class="msr" style="font-size:16px">sync</span>
+      </button>
+      <button class="btn-danger" onclick="deleteTask('${t.id}')">
+        <span class="msr" style="font-size:15px">delete</span>
+      </button>
+    </div>
+  </div>`;
+}
+
+function filterTasks(btn,filter){
+  taskFilter=filter;
+  document.querySelectorAll('.tf-btn').forEach(b=>{
+    b.style.background='#fff'; b.style.color='var(--t2)'; b.style.borderColor='var(--border)';
+  });
+  btn.style.background='var(--blue)'; btn.style.color='#fff'; btn.style.borderColor='var(--blue)';
+  renderTaskList();
+}
+
+function cycleTaskStatus(id){
+  const t=DB.tasks().find(x=>x.id===id); if(!t) return;
+  const next={TODO:'IN_PROGRESS',IN_PROGRESS:'DONE',DONE:'TODO'}[t.status]||'TODO';
+  DB.updateTask(id,{status:next});
+  renderTaskList();
+  renderProjectDetail();
+  toast('Estado actualizado: '+statusLabel(next));
+}
+
+function deleteTask(id){
+  DB.deleteTask(id);
+  renderTaskList();
+  renderTimeline();
+  renderProjectDetail();
+  toast('🗑 Tarea eliminada');
+}
+
+/* ── Timeline ── */
+function renderTimeline(){
+  const events=DB.eventsByProject(currentProjectId);
+  const el=document.getElementById('timeline-list');
+  setText('tl-count',events.length+' evento'+( events.length!==1?'s':''));
+  if(!el) return;
+  if(!events.length){
+    el.innerHTML='<div class="empty"><span class="msr">timeline</span><p>Sin eventos registrados aún. Crea tareas o registra gastos para generar la línea de tiempo.</p></div>';
+    return;
+  }
+  const typeConf={
+    TASK_CREATED:  {icon:'add_task',    color:'#1356DB', label:'Tarea creada'},
+    TASK_UPDATED:  {icon:'sync',        color:'#D4A848', label:'Tarea actualizada'},
+    TASK_DELETED:  {icon:'delete',      color:'#DC2626', label:'Tarea eliminada'},
+    RISK_ADDED:    {icon:'warning',     color:'#EA580C', label:'Riesgo registrado'},
+    RISK_RESOLVED: {icon:'shield',      color:'#16A34A', label:'Riesgo resuelto'},
+    EXPENSE_ADDED: {icon:'payments',    color:'#7C3AED', label:'Gasto registrado'},
+  };
+  el.innerHTML=events.map((e,i)=>{
+    const conf=typeConf[e.type]||{icon:'circle',color:'#94A3B8',label:e.type};
+    const dt=new Date(e.ts);
+    const dtStr=dt.toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'})+' · '+dt.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
+    return `
+    <div class="timeline-item">
+      <div class="tl-line">
+        <div class="tl-dot" style="background:${conf.color};width:14px;height:14px"></div>
+        ${i<events.length-1?'<div class="tl-connector"></div>':''}
+      </div>
+      <div class="tl-content">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;border-left:3px solid ${conf.color}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+            <div>
+              <span class="badge" style="background:${conf.color}18;color:${conf.color};margin-bottom:6px">
+                <span class="msr filled" style="font-size:12px">${conf.icon}</span> ${conf.label}
+              </span>
+              <p style="font-size:13px;font-weight:500;color:var(--t1)">${esc(e.desc)}</p>
+            </div>
+            <p style="font-size:10px;color:var(--t3);white-space:nowrap;flex-shrink:0">${dtStr}</p>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Risks ── */
+function renderRiskList(){
+  const risks=DB.risksByProject(currentProjectId);
+  const el=document.getElementById('risk-list');
+  if(!el) return;
+  if(!risks.length){
+    el.innerHTML='<div class="empty"><span class="msr">shield</span><p>Sin riesgos registrados. Buen trabajo.</p></div>';
+    return;
+  }
+  el.innerHTML=risks.map(r=>{
+    const levelConf={HIGH:{label:'Alto',color:'#DC2626',bg:'#FEF2F2'},
+                     MEDIUM:{label:'Medio',color:'#EA580C',bg:'#FFF7ED'},
+                     LOW:{label:'Bajo',color:'#D4A848',bg:'#FDF6E3'}};
+    const lc=levelConf[r.level]||levelConf.MEDIUM;
+    return `
+    <div class="risk-card ${r.level}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div>
+          <span class="badge" style="background:${lc.bg};color:${lc.color};margin-bottom:8px">
+            <span class="msr filled" style="font-size:12px">warning</span> Riesgo ${lc.label}
+          </span>
+          <h4 style="font-size:14px;font-weight:700;color:var(--t1)">${esc(r.title)}</h4>
+        </div>
+        <button class="btn-danger" onclick="deleteRisk('${r.id}')">
+          <span class="msr" style="font-size:15px">delete</span>
+        </button>
+      </div>
+      ${r.justify?`<div style="margin-bottom:10px">
+        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px">Justificación</p>
+        <p style="font-size:13px;color:var(--t2)">${esc(r.justify)}</p>
+      </div>`:''}
+      <div style="background:${lc.bg};border-radius:10px;padding:12px;margin-bottom:10px">
+        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${lc.color};margin-bottom:4px">💡 Solución propuesta</p>
+        <p style="font-size:13px;color:var(--t1);font-weight:500">${esc(r.solution||'Sin solución definida.')}</p>
+      </div>
+      ${r.inspUrl?`<a href="${esc(r.inspUrl)}" target="_blank"
+        style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--blue);text-decoration:none;background:var(--blue-muted);padding:5px 12px;border-radius:99px">
+        <span class="msr" style="font-size:14px">open_in_new</span> Ver referencia de solución
+      </a>`:''}
+    </div>`;
+  }).join('');
+}
+
+function deleteRisk(id){
+  DB.deleteRisk(id);
+  renderRiskList();
+  renderTimeline();
+  renderProjectDetail();
+  toast('Riesgo eliminado');
+}
+
+/* ── Finance ── */
+function renderFinance(){
+  const p=DB.project(currentProjectId); if(!p) return;
+  const capital=parseFloat(p.capital||0);
+  const spent=DB.totalSpent(currentProjectId);
+  const left=capital-spent;
+  const pct=capital>0?Math.min(spent/capital*100,100):0;
+  setText('fin-capital','S/ '+capital.toLocaleString('es-PE',{minimumFractionDigits:2}));
+  setText('fin-spent','S/ '+spent.toLocaleString('es-PE',{minimumFractionDigits:2}));
+  setText('fin-left','S/ '+left.toLocaleString('es-PE',{minimumFractionDigits:2}));
+  setText('fin-pct',pct.toFixed(1)+'%');
+  document.getElementById('fin-bar').style.width=pct+'%';
+  document.getElementById('fin-bar').style.background=pct>85?'#EF4444':pct>60?'#EA580C':'#F0C96A';
+
+  const expenses=DB.expensesByProject(currentProjectId);
+  const el=document.getElementById('expense-list');
+  if(!el) return;
+  const catConf={DESIGN:{icon:'brush',color:'#7C3AED'},TECH:{icon:'computer',color:'#1356DB'},
+    MARKETING:{icon:'campaign',color:'#EA580C'},TEAM:{icon:'group',color:'#16A34A'},
+    TOOLS:{icon:'build',color:'#D4A848'},MATERIALS:{icon:'inventory',color:'#64748B'},
+    OTHER:{icon:'category',color:'#94A3B8'}};
+  el.innerHTML=expenses.length?expenses.map(e=>{
+    const cc=catConf[e.category]||catConf.OTHER;
+    const dt=e.date?new Date(e.date+'T12:00').toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'}):'';
+    return `
+    <div class="card-sm" style="display:flex;align-items:center;gap:16px">
+      <div style="width:40px;height:40px;border-radius:10px;background:${cc.color}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <span class="msr filled" style="color:${cc.color};font-size:20px">${cc.icon}</span>
+      </div>
+      <div style="flex:1;min-width:0">
+        <p style="font-size:14px;font-weight:600;color:var(--t1)">${esc(e.concepto)}</p>
+        <div style="display:flex;gap:8px;margin-top:3px;flex-wrap:wrap">
+          ${e.provider?`<span style="font-size:11px;color:var(--t3)">📍 ${esc(e.provider)}</span>`:''}
+          ${dt?`<span style="font-size:11px;color:var(--t3)">📅 ${dt}</span>`:''}
+          ${e.notes?`<span style="font-size:11px;color:var(--t3);font-style:italic">${esc(e.notes)}</span>`:''}
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <p style="font-size:16px;font-weight:800;color:var(--t1)">S/ ${parseFloat(e.amount).toFixed(2)}</p>
+        ${e.receipt?`<span style="font-size:10px;font-weight:700;color:var(--ok)">✓ Comprobante</span>`:''}
+      </div>
+      <button class="btn-danger" onclick="deleteExpenseItem('${e.id}')">
+        <span class="msr" style="font-size:15px">delete</span>
+      </button>
+    </div>`;
+  }).join('')
+  :'<div class="empty"><span class="msr">payments</span><p>Sin gastos registrados.</p></div>';
+}
+
+function deleteExpenseItem(id){
+  DB.deleteExpense(id);
+  renderFinance();
+  renderProjectDetail();
+  renderTimeline();
+  toast('Gasto eliminado');
+}
+
+/* ══ TABS ══ */
+function switchProjectTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  const panel=document.getElementById('tp-'+name);
+  const btn=document.getElementById('ptab-'+name);
+  if(panel) panel.classList.add('active');
+  if(btn) btn.classList.add('active');
+}
+
+/* ══ CRUD ACTIONS ══ */
+function saveProject(){
+  const title=val('inp-pName'); if(!title) return toast('⚠️ Ingresa el nombre del proyecto');
+  const time=val('inp-pTime'); if(!time) return toast('⚠️ Selecciona el tiempo de ejecución');
+  const data={ title, desc:val('inp-pDesc'), time, importance:val('inp-pImportance'),
+               capital:val('inp-pCapital'), start:val('inp-pStart'), end:val('inp-pEnd') };
+  if(editingProjectId){ data.id=editingProjectId; }
+  DB.saveProject(data);
+  if(!editingProjectId){
+    DB.addEvent(DB.projects()[0].id,'TASK_CREATED','Proyecto creado: "'+title+'"','MEDIUM');
+  }
+  closeModal('mNewProject');
+  clearInputs('inp-pName','inp-pDesc','inp-pTime','inp-pCapital','inp-pStart','inp-pEnd');
+  editingProjectId=null;
+  renderDashboard();
+  renderProjectsList();
+  toast('✅ Proyecto '+(editingProjectId?'actualizado':'creado'));
+}
+
+function openEditProject(){
+  const p=DB.project(currentProjectId); if(!p) return;
+  editingProjectId=p.id;
+  setText('mProjTitle','Editar Proyecto');
+  setText('btn-save-project',''); document.getElementById('btn-save-project').innerHTML='<span class="msr" style="font-size:16px">save</span> Guardar cambios';
+  setVal('inp-pName',p.title); setVal('inp-pDesc',p.desc||'');
+  setVal('inp-pTime',p.time||''); setVal('inp-pImportance',p.importance||'MEDIUM');
+  setVal('inp-pCapital',p.capital||''); setVal('inp-pStart',p.start||''); setVal('inp-pEnd',p.end||'');
+  openModal('mNewProject');
+}
+
+function deleteCurrentProject(){
+  if(!confirm('¿Eliminar este proyecto y todo su contenido?')) return;
+  DB.deleteProject(currentProjectId);
+  currentProjectId=null;
+  navigate('projects');
+  renderProjectsList();
+  renderDashboard();
+  toast('🗑 Proyecto eliminado');
+}
+
+function createTask(){
+  const title=val('inp-tTitle'); if(!title) return toast('⚠️ Ingresa el concepto de la tarea');
+  const date=val('inp-tDate'); if(!date) return toast('⚠️ Selecciona la fecha límite');
+  DB.createTask({ pid:currentProjectId, title, justify:val('inp-tJustify'),
+    importance:val('inp-tImportance'), date, time:val('inp-tTime'),
+    status:val('inp-tStatus'), inspType:currentInspType,
+    inspUrl:currentInspType==='photo'?taskPhotoData:(currentInspType!=='none'?val('inp-tInspUrl'):null),
+    notes:val('inp-tNotes') });
+  closeModal('mNewTask');
+  clearInputs('inp-tTitle','inp-tJustify','inp-tDate','inp-tTime','inp-tInspUrl','inp-tNotes');
+  taskPhotoData=null;
+  document.getElementById('task-photo-preview').style.display='none';
+  selectInspType(document.querySelector('.insp-type[data-type="none"]'),'none');
+  renderTaskList();
+  renderTimeline();
+  renderProjectDetail();
+  toast('✅ Tarea creada');
+}
+
+function createRisk(){
+  const title=val('inp-rTitle'); if(!title) return toast('⚠️ Ingresa el nombre del riesgo');
+  const solution=val('inp-rSolution'); if(!solution) return toast('⚠️ Define una posible solución');
+  DB.createRisk({ pid:currentProjectId, title, justify:val('inp-rJustify'),
+    solution, level:val('inp-rLevel'), inspUrl:val('inp-rInspUrl') });
+  closeModal('mNewRisk');
+  clearInputs('inp-rTitle','inp-rJustify','inp-rSolution','inp-rInspUrl');
+  renderRiskList();
+  renderTimeline();
+  renderProjectDetail();
+  toast('⚠️ Riesgo registrado');
+}
+
+function createExpense(){
+  const concepto=val('inp-eConcepto'); if(!concepto) return toast('⚠️ Ingresa el concepto del gasto');
+  const amount=parseFloat(val('inp-eAmount')); if(!amount||amount<=0) return toast('⚠️ Monto inválido');
+  const date=val('inp-eDate'); if(!date) return toast('⚠️ Selecciona la fecha');
+  DB.createExpense({ pid:currentProjectId, concepto, amount, date,
+    provider:val('inp-eProvider'), category:val('inp-eCategory'),
+    notes:val('inp-eNotes'), receipt:receiptData });
+  closeModal('mNewExpense');
+  clearInputs('inp-eConcepto','inp-eAmount','inp-eDate','inp-eProvider','inp-eNotes');
+  receiptData=null;
+  document.getElementById('expense-preview').style.display='none';
+  document.getElementById('expense-file-name').style.display='none';
+  document.getElementById('expense-drop').classList.remove('has-file');
+  renderFinance();
+  renderTimeline();
+  renderProjectDetail();
+  toast('💰 Gasto registrado');
+}
+
+/* ══ INSPIRATION ══ */
+let currentInspType='none';
+function selectInspType(btn, type){
+  currentInspType=type;
+  document.querySelectorAll('.insp-type').forEach(b=>{
+    b.style.background='#fff'; b.style.color='var(--t2)'; b.style.borderColor='var(--border)';
+  });
+  btn.style.background='var(--blue)'; btn.style.color='#fff'; btn.style.borderColor='var(--blue)';
+  document.getElementById('insp-url-field').style.display=(type==='instagram'||type==='pinterest')?'block':'none';
+  document.getElementById('insp-photo-field').style.display=type==='photo'?'block':'none';
+  const labels={instagram:'Pega la URL del Reel, Post o Story de Instagram',
+                pinterest:'Pega la URL del Pin o tablero de Pinterest'};
+  if(document.getElementById('insp-url-label')) document.getElementById('insp-url-label').textContent=labels[type]||'';
+}
+
+function previewTaskPhoto(input){
+  const file=input.files[0]; if(!file) return;
+  if(file.size>2*1024*1024){ toast('⚠️ La imagen supera 2MB'); return; }
+  const reader=new FileReader();
+  reader.onload=e=>{
+    taskPhotoData=e.target.result;
+    const img=document.getElementById('task-photo-preview');
+    img.src=taskPhotoData; img.style.display='block';
+    document.getElementById('task-photo-drop').classList.add('has-file');
+  };
+  reader.readAsDataURL(file);
+}
+
+function previewReceipt(input){
+  const file=input.files[0]; if(!file) return;
+  if(file.size>2*1024*1024){ toast('⚠️ El archivo supera 2MB'); return; }
+  const el=document.getElementById('expense-file-name');
+  el.textContent='✓ '+file.name; el.style.display='block';
+  document.getElementById('expense-drop').classList.add('has-file');
+  if(file.type.startsWith('image/')){
+    const reader=new FileReader();
+    reader.onload=e=>{
+      receiptData=e.target.result;
+      const img=document.getElementById('expense-preview');
+      img.src=receiptData; img.style.display='block';
+    };
+    reader.readAsDataURL(file);
+  } else { receiptData='PDF:'+file.name; }
+}
+
+/* ══ MODALS ══ */
+function openModal(id){ document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+document.addEventListener('click',e=>{ if(e.target.classList.contains('modal-overlay')) e.target.classList.add('hidden'); });
+
+/* ══ TOAST ══ */
+let toastTimer=null;
+function toast(msg){
+  const el=document.getElementById('toast-el');
+  el.textContent=msg; el.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.add('hidden'),2800);
+}
+
+/* ══ HELPERS ══ */
+function val(id){ return (document.getElementById(id)||{}).value?.trim()||''; }
+function setVal(id,v){ const el=document.getElementById(id); if(el) el.value=v; }
+function setText(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
+function clearInputs(...ids){ ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function statusLabel(s){ return {TODO:'Por hacer',IN_PROGRESS:'En progreso',DONE:'Completada'}[s]||s; }
+</script>
+</body>
+</html>
