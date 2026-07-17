@@ -911,18 +911,126 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderDashboard();
 });
 
+/* ── SEED VERSION: cambiar número para forzar reset ── */
+const SEED_VERSION = 'v3';
+
 function seedDemo(){
-  if(DB.projects().length>0) return;
-  const p1=DB.saveProject({title:'Campaña de Lanzamiento Q3',desc:'Estrategia integral de marketing para el lanzamiento del producto estrella.',time:'3 meses',importance:'HIGH',capital:15000,start:'2025-07-01',end:'2025-09-30'});
-  const p2=DB.saveProject({title:'Rediseño de Identidad Visual',desc:'Renovación completa del branding corporativo.',time:'2 meses',importance:'MEDIUM',capital:8000,start:'2025-08-01',end:'2025-10-01'});
-  DB.createTask({pid:p1.id,title:'Definir buyer persona y segmentos',justify:'Necesario para orientar toda la estrategia de comunicación.',importance:'HIGH',date:'2025-07-15',time:'10:00',inspType:'none',status:'DONE'});
-  DB.createTask({pid:p1.id,title:'Diseñar brief creativo de campaña',justify:'Documento guía para todos los creativos del equipo.',importance:'CRITICAL',date:'2025-07-20',time:'17:00',inspType:'instagram',inspUrl:'https://www.instagram.com/reel/ejemplo',status:'IN_PROGRESS'});
-  DB.createTask({pid:p1.id,title:'Producir videos para redes sociales',justify:'El contenido visual es el principal canal de la campaña.',importance:'HIGH',date:'2025-08-05',time:'12:00',inspType:'none',status:'TODO'});
-  DB.createTask({pid:p2.id,title:'Investigación de referencias visuales',justify:'Necesario para proponer un estilo coherente.',importance:'MEDIUM',date:'2025-08-10',time:'09:00',inspType:'pinterest',inspUrl:'https://pinterest.com/ejemplo',status:'TODO'});
-  DB.createRisk({pid:p1.id,title:'Retraso en aprobación de piezas creativas',justify:'El cliente suele tardar más de lo esperado en revisiones.',solution:'Establecer plazos de aprobación contractuales de 48h.',level:'HIGH',inspUrl:''});
-  DB.createRisk({pid:p1.id,title:'Presupuesto insuficiente en medios pagados',justify:'El costo por clic puede aumentar en temporada alta.',solution:'Reservar 20% del capital como contingencia de medios.',level:'MEDIUM',inspUrl:''});
-  DB.createExpense({pid:p1.id,concepto:'Diseñador UX/UI freelance',amount:2500,date:'2025-07-05',provider:'Workana.com',category:'DESIGN',notes:'Pago inicial 50%',receipt:null});
-  DB.createExpense({pid:p1.id,concepto:'Suscripción herramientas de diseño',amount:180,date:'2025-07-01',provider:'Adobe Creative Cloud',category:'TOOLS',notes:'Plan anual',receipt:null});
+  // Si la versión no coincide, limpiamos y re-sembramos
+  if(localStorage.getItem('ptus_seed_ver') === SEED_VERSION) return;
+  DB.clearAll();
+  localStorage.setItem('ptus_seed_ver', SEED_VERSION);
+
+  /* ═══ PROYECTO 1: Campaña Digital Verano 2025 ═══ */
+  const p1 = DB.saveProject({
+    title:      'Campaña Digital Verano 2025',
+    desc:       'Estrategia de contenido y pauta en redes sociales para incrementar ventas de la línea veraniega.',
+    time:       '3 meses',
+    importance: 'CRITICAL',
+    capital:    12000,
+    start:      '2025-07-01',
+    end:        '2025-09-30'
+  });
+
+  /* ═══ PROYECTO 2: Rediseño de Identidad Visual ═══ */
+  const p2 = DB.saveProject({
+    title:      'Rediseño de Identidad Visual',
+    desc:       'Renovación completa del branding: logotipo, paleta de colores, tipografía y manual de marca.',
+    time:       '2 meses',
+    importance: 'HIGH',
+    capital:    8500,
+    start:      '2025-08-01',
+    end:        '2025-10-01'
+  });
+
+  /* ═══ PROYECTO 3: Lanzamiento de E-commerce ═══ */
+  const p3 = DB.saveProject({
+    title:      'Lanzamiento de Tienda Online',
+    desc:       'Desarrollo e implementación de tienda e-commerce con catálogo de productos, pasarela de pagos y estrategia SEO.',
+    time:       '4 meses',
+    importance: 'HIGH',
+    capital:    18000,
+    start:      '2025-07-15',
+    end:        '2025-11-15'
+  });
+
+  /* ═══ TAREA 1 → Proyecto 1 ═══ */
+  DB.createTask({
+    pid:        p1.id,
+    title:      'Producir 10 reels para Instagram y TikTok',
+    justify:    'El contenido en video corto es el principal canal de alcance orgánico en la campaña de verano.',
+    importance: 'CRITICAL',
+    date:       '2025-07-25',
+    time:       '17:00',
+    inspType:   'instagram',
+    inspUrl:    'https://www.instagram.com/reel/ejemplo-verano/',
+    notes:      'Incluir transiciones de tendencia y música sin copyright.',
+    status:     'IN_PROGRESS'
+  });
+
+  /* ═══ TAREA 2 → Proyecto 2 ═══ */
+  DB.createTask({
+    pid:        p2.id,
+    title:      'Crear 3 propuestas de logotipo para aprobación',
+    justify:    'El logotipo es el eje central de toda la identidad visual; necesita aprobación antes de avanzar.',
+    importance: 'HIGH',
+    date:       '2025-08-15',
+    time:       '12:00',
+    inspType:   'pinterest',
+    inspUrl:    'https://pinterest.com/tablero-branding-minimalista/',
+    notes:      'Presentar en formato PDF con mockups sobre distintos fondos.',
+    status:     'TODO'
+  });
+
+  /* ═══ TAREA 3 → Proyecto 3 ═══ */
+  DB.createTask({
+    pid:        p3.id,
+    title:      'Configurar pasarela de pagos y carrito de compras',
+    justify:    'Sin la pasarela de pagos activa no es posible realizar ventas; es el componente más crítico del lanzamiento.',
+    importance: 'CRITICAL',
+    date:       '2025-08-10',
+    time:       '10:00',
+    inspType:   'none',
+    inspUrl:    null,
+    notes:      'Integrar Stripe + PayPal. Realizar 5 transacciones de prueba antes del lanzamiento.',
+    status:     'TODO'
+  });
+
+  /* ═══ GASTOS → Proyecto 1 ═══ */
+  DB.createExpense({ pid:p1.id, concepto:'Producción audiovisual — 10 reels', amount:3500,
+    date:'2025-07-08', provider:'Studio Creativo SAC', category:'DESIGN',
+    notes:'Incluye edición y motion graphics', receipt:null });
+  DB.createExpense({ pid:p1.id, concepto:'Pauta Meta Ads (Facebook + Instagram)', amount:2200,
+    date:'2025-07-10', provider:'Meta Business', category:'MARKETING',
+    notes:'Campaña awareness + conversión', receipt:null });
+
+  /* ═══ GASTOS → Proyecto 2 ═══ */
+  DB.createExpense({ pid:p2.id, concepto:'Diseñador de marca senior freelance', amount:2800,
+    date:'2025-08-05', provider:'Freelancer.com', category:'DESIGN',
+    notes:'Anticipo del 50% del proyecto', receipt:null });
+  DB.createExpense({ pid:p2.id, concepto:'Adobe Creative Cloud — plan anual', amount:320,
+    date:'2025-08-01', provider:'Adobe Inc.', category:'TOOLS',
+    notes:'Licencia para diseñador asignado', receipt:null });
+
+  /* ═══ GASTOS → Proyecto 3 ═══ */
+  DB.createExpense({ pid:p3.id, concepto:'Desarrollo frontend + backend e-commerce', amount:7200,
+    date:'2025-07-18', provider:'DevTeam Solutions', category:'TECH',
+    notes:'Sprint 1 de 3 — arquitectura base y catálogo', receipt:null });
+  DB.createExpense({ pid:p3.id, concepto:'Hosting y dominio — plan anual', amount:480,
+    date:'2025-07-15', provider:'Hostinger', category:'TECH',
+    notes:'Plan Business + SSL', receipt:null });
+  DB.createExpense({ pid:p3.id, concepto:'Fotografía de productos (50 SKUs)', amount:1800,
+    date:'2025-07-20', provider:'Foto Estudio Lima', category:'MATERIALS',
+    notes:'Fondo blanco + lifestyle shots', receipt:null });
+
+  /* ═══ RIESGOS ═══ */
+  DB.createRisk({ pid:p1.id, title:'Bajo alcance orgánico por cambios de algoritmo',
+    justify:'Meta e Instagram actualizan frecuentemente sus algoritmos, reduciendo el alcance orgánico.',
+    solution:'Combinar estrategia orgánica con pauta pagada de respaldo (S/ 500 de contingencia).',
+    level:'HIGH', inspUrl:'' });
+  DB.createRisk({ pid:p3.id, title:'Retrasos en integración de pasarela de pagos',
+    justify:'Las certificaciones de Stripe y PayPal pueden tomar más tiempo del estimado.',
+    solution:'Iniciar el proceso de verificación en paralelo al desarrollo, con 2 semanas de margen.',
+    level:'MEDIUM', inspUrl:'' });
 }
 
 function setDate(){
