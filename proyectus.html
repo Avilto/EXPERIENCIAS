@@ -419,7 +419,7 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
         <div id="tp-tasks" class="tab-panel active">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <h3 style="font-size:14px;font-weight:700;color:var(--t1)">Lista de Tareas</h3>
-            <button class="btn-primary" onclick="openModal('mNewTask')">
+            <button class="btn-primary" onclick="openNewTaskModal()">
               <span class="msr" style="font-size:16px">add</span> Nueva Tarea
             </button>
           </div>
@@ -579,7 +579,7 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
 <div id="mNewTask" class="modal-overlay hidden">
   <div class="modal-box" style="max-width:620px">
     <div class="modal-header">
-      <h2 class="modal-title">Nueva Tarea</h2>
+      <h2 class="modal-title" id="mTaskTitle">Nueva Tarea</h2>
       <button class="btn-icon" onclick="closeModal('mNewTask')"><span class="msr" style="font-size:20px">close</span></button>
     </div>
     <div style="display:flex;flex-direction:column;gap:16px">
@@ -671,7 +671,7 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" onclick="closeModal('mNewTask')">Cancelar</button>
-      <button class="btn-primary" onclick="createTask()">
+      <button class="btn-primary" id="btn-save-task" onclick="saveTask()">
         <span class="msr" style="font-size:16px">add_task</span> Crear Tarea
       </button>
     </div>
@@ -907,6 +907,7 @@ let currentProjectId=null;
 let taskFilter='ALL';
 let projectFilter='ALL';
 let editingProjectId=null;
+let editingTaskId=null;
 let currentInspType='none';
 let taskPhotoData=null;
 let receiptData=null;
@@ -1079,7 +1080,7 @@ function navigate(page){
     const p=DB.project(currentProjectId);
     if(p) document.getElementById('topbar-breadcrumb').textContent=p.title;
     document.getElementById('topbar-action').innerHTML='<span class="msr" style="font-size:16px">add_task</span> Nueva Tarea';
-    document.getElementById('topbar-action').onclick=()=>openModal('mNewTask');
+    document.getElementById('topbar-action').onclick=()=>openNewTaskModal();
     renderProjectDetail();
     switchProjectTab('tasks');
   }
@@ -1382,8 +1383,8 @@ function taskCard(t){
       ${t.notes?`<p style="font-size:11px;color:var(--t3);margin-top:6px">${esc(t.notes)}</p>`:''}
     </div>
     <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
-      <button class="btn-icon" onclick="cycleTaskStatus('${t.id}')" title="Cambiar estado">
-        <span class="msr" style="font-size:16px">sync</span>
+      <button class="btn-icon" onclick="openEditTask('${t.id}')" title="Editar tarea">
+        <span class="msr" style="font-size:16px">edit</span>
       </button>
       <button class="btn-danger" onclick="deleteTask('${t.id}')">
         <span class="msr" style="font-size:15px">delete</span>
@@ -1621,23 +1622,74 @@ function deleteCurrentProject(){
   toast('🗑 Proyecto eliminado');
 }
 
-function createTask(){
-  const title=val('inp-tTitle'); if(!title) return toast('⚠️ Ingresa el concepto de la tarea');
-  const date=val('inp-tDate'); if(!date) return toast('⚠️ Selecciona la fecha límite');
-  DB.createTask({ pid:currentProjectId, title, justify:val('inp-tJustify'),
-    importance:val('inp-tImportance'), date, time:val('inp-tTime'),
-    status:val('inp-tStatus'), inspType:currentInspType,
-    inspUrl:currentInspType==='photo'?taskPhotoData:(currentInspType!=='none'?val('inp-tInspUrl'):null),
-    notes:val('inp-tNotes') });
-  closeModal('mNewTask');
+function openNewTaskModal(){
+  editingTaskId=null;
+  setText('mTaskTitle','Nueva Tarea');
+  setText('btn-save-task',''); document.getElementById('btn-save-task').innerHTML='<span class="msr" style="font-size:16px">add_task</span> Crear Tarea';
   clearInputs('inp-tTitle','inp-tJustify','inp-tDate','inp-tTime','inp-tInspUrl','inp-tNotes');
+  setVal('inp-tImportance','MEDIUM');
+  setVal('inp-tStatus','TODO');
   taskPhotoData=null;
   document.getElementById('task-photo-preview').style.display='none';
   selectInspType(document.querySelector('.insp-type[data-type="none"]'),'none');
+  openModal('mNewTask');
+}
+
+function openEditTask(id){
+  const t=DB.tasks().find(x=>x.id===id); if(!t) return;
+  editingTaskId=id;
+  setText('mTaskTitle','Editar Tarea');
+  setText('btn-save-task',''); document.getElementById('btn-save-task').innerHTML='<span class="msr" style="font-size:16px">save</span> Guardar cambios';
+  
+  setVal('inp-tTitle', t.title);
+  setVal('inp-tJustify', t.justify||'');
+  setVal('inp-tImportance', t.importance||'MEDIUM');
+  setVal('inp-tStatus', t.status||'TODO');
+  setVal('inp-tDate', t.date||'');
+  setVal('inp-tTime', t.time||'');
+  setVal('inp-tNotes', t.notes||'');
+
+  const inspTypeBtn = document.querySelector(`.insp-type[data-type="${t.inspType||'none'}"]`);
+  if(inspTypeBtn) selectInspType(inspTypeBtn, t.inspType||'none');
+  
+  if(t.inspType==='photo' && t.inspUrl) {
+    taskPhotoData = t.inspUrl;
+    const img = document.getElementById('task-photo-preview');
+    img.src = taskPhotoData; img.style.display = 'block';
+  } else {
+    taskPhotoData = null;
+    document.getElementById('task-photo-preview').style.display = 'none';
+    if(t.inspType!=='none') setVal('inp-tInspUrl', t.inspUrl||'');
+  }
+
+  openModal('mNewTask');
+}
+
+function saveTask(){
+  const title=val('inp-tTitle'); if(!title) return toast('⚠️ Ingresa el concepto de la tarea');
+  const date=val('inp-tDate'); if(!date) return toast('⚠️ Selecciona la fecha límite');
+  
+  const payload = {
+    title, justify:val('inp-tJustify'),
+    importance:val('inp-tImportance'), date, time:val('inp-tTime'),
+    status:val('inp-tStatus'), inspType:currentInspType,
+    inspUrl:currentInspType==='photo'?taskPhotoData:(currentInspType!=='none'?val('inp-tInspUrl'):null),
+    notes:val('inp-tNotes')
+  };
+
+  if(editingTaskId) {
+    DB.updateTask(editingTaskId, payload);
+    toast('✅ Tarea actualizada');
+  } else {
+    payload.pid = currentProjectId;
+    DB.createTask(payload);
+    toast('✅ Tarea creada');
+  }
+
+  closeModal('mNewTask');
   renderTaskList();
   renderTimeline();
   renderProjectDetail();
-  toast('✅ Tarea creada');
 }
 
 function createRisk(){
