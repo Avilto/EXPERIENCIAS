@@ -891,6 +891,14 @@ const DB = {
     const risks=this.risks();
     const capital=projs.reduce((s,p)=>s+parseFloat(p.capital||0),0);
     return { projects:projs.length, tasks:tasks.length, done:tasks.filter(t=>t.status==='DONE').length, risks:risks.length, capital };
+  },
+
+  /* ─ CLEAR ALL (usa prefijo correcto ptus_) ─ */
+  clearAll(){
+    ['projects','tasks','risks','expenses','events'].forEach(k=>{
+      localStorage.removeItem('ptus_'+k);
+    });
+    localStorage.removeItem('ptus_seed_ver');
   }
 };
 
@@ -911,12 +919,15 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderDashboard();
 });
 
-/* ── SEED VERSION: cambiar número para forzar reset ── */
-const SEED_VERSION = 'v3';
+/* ── SEED VERSION ── */
+const SEED_VERSION = 'v4';
 
 function seedDemo(){
-  // Si la versión no coincide, limpiamos y re-sembramos
-  if(localStorage.getItem('ptus_seed_ver') === SEED_VERSION) return;
+  const storedVer = localStorage.getItem('ptus_seed_ver');
+  const projCount = DB.projects().length;
+  // Forzar re-seed si versión no coincide
+  if(storedVer === SEED_VERSION && projCount >= 3) return;
+  // Limpiar TODO con prefijo correcto
   DB.clearAll();
   localStorage.setItem('ptus_seed_ver', SEED_VERSION);
 
