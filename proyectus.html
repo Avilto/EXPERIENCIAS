@@ -911,6 +911,9 @@ let currentInspType='none';
 let taskPhotoData=null;
 let receiptData=null;
 
+/* ══ SEED VERSION ── debe declararse ANTES del listener ══ */
+const SEED_VERSION = 'v4';
+
 /* ══ INIT ══ */
 document.addEventListener('DOMContentLoaded',()=>{
   seedDemo();
@@ -919,17 +922,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderDashboard();
 });
 
-/* ── SEED VERSION ── */
-const SEED_VERSION = 'v4';
-
 function seedDemo(){
-  const storedVer = localStorage.getItem('ptus_seed_ver');
-  const projCount = DB.projects().length;
-  // Forzar re-seed si versión no coincide
-  if(storedVer === SEED_VERSION && projCount >= 3) return;
-  // Limpiar TODO con prefijo correcto
-  DB.clearAll();
-  localStorage.setItem('ptus_seed_ver', SEED_VERSION);
+  // Limpiar y resembrar si la versión no coincide
+  if(localStorage.getItem('ptus_seed_ver') === SEED_VERSION) return;
+  // Limpiar todo el localStorage de la app
+  ['projects','tasks','risks','expenses','events'].forEach(k=>localStorage.removeItem('ptus_'+k));
+  localStorage.removeItem('ptus_seed_ver');
 
   /* ═══ PROYECTO 1: Campaña Digital Verano 2025 ═══ */
   const p1 = DB.saveProject({
@@ -1042,6 +1040,9 @@ function seedDemo(){
     justify:'Las certificaciones de Stripe y PayPal pueden tomar más tiempo del estimado.',
     solution:'Iniciar el proceso de verificación en paralelo al desarrollo, con 2 semanas de margen.',
     level:'MEDIUM', inspUrl:'' });
+
+  // Marcar seed como completado
+  localStorage.setItem('ptus_seed_ver', SEED_VERSION);
 }
 
 function setDate(){
