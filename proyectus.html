@@ -275,35 +275,51 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
           </div>
         </div>
 
-        <!-- ══ SECCIÓN 2: TAREAS IMPORTANTES ══ -->
+        <!-- ══ SECCIÓN 2: MÓDULOS ══ -->
         <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:28px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
             <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:10px">
-              <span style="display:inline-block;width:5px;height:22px;background:var(--yellow-dark);border-radius:99px"></span>
-              TAREAS IMPORTANTES
+              <span style="display:inline-block;width:5px;height:22px;background:var(--blue);border-radius:99px"></span>
+              MÓDULOS
             </h2>
-            <div style="display:flex;align-items:center;gap:10px">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <input type="text" id="dash-mod-search" oninput="renderDashModules()" placeholder="Buscar módulo..."
+                     style="padding:6px 14px;border-radius:99px;border:1.5px solid var(--border);font-size:11px;outline:none;width:140px;font-family:inherit"/>
               <div style="position:relative">
-                <select id="dash-task-filter" onchange="renderDashTasks()"
-                        style="appearance:none;padding:8px 36px 8px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;font-family:inherit;outline:none;transition:all .2s">
-                  <option value="ALL">FILTROS: Todas</option>
-                  <option value="CRITICAL">🔴 Críticas</option>
-                  <option value="HIGH">🟠 Altas</option>
-                  <option value="MEDIUM">🟡 Medias</option>
-                  <option value="TODO">📋 Por hacer</option>
-                  <option value="IN_PROGRESS">⚡ En progreso</option>
+                <select id="dash-mod-proj-filter" onchange="renderDashModules()"
+                        style="appearance:none;padding:8px 36px 8px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;font-family:inherit;outline:none">
+                  <option value="ALL">Todos los Proyectos</option>
                 </select>
                 <span class="msr" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--t3);pointer-events:none">expand_more</span>
               </div>
-              <button class="btn-ghost" onclick="navigate('projects')" style="font-size:12px;font-weight:700;padding:8px 18px">
+              <div style="position:relative">
+                <select id="dash-mod-imp-filter" onchange="renderDashModules()"
+                        style="appearance:none;padding:8px 36px 8px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;font-family:inherit;outline:none">
+                  <option value="ALL">Toda Importancia</option>
+                  <option value="CRITICAL">🔴 Crítica</option>
+                  <option value="HIGH">🟠 Alta</option>
+                  <option value="MEDIUM">🟡 Media</option>
+                  <option value="LOW">🟢 Baja</option>
+                </select>
+                <span class="msr" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--t3);pointer-events:none">expand_more</span>
+              </div>
+              <div style="position:relative">
+                <select id="dash-mod-sort" onchange="renderDashModules()"
+                        style="appearance:none;padding:8px 36px 8px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;font-family:inherit;outline:none">
+                  <option value="NEWEST">Más recientes</option>
+                  <option value="OLDEST">Más antiguos</option>
+                </select>
+                <span class="msr" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--t3);pointer-events:none">expand_more</span>
+              </div>
+              <button class="btn-ghost" onclick="navigate('modules')" style="font-size:12px;font-weight:700;padding:8px 18px">
                 VER TODO <span class="msr" style="font-size:15px">arrow_forward</span>
               </button>
             </div>
           </div>
-          <div id="dash-task-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px"></div>
-          <div id="dash-task-empty" style="display:none;text-align:center;padding:40px;color:var(--t3)">
-            <span class="msr" style="font-size:40px;display:block;margin-bottom:10px;opacity:.3">task_alt</span>
-            <p style="font-size:13px">Sin tareas importantes pendientes.</p>
+          <div id="dash-modules-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px"></div>
+          <div id="dash-modules-empty" style="display:none;text-align:center;padding:40px;color:var(--t3)">
+            <span class="msr" style="font-size:40px;display:block;margin-bottom:10px;opacity:.3">view_module</span>
+            <p style="font-size:13px">Sin módulos que coincidan con los filtros.</p>
           </div>
         </div>
 
@@ -607,6 +623,15 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
       <div class="form-group">
         <label class="form-label">Nombre del Módulo *</label>
         <input id="inp-mName" class="form-input" type="text" placeholder="Ej: Fase 1: Análisis y Requerimientos"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nivel de importancia *</label>
+        <select id="inp-mImportance" class="form-input form-select">
+          <option value="CRITICAL">🔴 Crítica</option>
+          <option value="HIGH">🟠 Alta</option>
+          <option value="MEDIUM" selected>🟡 Media</option>
+          <option value="LOW">🟢 Baja</option>
+        </select>
       </div>
       <div class="form-group">
         <label class="form-label">Descripción (opcional)</label>
@@ -1027,8 +1052,8 @@ function seedDemo(){
     end:        '2025-09-30'
   });
 
-  const m1 = DB.createModule({ pid: p1.id, name: 'Producción de Contenido', desc: 'Creación de piezas gráficas y de video para la campaña' });
-  const m2 = DB.createModule({ pid: p1.id, name: 'Pauta y Configuración', desc: 'Lanzamiento de anuncios en Meta y TikTok Ads' });
+  const m1 = DB.createModule({ pid: p1.id, name: 'Producción de Contenido', desc: 'Creación de piezas gráficas y de video para la campaña', importance: 'CRITICAL' });
+  const m2 = DB.createModule({ pid: p1.id, name: 'Pauta y Configuración', desc: 'Lanzamiento de anuncios en Meta y TikTok Ads', importance: 'MEDIUM' });
 
   /* ═══ PROYECTO 2: Rediseño de Identidad Visual ═══ */
   const p2 = DB.saveProject({
@@ -1041,7 +1066,7 @@ function seedDemo(){
     end:        '2025-10-01'
   });
 
-  const m3 = DB.createModule({ pid: p2.id, name: 'Concepto y Diseño', desc: 'Creación y selección de propuestas visuales' });
+  const m3 = DB.createModule({ pid: p2.id, name: 'Concepto y Diseño', desc: 'Creación y selección de propuestas visuales', importance: 'HIGH' });
 
   /* ═══ PROYECTO 3: Lanzamiento de E-commerce ═══ */
   const p3 = DB.saveProject({
@@ -1054,7 +1079,7 @@ function seedDemo(){
     end:        '2025-11-15'
   });
 
-  const m4 = DB.createModule({ pid: p3.id, name: 'Desarrollo Técnico', desc: 'Configuración del backend y pasarelas de pago' });
+  const m4 = DB.createModule({ pid: p3.id, name: 'Desarrollo Técnico', desc: 'Configuración del backend y pasarelas de pago', importance: 'CRITICAL' });
 
   /* ═══ TAREA 1 → Proyecto 1 ═══ */
   DB.createTask({
@@ -1197,44 +1222,129 @@ function openProject(id){
 /* ══ DASHBOARD ══ */
 function renderDashboard(){
   setDate();
-  // ── Section 1: Proyectos ──
-  const projs=DB.projects();
-  const pList=document.getElementById('dash-proj-list');
-  const pEmpty=document.getElementById('dash-proj-empty');
-  if(pList){
-    const show=projs.slice(0,3);
-    if(show.length){ pList.innerHTML=show.map(p=>dashProjCard(p)).join(''); pList.style.display='grid'; if(pEmpty) pEmpty.style.display='none'; }
-    else { pList.style.display='none'; if(pEmpty) pEmpty.style.display='block'; }
-  }
-  // ── Section 2: Tareas Importantes ──
-  renderDashTasks();
+  // ── Section 2: Módulos ──
+  renderDashModules();
   // ── Section 3: Finanzas ──
   renderDashFinance();
 }
 
-function renderDashTasks(){
-  const filter=(document.getElementById('dash-task-filter')||{}).value||'ALL';
-  let tasks=DB.tasks();
-  // Apply filter
-  if(filter==='CRITICAL')      tasks=tasks.filter(t=>t.importance==='CRITICAL'&&t.status!=='DONE');
-  else if(filter==='HIGH')     tasks=tasks.filter(t=>t.importance==='HIGH'&&t.status!=='DONE');
-  else if(filter==='MEDIUM')   tasks=tasks.filter(t=>t.importance==='MEDIUM'&&t.status!=='DONE');
-  else if(filter==='TODO')     tasks=tasks.filter(t=>t.status==='TODO');
-  else if(filter==='IN_PROGRESS') tasks=tasks.filter(t=>t.status==='IN_PROGRESS');
-  else { // ALL: show important+pending first
-    tasks=tasks.filter(t=>t.status!=='DONE')
-      .sort((a,b)=>{ const o={CRITICAL:0,HIGH:1,MEDIUM:2,LOW:3}; return (o[a.importance]||2)-(o[b.importance]||2); });
+function renderDashModules(){
+  const search = ((document.getElementById('dash-mod-search')||{}).value||'').toLowerCase();
+  const projFilter = (document.getElementById('dash-mod-proj-filter')||{}).value||'ALL';
+  const impFilter = (document.getElementById('dash-mod-imp-filter')||{}).value||'ALL';
+  const sort = (document.getElementById('dash-mod-sort')||{}).value||'NEWEST';
+
+  const projs = DB.projects().slice(0, 3);
+
+  const pSelect = document.getElementById('dash-mod-proj-filter');
+  if(pSelect && pSelect.options.length <= 1) {
+    let selectHtml = '<option value="ALL">Todos los Proyectos</option>';
+    projs.forEach(p => {
+      selectHtml += `<option value="${p.id}">${esc(p.title)}</option>`;
+    });
+    pSelect.innerHTML = selectHtml;
+    pSelect.value = projFilter;
   }
-  const show=tasks.slice(0,3);
-  const tList=document.getElementById('dash-task-list');
-  const tEmpty=document.getElementById('dash-task-empty');
-  if(!tList) return;
-  if(show.length){
-    tList.innerHTML=show.map(t=>dashTaskCard(t)).join('');
-    tList.style.display='grid'; if(tEmpty) tEmpty.style.display='none';
+
+  const allModules = DB.modules();
+  const showModules = [];
+
+  projs.forEach(p => {
+    if(projFilter !== 'ALL' && projFilter !== p.id) return;
+
+    let pModules = allModules.filter(m => m.pid === p.id);
+
+    if(search) {
+      pModules = pModules.filter(m => m.name.toLowerCase().includes(search) || (m.desc && m.desc.toLowerCase().includes(search)));
+    }
+
+    if(impFilter !== 'ALL') {
+      pModules = pModules.filter(m => (m.importance || 'MEDIUM') === impFilter);
+    }
+
+    pModules.sort((a,b) => {
+      const timeA = new Date(a.created || 0).getTime();
+      const timeB = new Date(b.created || 0).getTime();
+      return sort === 'NEWEST' ? timeB - timeA : timeA - timeB;
+    });
+
+    if(pModules.length > 0) {
+      showModules.push(pModules[0]);
+    }
+  });
+
+  const mList = document.getElementById('dash-modules-list');
+  const mEmpty = document.getElementById('dash-modules-empty');
+  if(!mList) return;
+
+  if(showModules.length){
+    mList.innerHTML = showModules.map(m => {
+      const p = DB.project(m.pid) || { title: 'Sin Proyecto' };
+      const tasks = DB.tasks().filter(t => t.mid === m.id);
+      const doneCount = tasks.filter(t => t.status === 'DONE').length;
+      const pct = tasks.length ? Math.round(doneCount / tasks.length * 100) : 0;
+      
+      const impColors = { CRITICAL: '#DC2626', HIGH: '#EA580C', MEDIUM: '#D4A848', LOW: '#16A34A' };
+      const impLabels = { CRITICAL: 'Crítico', HIGH: 'Alto', MEDIUM: 'Medio', LOW: 'Bajo' };
+      const impVal = m.importance || 'MEDIUM';
+
+      return `
+      <div onclick="navigateToModule('${m.pid}', '${m.id}')"
+           style="border:1.5px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .2s;background:#fff;display:flex;flex-direction:column;justify-content:space-between"
+           onmouseover="this.style.borderColor='var(--blue)';this.style.boxShadow='0 4px 16px rgba(19,86,219,0.12)'"
+           onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+        <div style="height:4px;background:${impColors[impVal]}"></div>
+        <div style="padding:18px">
+          <div style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">
+            <span class="msr" style="font-size:14px;color:var(--blue)">folder</span>
+            <span style="text-overflow:ellipsis;overflow:hidden;white-space:nowrap;max-width:200px">${esc(p.title)}</span>
+          </div>
+          <h3 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--t1);margin-bottom:6px;line-height:1.3">${esc(m.name)}</h3>
+          ${m.desc ? `<p style="font-size:11px;color:var(--t3);margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(m.desc)}</p>` : ''}
+          
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+            <span class="badge" style="background:${impColors[impVal]}15;color:${impColors[impVal]}">${impLabels[impVal]}</span>
+            <span class="badge badge-slate">${tasks.length} tareas</span>
+          </div>
+
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;color:var(--t2);margin-bottom:4px">
+              <span>Progreso del Módulo</span>
+              <span>${pct}%</span>
+            </div>
+            <div style="height:6px;background:var(--border);border-radius:99px;overflow:hidden">
+              <div style="height:100%;background:var(--blue);width:${pct}%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      `;
+    }).join('');
+    mList.style.display = 'grid';
+    if(mEmpty) mEmpty.style.display = 'none';
   } else {
-    tList.style.display='none'; if(tEmpty) tEmpty.style.display='block';
+    mList.style.display = 'none';
+    if(mEmpty) mEmpty.style.display = 'block';
   }
+}
+
+function navigateToModule(pid, mid){
+  currentProjectId = pid;
+  navigate('project-detail');
+  
+  setTimeout(() => {
+    const el = document.getElementById(`module-group-${mid}`);
+    if(el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.borderColor = 'var(--blue)';
+      el.style.boxShadow = '0 0 0 3px rgba(19, 86, 219, 0.25)';
+      el.style.transition = 'all .3s ease';
+      setTimeout(() => {
+        el.style.borderColor = 'var(--border)';
+        el.style.boxShadow = 'none';
+      }, 2000);
+    }
+  }, 250);
 }
 
 function renderDashFinance(){
@@ -1462,7 +1572,7 @@ function renderTaskList(){
   projectModules.forEach(mod => {
     const modTasks = tasks.filter(t => t.mid === mod.id);
     html += `
-      <div class="module-group" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px">
+      <div class="module-group" id="module-group-${mod.id}" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px">
           <div>
             <h4 style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--blue)">${esc(mod.name)}</h4>
@@ -2096,6 +2206,7 @@ function openNewModuleModal(pid){
   setText('btn-save-module',''); document.getElementById('btn-save-module').innerHTML='<span class="msr" style="font-size:16px">save</span> Crear Módulo';
   setVal('inp-mName','');
   setVal('inp-mDesc','');
+  setVal('inp-mImportance','MEDIUM');
   
   const pSelect = document.getElementById('inp-mProject');
   const projs = DB.projects();
@@ -2117,6 +2228,7 @@ function openEditModule(id){
   
   setVal('inp-mName', m.name);
   setVal('inp-mDesc', m.desc||'');
+  setVal('inp-mImportance', m.importance||'MEDIUM');
   
   const pSelect = document.getElementById('inp-mProject');
   const projs = DB.projects();
@@ -2133,12 +2245,13 @@ function saveModule(){
   const pid = val('inp-mProject'); if(!pid) return toast('⚠️ Selecciona un proyecto');
   const name = val('inp-mName'); if(!name) return toast('⚠️ Ingresa el nombre del módulo');
   const desc = val('inp-mDesc');
+  const importance = val('inp-mImportance') || 'MEDIUM';
   
   if(editingModuleId) {
-    DB.updateModule(editingModuleId, { pid, name, desc });
+    DB.updateModule(editingModuleId, { pid, name, desc, importance });
     toast('✅ Módulo actualizado');
   } else {
-    DB.createModule({ pid, name, desc });
+    DB.createModule({ pid, name, desc, importance });
     toast('✅ Módulo creado');
   }
   
