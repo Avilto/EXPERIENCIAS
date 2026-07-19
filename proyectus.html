@@ -1781,6 +1781,7 @@ function cycleTaskStatus(id){
 }
 
 function deleteTask(id){
+  if(!confirm('¿Estás seguro de que deseas eliminar esta tarea?')) return;
   DB.deleteTask(id);
   renderTaskList();
   renderTimeline();
@@ -1877,6 +1878,7 @@ function renderRiskList(){
 }
 
 function deleteRisk(id){
+  if(!confirm('¿Estás seguro de que deseas eliminar este riesgo?')) return;
   DB.deleteRisk(id);
   renderRiskList();
   renderTimeline();
@@ -1934,6 +1936,7 @@ function renderFinance(){
 }
 
 function deleteExpenseItem(id){
+  if(!confirm('¿Estás seguro de que deseas eliminar este registro de gasto?')) return;
   DB.deleteExpense(id);
   renderFinance();
   renderProjectDetail();
