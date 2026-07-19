@@ -245,14 +245,39 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
       <div id="v-dashboard" class="view active" style="background:var(--surface)">
 
         <!-- Date + Quick action -->
-        <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:16px">
           <div>
             <p id="dash-date" style="font-size:11px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px"></p>
             <h1 style="font-family:'Inter',sans-serif;font-size:26px;font-weight:800;color:var(--t1)">Panel de Control</h1>
           </div>
-          <button class="btn-primary" onclick="openModal('mNewProject')">
-            <span class="msr" style="font-size:16px">add</span> Nuevo Proyecto
-          </button>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <!-- Global Filter 1: Estado -->
+            <div style="position:relative">
+              <select id="dash-global-status-filter" onchange="renderDashboard()"
+                      style="appearance:none;padding:8px 36px 8px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;font-family:inherit;outline:none">
+                <option value="ALL">Todos los Estados</option>
+                <option value="ACTIVE">Activos</option>
+                <option value="PLANNING">En Planificación</option>
+                <option value="COMPLETED">Completados</option>
+              </select>
+              <span class="msr" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--t3);pointer-events:none">expand_more</span>
+            </div>
+            <!-- Global Filter 2: Importancia -->
+            <div style="position:relative">
+              <select id="dash-global-importance-filter" onchange="renderDashboard()"
+                      style="appearance:none;padding:8px 36px 8px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;font-family:inherit;outline:none">
+                <option value="ALL">Todas las Importancias</option>
+                <option value="CRITICAL">🔴 Crítica</option>
+                <option value="HIGH">🟠 Alta</option>
+                <option value="MEDIUM">🟡 Media</option>
+                <option value="LOW">🟢 Baja</option>
+              </select>
+              <span class="msr" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--t3);pointer-events:none">expand_more</span>
+            </div>
+            <button class="btn-primary" onclick="openModal('mNewProject')">
+              <span class="msr" style="font-size:16px">add</span> Nuevo Proyecto
+            </button>
+          </div>
         </div>
 
         <!-- ══ SECCIÓN 1: PROYECTOS ══ -->
@@ -1265,12 +1290,26 @@ function openProject(id){
 /* ══ DASHBOARD ══ */
 function renderDashboard(){
   setDate();
+  
+  const globalStatus = (document.getElementById('dash-global-status-filter') || { value: 'ALL' }).value;
+  const globalImportance = (document.getElementById('dash-global-importance-filter') || { value: 'ALL' }).value;
+  
   // ── Section 1: Proyectos ──
   let projs=DB.projects();
+  
+  // Apply global filters
+  if(globalStatus !== 'ALL') {
+    projs = projs.filter(p => p.status === globalStatus);
+  }
+  if(globalImportance !== 'ALL') {
+    projs = projs.filter(p => p.importance === globalImportance);
+  }
+  
   projs.sort((a, b) => {
     const o = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
     return (o[a.importance] || 2) - (o[b.importance] || 2);
   });
+  
   const pList=document.getElementById('dash-proj-list');
   const pEmpty=document.getElementById('dash-proj-empty');
   if(pList){
@@ -1279,18 +1318,27 @@ function renderDashboard(){
     else { pList.style.display='none'; if(pEmpty) pEmpty.style.display='block'; }
   }
   // ── Section 2: Módulos ──
-  renderDashModules();
+  renderDashModules(globalStatus, globalImportance);
   // ── Section 3: Finanzas ──
-  renderDashFinance();
+  renderDashFinance(globalStatus, globalImportance);
 }
 
-function renderDashModules(){
+function renderDashModules(globalStatus = 'ALL', globalImportance = 'ALL'){
   const search = ((document.getElementById('dash-mod-search')||{}).value||'').toLowerCase();
   const projFilter = (document.getElementById('dash-mod-proj-filter')||{}).value||'ALL';
   const impFilter = (document.getElementById('dash-mod-imp-filter')||{}).value||'ALL';
   const sort = (document.getElementById('dash-mod-sort')||{}).value||'NEWEST';
 
   let projs = DB.projects();
+  
+  // Apply global filters to projects before selecting modules
+  if(globalStatus !== 'ALL') {
+    projs = projs.filter(p => p.status === globalStatus);
+  }
+  if(globalImportance !== 'ALL') {
+    projs = projs.filter(p => p.importance === globalImportance);
+  }
+
   projs.sort((a, b) => {
     const o = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
     return (o[a.importance] || 2) - (o[b.importance] || 2);
@@ -1298,7 +1346,7 @@ function renderDashModules(){
   projs = projs.slice(0, 3);
 
   const pSelect = document.getElementById('dash-mod-proj-filter');
-  if(pSelect && pSelect.options.length <= 1) {
+  if(pSelect) {
     let selectHtml = '<option value="ALL">Todos los Proyectos</option>';
     projs.forEach(p => {
       selectHtml += `<option value="${p.id}">${esc(p.title)}</option>`;
@@ -1408,8 +1456,17 @@ function navigateToModule(pid, mid){
   }, 250);
 }
 
-function renderDashFinance(){
-  const projs=DB.projects();
+function renderDashFinance(globalStatus = 'ALL', globalImportance = 'ALL'){
+  let projs=DB.projects();
+  
+  // Apply global filters
+  if(globalStatus !== 'ALL') {
+    projs = projs.filter(p => p.status === globalStatus);
+  }
+  if(globalImportance !== 'ALL') {
+    projs = projs.filter(p => p.importance === globalImportance);
+  }
+
   const totalCapital=projs.reduce((s,p)=>s+parseFloat(p.capital||0),0);
   setText('dash-fin-total','Capital total: S/ '+totalCapital.toLocaleString('es-PE',{minimumFractionDigits:2}));
   const fList=document.getElementById('dash-fin-list');
