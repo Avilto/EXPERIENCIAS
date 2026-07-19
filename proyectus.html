@@ -448,16 +448,19 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
           </button>
         </div>
 
-        <!-- ── TASKS TAB ── -->
         <div id="tp-tasks" class="tab-panel active">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <h3 style="font-size:14px;font-weight:700;color:var(--t1)">Lista de Tareas</h3>
+          <!-- Section 1: Modules -->
+          <div id="project-modules-section" style="margin-bottom: 28px"></div>
+
+          <!-- Section 2: Header + Filters between Modules and Tareas Sueltas -->
+          <div style="display:flex;justify-content:space-between;align-items:center;border-top:1.5px solid var(--border);padding-top:24px;margin-top:12px">
+            <h3 style="font-size:16px;font-weight:800;color:var(--t1)">Tareas Sueltas (Sin Módulo)</h3>
             <button class="btn-primary" onclick="openNewTaskModal()">
               <span class="msr" style="font-size:16px">add</span> Nueva Tarea
             </button>
           </div>
           <!-- Task filters -->
-          <div style="display:flex;gap:8px;flex-wrap:wrap" id="task-filters">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;margin-bottom:16px" id="task-filters">
             <button class="tf-btn active" onclick="filterTasks(this,'ALL')"
                     style="padding:5px 14px;border-radius:99px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Todas</button>
             <button class="tf-btn" onclick="filterTasks(this,'TODO')"
@@ -1603,37 +1606,33 @@ function renderProjectDetail(){
 /* ── Tasks ── */
 function renderTaskList(){
   let tasks=DB.tasksByProject(currentProjectId);
-  if(taskFilter!=='ALL') tasks=tasks.filter(t=>t.status===taskFilter);
-  tasks.sort((a,b)=>{
+  
+  let filteredTasks = [...tasks];
+  if(taskFilter!=='ALL') filteredTasks=filteredTasks.filter(t=>t.status===taskFilter);
+  filteredTasks.sort((a,b)=>{
     const order={CRITICAL:0,HIGH:1,MEDIUM:2,LOW:3};
     return (order[a.importance]||2)-(order[b.importance]||2);
   });
-  const el=document.getElementById('task-list');
-  if(!el) return;
+
+  const mEl=document.getElementById('project-modules-section');
+  const tEl=document.getElementById('task-list');
+  if(!mEl || !tEl) return;
 
   const projectModules = DB.modulesByProject(currentProjectId);
 
-  if(!tasks.length) {
-    el.innerHTML = '<div class="empty"><span class="msr">task_alt</span><p>Sin tareas. Crea la primera.</p></div>';
-    return;
-  }
-
-  let html = '';
-
-  // 1. SECTION: MÓDULOS
-  html += `
-    <div style="margin-bottom: 24px">
-      <h3 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--t1);margin-bottom:12px;display:flex;align-items:center;gap:8px">
-        <span class="msr" style="font-size:20px;color:var(--blue)">view_module</span> Módulos del Proyecto
-      </h3>
+  // 1. Render Modules Section
+  let mHtml = `
+    <h3 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--t1);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      <span class="msr" style="font-size:20px;color:var(--blue)">view_module</span> Módulos del Proyecto
+    </h3>
   `;
 
   if(!projectModules.length) {
-    html += `<p style="font-size:12px;color:var(--t3);font-style:italic;margin-bottom:16px;padding-left:10px">No hay módulos creados en este proyecto.</p>`;
+    mHtml += `<p style="font-size:12px;color:var(--t3);font-style:italic;margin-bottom:16px;padding-left:10px">No hay módulos creados en este proyecto.</p>`;
   } else {
     projectModules.forEach(mod => {
-      const modTasks = tasks.filter(t => t.mid === mod.id);
-      html += `
+      const modTasks = filteredTasks.filter(t => t.mid === mod.id);
+      mHtml += `
         <div class="module-group" id="module-group-${mod.id}" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;transition:all .3s ease">
           <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleModuleAccordion('${mod.id}')">
             <div style="display:flex;align-items:center;gap:10px">
@@ -1662,22 +1661,12 @@ function renderTaskList(){
       `;
     });
   }
-  html += `</div>`;
+  mEl.innerHTML = mHtml;
 
-  // 2. SECTION: TAREAS SUELTAS
-  const rawTasks = tasks.filter(t => !t.mid);
-  html += `
-    <div style="margin-top: 16px; padding-top: 16px; border-top: 1.5px solid var(--border)" id="tasks-no-module">
-      <h3 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--t1);margin-bottom:12px;display:flex;align-items:center;gap:8px">
-        <span class="msr" style="font-size:20px;color:var(--t2)">task_alt</span> Tareas Sueltas (Sin Módulo)
-      </h3>
-      <div style="display:flex;flex-direction:column;gap:12px">
-        ${rawTasks.length ? rawTasks.map(t => taskCard(t)).join('') : '<div class="empty" style="padding:20px;background:#f8fafc;border-radius:12px"><p style="font-size:12px;color:var(--t3);font-style:italic">No hay tareas sueltas sin asignar en este proyecto.</p></div>'}
-      </div>
-    </div>
-  `;
-
-  el.innerHTML = html;
+  // 2. Render Unassigned Tasks Section (Tareas Sueltas)
+  const rawTasks = filteredTasks.filter(t => !t.mid);
+  tEl.innerHTML = rawTasks.length ? rawTasks.map(t => taskCard(t)).join('') 
+    : '<div class="empty" style="padding:20px;background:#f8fafc;border-radius:12px;width:100%"><p style="font-size:12px;color:var(--t3);font-style:italic">No hay tareas sueltas sin asignar en este proyecto.</p></div>';
 }
 
 function toggleModuleAccordion(mid){
