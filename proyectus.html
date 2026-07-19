@@ -1619,54 +1619,64 @@ function renderTaskList(){
   }
 
   let html = '';
-  projectModules.forEach(mod => {
-    const modTasks = tasks.filter(t => t.mid === mod.id);
-    html += `
-      <div class="module-group" id="module-group-${mod.id}" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;transition:all .3s ease">
-        <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleModuleAccordion('${mod.id}')">
-          <div style="display:flex;align-items:center;gap:10px">
-            <span class="msr" id="module-chev-${mod.id}" style="font-size:18px;color:var(--blue);transition:transform .2s">expand_more</span>
-            <div>
-              <h4 style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t1)">${esc(mod.name)}</h4>
-              ${mod.desc ? `<p style="font-size:11px;color:var(--t3);margin-top:2px">${esc(mod.desc)}</p>` : ''}
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <span class="badge badge-slate" style="font-size:10px">${modTasks.filter(t=>t.status==='DONE').length}/${modTasks.length} Tareas</span>
-            <div style="display:flex;gap:4px" onclick="event.stopPropagation()">
-              <button class="btn-icon" onclick="openEditModule('${mod.id}')" style="width:28px;height:28px" title="Editar Módulo">
-                <span class="msr" style="font-size:14px">edit</span>
-              </button>
-              <button class="btn-icon" onclick="deleteModule('${mod.id}')" style="width:28px;height:28px;color:var(--red)" title="Eliminar Módulo">
-                <span class="msr" style="font-size:14px">delete</span>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div id="module-body-${mod.id}" style="display:none;flex-direction:column;gap:8px;margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
-          ${modTasks.length ? modTasks.map(t => taskCard(t)).join('') : '<p style="font-size:12px;color:var(--t3);font-style:italic">Sin tareas en este módulo.</p>'}
-        </div>
-      </div>
-    `;
-  });
 
-  const rawTasks = tasks.filter(t => !t.mid);
-  if(rawTasks.length || !projectModules.length) {
-    html += `
-      <div class="module-group" id="tasks-no-module" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px;transition:all .3s ease">
-        <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleModuleAccordion('no-module')">
-          <div style="display:flex;align-items:center;gap:10px">
-            <span class="msr" id="module-chev-no-module" style="font-size:18px;color:var(--t2);transition:transform .2s">expand_more</span>
-            <h4 style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t2)">Tareas Generales / Sin Módulo</h4>
+  // 1. SECTION: MÓDULOS
+  html += `
+    <div style="margin-bottom: 24px">
+      <h3 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--t1);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        <span class="msr" style="font-size:20px;color:var(--blue)">view_module</span> Módulos del Proyecto
+      </h3>
+  `;
+
+  if(!projectModules.length) {
+    html += `<p style="font-size:12px;color:var(--t3);font-style:italic;margin-bottom:16px;padding-left:10px">No hay módulos creados en este proyecto.</p>`;
+  } else {
+    projectModules.forEach(mod => {
+      const modTasks = tasks.filter(t => t.mid === mod.id);
+      html += `
+        <div class="module-group" id="module-group-${mod.id}" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;transition:all .3s ease">
+          <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleModuleAccordion('${mod.id}')">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span class="msr" id="module-chev-${mod.id}" style="font-size:18px;color:var(--blue);transition:transform .2s">expand_more</span>
+              <div>
+                <h4 style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t1)">${esc(mod.name)}</h4>
+                ${mod.desc ? `<p style="font-size:11px;color:var(--t3);margin-top:2px">${esc(mod.desc)}</p>` : ''}
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span class="badge badge-slate" style="font-size:10px">${modTasks.filter(t=>t.status==='DONE').length}/${modTasks.length} Tareas</span>
+              <div style="display:flex;gap:4px" onclick="event.stopPropagation()">
+                <button class="btn-icon" onclick="openEditModule('${mod.id}')" style="width:28px;height:28px" title="Editar Módulo">
+                  <span class="msr" style="font-size:14px">edit</span>
+                </button>
+                <button class="btn-icon" onclick="deleteModule('${mod.id}')" style="width:28px;height:28px;color:var(--red)" title="Eliminar Módulo">
+                  <span class="msr" style="font-size:14px">delete</span>
+                </button>
+              </div>
+            </div>
           </div>
-          <span class="badge badge-slate" style="font-size:10px">${rawTasks.filter(t=>t.status==='DONE').length}/${rawTasks.length} Tareas</span>
+          <div id="module-body-${mod.id}" style="display:none;flex-direction:column;gap:8px;margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
+            ${modTasks.length ? modTasks.map(t => taskCard(t)).join('') : '<p style="font-size:12px;color:var(--t3);font-style:italic">Sin tareas en este módulo.</p>'}
+          </div>
         </div>
-        <div id="module-body-no-module" style="display:none;flex-direction:column;gap:8px;margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
-          ${rawTasks.length ? rawTasks.map(t => taskCard(t)).join('') : '<p style="font-size:12px;color:var(--t3);font-style:italic">No hay tareas pendientes sin asignar.</p>'}
-        </div>
-      </div>
-    `;
+      `;
+    });
   }
+  html += `</div>`;
+
+  // 2. SECTION: TAREAS SUELTAS
+  const rawTasks = tasks.filter(t => !t.mid);
+  html += `
+    <div style="margin-top: 16px; padding-top: 16px; border-top: 1.5px solid var(--border)" id="tasks-no-module">
+      <h3 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--t1);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        <span class="msr" style="font-size:20px;color:var(--t2)">task_alt</span> Tareas Sueltas (Sin Módulo)
+      </h3>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        ${rawTasks.length ? rawTasks.map(t => taskCard(t)).join('') : '<div class="empty" style="padding:20px;background:#f8fafc;border-radius:12px"><p style="font-size:12px;color:var(--t3);font-style:italic">No hay tareas sueltas sin asignar en este proyecto.</p></div>'}
+      </div>
+    </div>
+  `;
+
   el.innerHTML = html;
 }
 
@@ -1697,23 +1707,15 @@ function navigateToModule(pid, mid){
         body.style.display = 'flex';
         if(chev) chev.style.transform = 'rotate(180deg)';
       }
-    } else {
-      const body = document.getElementById('module-body-no-module');
-      const chev = document.getElementById('module-chev-no-module');
-      if(body) {
-        body.style.display = 'flex';
-        if(chev) chev.style.transform = 'rotate(180deg)';
-      }
     }
     
     if(el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.style.borderColor = 'var(--blue)';
-      el.style.boxShadow = '0 0 0 3px rgba(19, 86, 219, 0.25)';
+      el.style.outline = '3px solid rgba(19, 86, 219, 0.35)';
+      el.style.borderRadius = '12px';
       el.style.transition = 'all .3s ease';
       setTimeout(() => {
-        el.style.borderColor = 'var(--border)';
-        el.style.boxShadow = 'none';
+        el.style.outline = 'none';
       }, 2000);
     }
   }, 250);
