@@ -105,12 +105,12 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
 /* ── TABS ── */
-.tabs { display: flex; gap: 2px; background: var(--surface); border-radius: 12px; padding: 4px; }
-.tab-btn { flex: 1; padding: 9px 12px; border-radius: 9px; border: none; background: none; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--t3); font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all .2s; white-space: nowrap; }
-.tab-btn.active { background: #fff; color: var(--blue); box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-weight: 700; }
+.tabs { display: flex; gap: 4px; background: var(--surface); border-radius: 12px; padding: 4px; border: 1.5px solid var(--border); }
+.tab-btn { flex: 1; padding: 9px 12px; border-radius: 9px; border: 1.5px solid transparent; background: none; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--t3); font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all .2s; white-space: nowrap; }
+.tab-btn.active { background: #fff; color: var(--blue); border-color: var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-weight: 700; }
 .tab-btn .msr { font-size: 16px; }
 .tab-panel { display: none; }
-.tab-panel.active { display: flex; flex-direction: column; gap: 16px; }
+.tab-panel.active { display: flex; flex-direction: column; gap: 24px; }
 
 /* ── MODAL ── */
 .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
@@ -481,29 +481,32 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
 
         <!-- ── TIMELINE TAB ── -->
         <div id="tp-timeline" class="tab-panel">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <h3 style="font-size:14px;font-weight:700;color:var(--t1)">Línea de Tiempo del Proyecto</h3>
-            <span class="badge badge-blue" id="tl-count">0 eventos</span>
+          <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:24px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+              <h3 style="font-size:16px;font-weight:800;color:var(--t1)">Línea de Tiempo del Proyecto</h3>
+              <span class="badge badge-blue" id="tl-count">0 eventos</span>
+            </div>
+            <div id="timeline-list" style="display:flex;flex-direction:column;gap:0"></div>
           </div>
-          <div id="timeline-list" style="display:flex;flex-direction:column;gap:0"></div>
         </div>
 
         <!-- ── RISKS TAB ── -->
         <div id="tp-risks" class="tab-panel">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <h3 style="font-size:14px;font-weight:700;color:var(--t1)">Gestión de Riesgos</h3>
-            <button class="btn-primary" onclick="openModal('mNewRisk')" style="background:#DC2626;box-shadow:0 4px 14px rgba(220,38,38,0.3)">
-              <span class="msr" style="font-size:16px">add</span> Nuevo Riesgo
-            </button>
+          <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:24px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+              <h3 style="font-size:16px;font-weight:800;color:var(--t1)">Gestión de Riesgos</h3>
+              <button class="btn-primary" onclick="openModal('mNewRisk')" style="background:#DC2626;box-shadow:0 4px 14px rgba(220,38,38,0.3)">
+                <span class="msr" style="font-size:16px">add</span> Nuevo Riesgo
+              </button>
+            </div>
+            <div id="risk-list" style="display:flex;flex-direction:column;gap:14px"></div>
           </div>
-          <div id="risk-list" style="display:flex;flex-direction:column;gap:14px"></div>
         </div>
 
         <!-- ── FINANCE TAB ── -->
         <div id="tp-finance" class="tab-panel">
-
           <!-- Finance overview -->
-          <div class="fin-overview">
+          <div class="fin-overview" style="margin-bottom: 24px">
             <div style="position:relative;z-index:1">
               <p style="font-size:11px;color:rgba(255,255,255,0.65);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Resumen Financiero</p>
               <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:16px">
@@ -532,14 +535,15 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
             </div>
           </div>
 
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-            <h3 style="font-size:14px;font-weight:700;color:var(--t1)">Gastos Registrados</h3>
-            <button class="btn-secondary" onclick="openModal('mNewExpense')">
-              <span class="msr" style="font-size:16px">add</span> Registrar Gasto
-            </button>
+          <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:24px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+              <h3 style="font-size:16px;font-weight:800;color:var(--t1)">Gastos Registrados</h3>
+              <button class="btn-secondary" onclick="openModal('mNewExpense')">
+                <span class="msr" style="font-size:16px">add</span> Registrar Gasto
+              </button>
+            </div>
+            <div id="expense-list" style="display:flex;flex-direction:column;gap:12px"></div>
           </div>
-
-          <div id="expense-list" style="display:flex;flex-direction:column;gap:12px"></div>
         </div>
 
       </div><!-- /project detail view -->
