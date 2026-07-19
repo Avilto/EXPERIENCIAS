@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>Proyectus — Gestión de Proyectos</title>
+<title>DO IT — Gestión de Proyectos</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
@@ -207,7 +207,7 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
       <div style="width:36px;height:36px;border-radius:10px;background:var(--blue);display:flex;align-items:center;justify-content:center;">
         <span class="msr filled" style="color:#fff;font-size:20px">rocket_launch</span>
       </div>
-      <span style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--blue)">Proyectus</span>
+      <span style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--blue)">DO IT</span>
     </div>
     <div style="flex:1"></div>
     <div id="topbar-breadcrumb" style="font-size:13px;color:var(--t3);font-weight:500"></div>
@@ -231,9 +231,12 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
         <button class="nav-item" id="nb-projects" onclick="navigate('projects')">
           <span class="msr">folder_open</span> Proyectos
         </button>
+        <button class="nav-item" id="nb-modules" onclick="navigate('modules')">
+          <span class="msr">view_module</span> Módulos
+        </button>
       </nav>
       <div style="padding:16px 20px 24px;border-top:1px solid rgba(255,255,255,0.12)">
-        <div style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:500">v1.0 · Proyectus</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:500">v1.0 · DO IT</div>
       </div>
     </div>
 
@@ -346,6 +349,20 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
                   style="padding:6px 16px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s">Completados</button>
         </div>
         <div id="all-proj-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px"></div>
+      </div>
+
+      <!-- ─── VIEW: MODULES ─── -->
+      <div id="v-modules" class="view" style="background:var(--surface)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <div>
+            <h1 style="font-family:'Syne',sans-serif;font-size:24px;font-weight:700">Módulos del Sistema</h1>
+            <p style="font-size:13px;color:var(--t2);margin-top:2px">Gestiona y organiza tus tareas por módulos.</p>
+          </div>
+          <button class="btn-primary" onclick="openNewModuleModal()">
+            <span class="msr" style="font-size:16px">add</span> Nuevo Módulo
+          </button>
+        </div>
+        <div id="all-modules-list" style="display:flex;flex-direction:column;gap:20px"></div>
       </div>
 
       <!-- ─── VIEW: PROJECT DETAIL ─── -->
@@ -575,6 +592,36 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
   </div>
 </div>
 
+<!-- ── New Module ── -->
+<div id="mNewModule" class="modal-overlay hidden">
+  <div class="modal-box" style="max-width:500px">
+    <div class="modal-header">
+      <h2 class="modal-title" id="mModuleTitle">Nuevo Módulo</h2>
+      <button class="btn-icon" onclick="closeModal('mNewModule')"><span class="msr" style="font-size:20px">close</span></button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="form-group">
+        <label class="form-label">Proyecto Asociado *</label>
+        <select id="inp-mProject" class="form-input form-select"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nombre del Módulo *</label>
+        <input id="inp-mName" class="form-input" type="text" placeholder="Ej: Fase 1: Análisis y Requerimientos"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción (opcional)</label>
+        <textarea id="inp-mDesc" class="form-input form-textarea" placeholder="Descripción breve del objetivo de este módulo..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('mNewModule')">Cancelar</button>
+      <button class="btn-primary" id="btn-save-module" onclick="saveModule()">
+        <span class="msr" style="font-size:16px">save</span> Crear Módulo
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ── New Task ── -->
 <div id="mNewTask" class="modal-overlay hidden">
   <div class="modal-box" style="max-width:620px">
@@ -606,8 +653,15 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
           <select id="inp-tStatus" class="form-input form-select">
             <option value="TODO">📋 Por hacer</option>
             <option value="IN_PROGRESS">⚡ En progreso</option>
+            <option value="DONE">✅ Hecha</option>
           </select>
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Módulo Asociado</label>
+        <select id="inp-tModule" class="form-input form-select">
+          <option value="">Sin Módulo</option>
+        </select>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -820,10 +874,37 @@ const DB = {
     this._s('risks',this.risks().filter(r=>r.pid!==id));
     this._s('expenses',this.expenses().filter(e=>e.pid!==id));
     this._s('events',this.events().filter(e=>e.pid!==id));
+    this._s('modules',this.modules().filter(m=>m.pid!==id));
   },
   projectProgress(id){
     const t=this.tasksByProject(id);
     return t.length?Math.round(t.filter(x=>x.status==='DONE').length/t.length*100):0;
+  },
+
+  /* ─ MODULES ─ */
+  modules(){ return this._g('modules'); },
+  modulesByProject(pid){ return this.modules().filter(m=>m.pid===pid); },
+  createModule(d){
+    const m={...d,id:this._id(),created:this._ts(),updated:this._ts()};
+    const all=this.modules(); all.push(m); this._s('modules',all);
+    this.addEvent(d.pid,'MODULE_CREATED',`Módulo creado: "${d.name}"`,'MEDIUM');
+    return m;
+  },
+  updateModule(id,fields){
+    const all=this.modules(),i=all.findIndex(m=>m.id===id);
+    if(i<0)return;
+    all[i]={...all[i],...fields,updated:this._ts()};
+    this._s('modules',all);
+    return all[i];
+  },
+  deleteModule(id){
+    const m=this.modules().find(x=>x.id===id); if(!m) return;
+    this._s('modules',this.modules().filter(x=>x.id!==id));
+    const tasks=this.tasks().map(t=>{
+      if(t.mid===id){ delete t.mid; }
+      return t;
+    });
+    this._s('tasks',tasks);
   },
 
   /* ─ TASKS ─ */
@@ -898,9 +979,9 @@ const DB = {
     return { projects:projs.length, tasks:tasks.length, done:tasks.filter(t=>t.status==='DONE').length, risks:risks.length, capital };
   },
 
-  /* ─ CLEAR ALL (usa prefijo correcto ptus_) ─ */
+  /* ─ CLEAR ALL ─ */
   clearAll(){
-    ['projects','tasks','risks','expenses','events'].forEach(k=>{
+    ['projects','tasks','risks','expenses','events','modules'].forEach(k=>{
       localStorage.removeItem('ptus_'+k);
     });
     localStorage.removeItem('ptus_seed_ver');
@@ -946,6 +1027,9 @@ function seedDemo(){
     end:        '2025-09-30'
   });
 
+  const m1 = DB.createModule({ pid: p1.id, name: 'Producción de Contenido', desc: 'Creación de piezas gráficas y de video para la campaña' });
+  const m2 = DB.createModule({ pid: p1.id, name: 'Pauta y Configuración', desc: 'Lanzamiento de anuncios en Meta y TikTok Ads' });
+
   /* ═══ PROYECTO 2: Rediseño de Identidad Visual ═══ */
   const p2 = DB.saveProject({
     title:      'Rediseño de Identidad Visual',
@@ -956,6 +1040,8 @@ function seedDemo(){
     start:      '2025-08-01',
     end:        '2025-10-01'
   });
+
+  const m3 = DB.createModule({ pid: p2.id, name: 'Concepto y Diseño', desc: 'Creación y selección de propuestas visuales' });
 
   /* ═══ PROYECTO 3: Lanzamiento de E-commerce ═══ */
   const p3 = DB.saveProject({
@@ -968,9 +1054,12 @@ function seedDemo(){
     end:        '2025-11-15'
   });
 
+  const m4 = DB.createModule({ pid: p3.id, name: 'Desarrollo Técnico', desc: 'Configuración del backend y pasarelas de pago' });
+
   /* ═══ TAREA 1 → Proyecto 1 ═══ */
   DB.createTask({
     pid:        p1.id,
+    mid:        m1.id,
     title:      'Producir 10 reels para Instagram y TikTok',
     justify:    'El contenido en video corto es el principal canal de alcance orgánico en la campaña de verano.',
     importance: 'CRITICAL',
@@ -985,6 +1074,7 @@ function seedDemo(){
   /* ═══ TAREA 2 → Proyecto 2 ═══ */
   DB.createTask({
     pid:        p2.id,
+    mid:        m3.id,
     title:      'Crear 3 propuestas de logotipo para aprobación',
     justify:    'El logotipo es el eje central de toda la identidad visual; necesita aprobación antes de avanzar.',
     importance: 'HIGH',
@@ -999,6 +1089,7 @@ function seedDemo(){
   /* ═══ TAREA 3 → Proyecto 3 ═══ */
   DB.createTask({
     pid:        p3.id,
+    mid:        m4.id,
     title:      'Configurar pasarela de pagos y carrito de compras',
     justify:    'Sin la pasarela de pagos activa no es posible realizar ventas; es el componente más crítico del lanzamiento.',
     importance: 'CRITICAL',
@@ -1088,6 +1179,13 @@ function navigate(page){
     document.getElementById('topbar-action').onclick=()=>openNewTaskModal();
     renderProjectDetail();
     switchProjectTab('tasks');
+  } else if(page==='modules'){
+    document.getElementById('v-modules').classList.add('active');
+    document.getElementById('nb-modules').classList.add('active');
+    document.getElementById('topbar-breadcrumb').textContent='Módulos y Tareas';
+    document.getElementById('topbar-action').innerHTML='<span class="msr" style="font-size:16px">add</span> Nuevo Módulo';
+    document.getElementById('topbar-action').onclick=()=>openNewModuleModal();
+    renderModulesList();
   }
 }
 
@@ -1352,8 +1450,54 @@ function renderTaskList(){
   });
   const el=document.getElementById('task-list');
   if(!el) return;
-  el.innerHTML=tasks.length?tasks.map(t=>taskCard(t)).join('')
-    :'<div class="empty"><span class="msr">task_alt</span><p>Sin tareas. Crea la primera.</p></div>';
+
+  const projectModules = DB.modulesByProject(currentProjectId);
+
+  if(!tasks.length) {
+    el.innerHTML = '<div class="empty"><span class="msr">task_alt</span><p>Sin tareas. Crea la primera.</p></div>';
+    return;
+  }
+
+  let html = '';
+  projectModules.forEach(mod => {
+    const modTasks = tasks.filter(t => t.mid === mod.id);
+    html += `
+      <div class="module-group" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px">
+          <div>
+            <h4 style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--blue)">${esc(mod.name)}</h4>
+            ${mod.desc ? `<p style="font-size:11px;color:var(--t3);margin-top:2px">${esc(mod.desc)}</p>` : ''}
+          </div>
+          <div style="display:flex;gap:4px">
+            <button class="btn-icon" onclick="openEditModule('${mod.id}')" style="width:28px;height:28px" title="Editar Módulo">
+              <span class="msr" style="font-size:14px">edit</span>
+            </button>
+            <button class="btn-icon" onclick="deleteModule('${mod.id}')" style="width:28px;height:28px;color:var(--red)" title="Eliminar Módulo">
+              <span class="msr" style="font-size:14px">delete</span>
+            </button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${modTasks.length ? modTasks.map(t => taskCard(t)).join('') : '<p style="font-size:12px;color:var(--t3);font-style:italic">Sin tareas en este módulo.</p>'}
+        </div>
+      </div>
+    `;
+  });
+
+  const rawTasks = tasks.filter(t => !t.mid);
+  if(rawTasks.length || !projectModules.length) {
+    html += `
+      <div class="module-group" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px">
+        <div style="margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px">
+          <h4 style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t2)">Tareas Generales / Sin Módulo</h4>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${rawTasks.length ? rawTasks.map(t => taskCard(t)).join('') : '<p style="font-size:12px;color:var(--t3);font-style:italic">No hay tareas pendientes sin asignar.</p>'}
+        </div>
+      </div>
+    `;
+  }
+  el.innerHTML = html;
 }
 
 function taskCard(t){
@@ -1627,13 +1771,17 @@ function deleteCurrentProject(){
   toast('🗑 Proyecto eliminado');
 }
 
-function openNewTaskModal(){
+function openNewTaskModal(pid, mid){
+  if(pid) currentProjectId=pid;
   editingTaskId=null;
   setText('mTaskTitle','Nueva Tarea');
   setText('btn-save-task',''); document.getElementById('btn-save-task').innerHTML='<span class="msr" style="font-size:16px">add_task</span> Crear Tarea';
   clearInputs('inp-tTitle','inp-tJustify','inp-tDate','inp-tTime','inp-tInspUrl','inp-tNotes');
   setVal('inp-tImportance','MEDIUM');
   setVal('inp-tStatus','TODO');
+  
+  populateTaskModulesDropdown(currentProjectId, mid || '');
+
   taskPhotoData=null;
   document.getElementById('task-photo-preview').style.display='none';
   selectInspType(document.querySelector('.insp-type[data-type="none"]'),'none');
@@ -1654,6 +1802,8 @@ function openEditTask(id){
   setVal('inp-tTime', t.time||'');
   setVal('inp-tNotes', t.notes||'');
 
+  populateTaskModulesDropdown(t.pid, t.mid || '');
+
   const inspTypeBtn = document.querySelector(`.insp-type[data-type="${t.inspType||'none'}"]`);
   if(inspTypeBtn) selectInspType(inspTypeBtn, t.inspType||'none');
   
@@ -1670,6 +1820,17 @@ function openEditTask(id){
   openModal('mNewTask');
 }
 
+function populateTaskModulesDropdown(pid, selectedMid){
+  const select = document.getElementById('inp-tModule');
+  if(!select) return;
+  const modules = DB.modulesByProject(pid);
+  let html = '<option value="">Sin Módulo</option>';
+  modules.forEach(m => {
+    html += `<option value="${m.id}" ${m.id===selectedMid?'selected':''}>${esc(m.name)}</option>`;
+  });
+  select.innerHTML = html;
+}
+
 function saveTask(){
   const title=val('inp-tTitle'); if(!title) return toast('⚠️ Ingresa el concepto de la tarea');
   const date=val('inp-tDate'); if(!date) return toast('⚠️ Selecciona la fecha límite');
@@ -1679,7 +1840,8 @@ function saveTask(){
     importance:val('inp-tImportance'), date, time:val('inp-tTime'),
     status:val('inp-tStatus'), inspType:currentInspType,
     inspUrl:currentInspType==='photo'?taskPhotoData:(currentInspType!=='none'?val('inp-tInspUrl'):null),
-    notes:val('inp-tNotes')
+    notes:val('inp-tNotes'),
+    mid:val('inp-tModule') || null
   };
 
   if(editingTaskId) {
@@ -1695,6 +1857,7 @@ function saveTask(){
   renderTaskList();
   renderTimeline();
   renderProjectDetail();
+  renderModulesList();
 }
 
 function createRisk(){
@@ -1795,6 +1958,204 @@ function setText(id,v){ const el=document.getElementById(id); if(el) el.textCont
 function clearInputs(...ids){ ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function statusLabel(s){ return {TODO:'Por hacer',IN_PROGRESS:'En progreso',DONE:'Completada'}[s]||s; }
+/* ══ MODULES VIEWS & LOGIC ══ */
+let editingModuleId=null;
+
+function renderModulesList(){
+  const projects = DB.projects();
+  const allModules = DB.modules();
+  const allTasks = DB.tasks();
+  const el = document.getElementById('all-modules-list');
+  if(!el) return;
+
+  if(!projects.length) {
+    el.innerHTML = `
+      <div class="empty">
+        <span class="msr" style="font-size:40px;display:block;margin-bottom:10px;opacity:.3">view_module</span>
+        <p>Crea un proyecto primero para poder crear módulos.</p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  projects.forEach(p => {
+    const pModules = allModules.filter(m => m.pid === p.id);
+    const pTasks = allTasks.filter(t => t.pid === p.id);
+    
+    html += `
+      <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:24px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:2px solid var(--blue);padding-bottom:10px">
+          <div>
+            <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--t1)">
+              ${esc(p.title)}
+            </h2>
+            <p style="font-size:12px;color:var(--t3);margin-top:2px">${pModules.length} módulos · ${pTasks.length} tareas totales</p>
+          </div>
+          <button class="btn-primary" onclick="openNewModuleModal('${p.id}')" style="padding:6px 14px;font-size:11px">
+            <span class="msr" style="font-size:14px">add</span> Nuevo Módulo
+          </button>
+        </div>
+    `;
+
+    if(!pModules.length && !pTasks.some(t => !t.mid)) {
+      html += `
+        <div style="text-align:center;padding:24px;color:var(--t3)">
+          <p style="font-size:13px">No hay módulos creados en este proyecto.</p>
+        </div>
+      </div>
+      `;
+      return;
+    }
+
+    html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">`;
+
+    pModules.forEach(m => {
+      const mTasks = pTasks.filter(t => t.mid === m.id);
+      const doneCount = mTasks.filter(t => t.status === 'DONE').length;
+      const pct = mTasks.length ? Math.round(doneCount / mTasks.length * 100) : 0;
+      
+      html += `
+        <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;justify-content:space-between">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+              <h3 style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--blue)">${esc(m.name)}</h3>
+              <div style="display:flex;gap:4px">
+                <button class="btn-icon" onclick="openEditModule('${m.id}')" style="width:24px;height:24px" title="Editar Módulo">
+                  <span class="msr" style="font-size:12px">edit</span>
+                </button>
+                <button class="btn-icon" onclick="deleteModule('${m.id}')" style="width:24px;height:24px;color:var(--red)" title="Eliminar Módulo">
+                  <span class="msr" style="font-size:12px">delete</span>
+                </button>
+              </div>
+            </div>
+            ${m.desc ? `<p style="font-size:11px;color:var(--t3);margin-bottom:12px">${esc(m.desc)}</p>` : ''}
+            
+            <div style="margin-bottom:16px">
+              <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;color:var(--t2);margin-bottom:4px">
+                <span>Progreso Tareas</span>
+                <span>${doneCount}/${mTasks.length} (${pct}%)</span>
+              </div>
+              <div style="height:6px;background:var(--border);border-radius:99px;overflow:hidden">
+                <div style="height:100%;background:var(--blue);width:${pct}%"></div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:6px">
+              ${mTasks.length ? mTasks.map(t => `
+                <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;padding:8px 10px;border-radius:8px;border:1px solid var(--border)">
+                  <span style="font-size:12px;font-weight:600;color:var(--t1);text-overflow:ellipsis;overflow:hidden;white-space:nowrap;max-width:180px;${t.status==='DONE'?'text-decoration:line-through;color:var(--t3)':''}">${esc(t.title)}</span>
+                  <span class="badge" style="font-size:9px;${t.status==='DONE'?'background:#E8F5E9;color:#2E7D32':t.status==='IN_PROGRESS'?'background:#E3F2FD;color:#1565C0':'background:#F5F5F5;color:#616161'}">
+                    ${t.status==='DONE'?'Hecha':t.status==='IN_PROGRESS'?'En curso':'Pendiente'}
+                  </span>
+                </div>
+              `).join('') : '<p style="font-size:11px;color:var(--t3);font-style:italic">Sin tareas asignadas</p>'}
+            </div>
+          </div>
+          
+          <button class="btn-primary" onclick="openNewTaskModal('${p.id}', '${m.id}')" style="margin-top:16px;width:100%;justify-content:center;font-size:11px;padding:6px">
+            <span class="msr" style="font-size:14px">add</span> Agregar Tarea
+          </button>
+        </div>
+      `;
+    });
+
+    const noModTasks = pTasks.filter(t => !t.mid);
+    if(noModTasks.length) {
+      html += `
+        <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;border-style:dashed">
+          <div>
+            <h3 style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t2);margin-bottom:12px">Generales / Sin Módulo</h3>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              ${noModTasks.map(t => `
+                <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;padding:8px 10px;border-radius:8px;border:1px solid var(--border)">
+                  <span style="font-size:12px;font-weight:600;color:var(--t1);text-overflow:ellipsis;overflow:hidden;white-space:nowrap;max-width:180px;${t.status==='DONE'?'text-decoration:line-through;color:var(--t3)':''}">${esc(t.title)}</span>
+                  <span class="badge" style="font-size:9px;${t.status==='DONE'?'background:#E8F5E9;color:#2E7D32':t.status==='IN_PROGRESS'?'background:#E3F2FD;color:#1565C0':'background:#F5F5F5;color:#616161'}">
+                    ${t.status==='DONE'?'Hecha':t.status==='IN_PROGRESS'?'En curso':'Pendiente'}
+                  </span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <button class="btn-primary" onclick="openNewTaskModal('${p.id}', '')" style="margin-top:16px;width:100%;justify-content:center;font-size:11px;padding:6px">
+            <span class="msr" style="font-size:14px">add</span> Agregar Tarea
+          </button>
+        </div>
+      `;
+    }
+
+    html += `</div></div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+function openNewModuleModal(pid){
+  editingModuleId=null;
+  setText('mModuleTitle','Nuevo Módulo');
+  setText('btn-save-module',''); document.getElementById('btn-save-module').innerHTML='<span class="msr" style="font-size:16px">save</span> Crear Módulo';
+  setVal('inp-mName','');
+  setVal('inp-mDesc','');
+  
+  const pSelect = document.getElementById('inp-mProject');
+  const projs = DB.projects();
+  let html = '';
+  projs.forEach(p => {
+    html += `<option value="${p.id}" ${(pid && p.id===pid) || (!pid && p.id===currentProjectId)?'selected':''}>${esc(p.title)}</option>`;
+  });
+  pSelect.innerHTML = html;
+  
+  openModal('mNewModule');
+}
+
+function openEditModule(id){
+  const modules = DB.modules();
+  const m = modules.find(x => x.id === id); if(!m) return;
+  editingModuleId=id;
+  setText('mModuleTitle','Editar Módulo');
+  setText('btn-save-module',''); document.getElementById('btn-save-module').innerHTML='<span class="msr" style="font-size:16px">save</span> Guardar cambios';
+  
+  setVal('inp-mName', m.name);
+  setVal('inp-mDesc', m.desc||'');
+  
+  const pSelect = document.getElementById('inp-mProject');
+  const projs = DB.projects();
+  let html = '';
+  projs.forEach(p => {
+    html += `<option value="${p.id}" ${p.id===m.pid?'selected':''}>${esc(p.title)}</option>`;
+  });
+  pSelect.innerHTML = html;
+  
+  openModal('mNewModule');
+}
+
+function saveModule(){
+  const pid = val('inp-mProject'); if(!pid) return toast('⚠️ Selecciona un proyecto');
+  const name = val('inp-mName'); if(!name) return toast('⚠️ Ingresa el nombre del módulo');
+  const desc = val('inp-mDesc');
+  
+  if(editingModuleId) {
+    DB.updateModule(editingModuleId, { pid, name, desc });
+    toast('✅ Módulo actualizado');
+  } else {
+    DB.createModule({ pid, name, desc });
+    toast('✅ Módulo creado');
+  }
+  
+  closeModal('mNewModule');
+  renderModulesList();
+  renderTaskList();
+  renderDashboard();
+}
+
+function deleteModule(id){
+  if(!confirm('¿Estás seguro de eliminar este módulo? Las tareas asociadas no se eliminarán, se moverán a la sección "Sin Módulo".')) return;
+  DB.deleteModule(id);
+  toast('🗑️ Módulo eliminado');
+  renderModulesList();
+  renderTaskList();
+  renderDashboard();
+}
 </script>
 </body>
 </html>
