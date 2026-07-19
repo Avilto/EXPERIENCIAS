@@ -448,29 +448,35 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
           </button>
         </div>
 
-        <div id="tp-tasks" class="tab-panel active">
-          <!-- Section 1: Modules -->
-          <div id="project-modules-section" style="margin-bottom: 28px"></div>
+        <div id="tp-tasks" class="tab-panel active" style="display:flex;flex-direction:column;gap:24px">
+          <!-- Card 1: Modules -->
+          <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:24px">
+            <div id="project-modules-section"></div>
+          </div>
 
-          <!-- Section 2: Header + Filters between Modules and Tareas Sueltas -->
-          <div style="display:flex;justify-content:space-between;align-items:center;border-top:1.5px solid var(--border);padding-top:24px;margin-top:12px">
-            <h3 style="font-size:16px;font-weight:800;color:var(--t1)">Tareas Sueltas (Sin Módulo)</h3>
-            <button class="btn-primary" onclick="openNewTaskModal()">
-              <span class="msr" style="font-size:16px">add</span> Nueva Tarea
-            </button>
+          <!-- Card 2: Tareas Sueltas -->
+          <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:24px" id="tasks-no-module-container">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+              <h3 style="font-family:'Inter',sans-serif;font-size:16px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:8px">
+                <span class="msr" style="font-size:20px;color:var(--t2)">task_alt</span> Tareas Sueltas (Sin Módulo)
+              </h3>
+              <button class="btn-primary" onclick="openNewTaskModal()">
+                <span class="msr" style="font-size:16px">add</span> Nueva Tarea
+              </button>
+            </div>
+            <!-- Task filters -->
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px" id="task-filters">
+              <button class="tf-btn active" onclick="filterTasks(this,'ALL')"
+                      style="padding:5px 14px;border-radius:99px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Todas</button>
+              <button class="tf-btn" onclick="filterTasks(this,'TODO')"
+                      style="padding:5px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">Por hacer</button>
+              <button class="tf-btn" onclick="filterTasks(this,'IN_PROGRESS')"
+                      style="padding:5px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">En progreso</button>
+              <button class="tf-btn" onclick="filterTasks(this,'DONE')"
+                      style="padding:5px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">Completadas</button>
+            </div>
+            <div id="task-list" style="display:flex;flex-direction:column;gap:12px"></div>
           </div>
-          <!-- Task filters -->
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;margin-bottom:16px" id="task-filters">
-            <button class="tf-btn active" onclick="filterTasks(this,'ALL')"
-                    style="padding:5px 14px;border-radius:99px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Todas</button>
-            <button class="tf-btn" onclick="filterTasks(this,'TODO')"
-                    style="padding:5px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">Por hacer</button>
-            <button class="tf-btn" onclick="filterTasks(this,'IN_PROGRESS')"
-                    style="padding:5px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">En progreso</button>
-            <button class="tf-btn" onclick="filterTasks(this,'DONE')"
-                    style="padding:5px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">Completadas</button>
-          </div>
-          <div id="task-list" style="display:flex;flex-direction:column;gap:12px"></div>
         </div>
 
         <!-- ── TIMELINE TAB ── -->
@@ -1686,7 +1692,7 @@ function navigateToModule(pid, mid){
   navigate('project-detail');
   
   setTimeout(() => {
-    const targetId = mid ? `module-group-${mid}` : 'tasks-no-module';
+    const targetId = mid ? `module-group-${mid}` : 'tasks-no-module-container';
     const el = document.getElementById(targetId);
     
     if(mid) {
