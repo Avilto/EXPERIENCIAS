@@ -1230,22 +1230,14 @@ function navigate(page, saveHistory = true){
   if(page==='dashboard'){
     document.getElementById('v-dashboard').classList.add('active');
     document.getElementById('nb-dashboard').classList.add('active');
-    document.getElementById('topbar-breadcrumb').textContent='';
-    document.getElementById('topbar-action').textContent='';
-    document.getElementById('topbar-action').innerHTML='<span class="msr" style="font-size:16px">add</span> Nuevo Proyecto';
-    document.getElementById('topbar-action').onclick=()=>openModal('mNewProject');
+    document.getElementById('topbar-breadcrumb').innerHTML='';
+    document.getElementById('topbar-action').innerHTML='';
     renderDashboard();
   } else if(page==='projects'){
     document.getElementById('v-projects').classList.add('active');
     document.getElementById('nb-projects').classList.add('active');
-    document.getElementById('topbar-breadcrumb').innerHTML=`
-      <button onclick="goBack()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--blue);cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;padding:4px 8px;border-radius:6px;margin-right:8px;border:1.5px solid var(--border)">
-        <span class="msr" style="font-size:16px">arrow_back</span> Atrás
-      </button>
-      <span style="color:var(--t1);font-weight:700">Todos los Proyectos</span>
-    `;
-    document.getElementById('topbar-action').innerHTML='<span class="msr" style="font-size:16px">add</span> Nuevo Proyecto';
-    document.getElementById('topbar-action').onclick=()=>openModal('mNewProject');
+    document.getElementById('topbar-breadcrumb').innerHTML='';
+    document.getElementById('topbar-action').innerHTML='';
     renderProjectsList();
   } else if(page==='project-detail'){
     document.getElementById('v-project-detail').classList.add('active');
