@@ -1622,22 +1622,28 @@ function renderTaskList(){
   projectModules.forEach(mod => {
     const modTasks = tasks.filter(t => t.mid === mod.id);
     html += `
-      <div class="module-group" id="module-group-${mod.id}" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px">
-          <div>
-            <h4 style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--blue)">${esc(mod.name)}</h4>
-            ${mod.desc ? `<p style="font-size:11px;color:var(--t3);margin-top:2px">${esc(mod.desc)}</p>` : ''}
+      <div class="module-group" id="module-group-${mod.id}" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;transition:all .3s ease">
+        <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleModuleAccordion('${mod.id}')">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="msr" id="module-chev-${mod.id}" style="font-size:18px;color:var(--blue);transition:transform .2s">expand_more</span>
+            <div>
+              <h4 style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t1)">${esc(mod.name)}</h4>
+              ${mod.desc ? `<p style="font-size:11px;color:var(--t3);margin-top:2px">${esc(mod.desc)}</p>` : ''}
+            </div>
           </div>
-          <div style="display:flex;gap:4px">
-            <button class="btn-icon" onclick="openEditModule('${mod.id}')" style="width:28px;height:28px" title="Editar Módulo">
-              <span class="msr" style="font-size:14px">edit</span>
-            </button>
-            <button class="btn-icon" onclick="deleteModule('${mod.id}')" style="width:28px;height:28px;color:var(--red)" title="Eliminar Módulo">
-              <span class="msr" style="font-size:14px">delete</span>
-            </button>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span class="badge badge-slate" style="font-size:10px">${modTasks.filter(t=>t.status==='DONE').length}/${modTasks.length} Tareas</span>
+            <div style="display:flex;gap:4px" onclick="event.stopPropagation()">
+              <button class="btn-icon" onclick="openEditModule('${mod.id}')" style="width:28px;height:28px" title="Editar Módulo">
+                <span class="msr" style="font-size:14px">edit</span>
+              </button>
+              <button class="btn-icon" onclick="deleteModule('${mod.id}')" style="width:28px;height:28px;color:var(--red)" title="Eliminar Módulo">
+                <span class="msr" style="font-size:14px">delete</span>
+              </button>
+            </div>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px">
+        <div id="module-body-${mod.id}" style="display:none;flex-direction:column;gap:8px;margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
           ${modTasks.length ? modTasks.map(t => taskCard(t)).join('') : '<p style="font-size:12px;color:var(--t3);font-style:italic">Sin tareas en este módulo.</p>'}
         </div>
       </div>
@@ -1647,17 +1653,70 @@ function renderTaskList(){
   const rawTasks = tasks.filter(t => !t.mid);
   if(rawTasks.length || !projectModules.length) {
     html += `
-      <div class="module-group" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px">
-        <div style="margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px">
-          <h4 style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t2)">Tareas Generales / Sin Módulo</h4>
+      <div class="module-group" id="tasks-no-module" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px;transition:all .3s ease">
+        <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleModuleAccordion('no-module')">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="msr" id="module-chev-no-module" style="font-size:18px;color:var(--t2);transition:transform .2s">expand_more</span>
+            <h4 style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t2)">Tareas Generales / Sin Módulo</h4>
+          </div>
+          <span class="badge badge-slate" style="font-size:10px">${rawTasks.filter(t=>t.status==='DONE').length}/${rawTasks.length} Tareas</span>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px">
+        <div id="module-body-no-module" style="display:none;flex-direction:column;gap:8px;margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
           ${rawTasks.length ? rawTasks.map(t => taskCard(t)).join('') : '<p style="font-size:12px;color:var(--t3);font-style:italic">No hay tareas pendientes sin asignar.</p>'}
         </div>
       </div>
     `;
   }
   el.innerHTML = html;
+}
+
+function toggleModuleAccordion(mid){
+  const body = document.getElementById(`module-body-${mid}`);
+  const chev = document.getElementById(`module-chev-${mid}`);
+  if(body) {
+    const isCollapsed = body.style.display === 'none';
+    body.style.display = isCollapsed ? 'flex' : 'none';
+    if(chev) {
+      chev.style.transform = isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+  }
+}
+
+function navigateToModule(pid, mid){
+  currentProjectId = pid;
+  navigate('project-detail');
+  
+  setTimeout(() => {
+    const targetId = mid ? `module-group-${mid}` : 'tasks-no-module';
+    const el = document.getElementById(targetId);
+    
+    if(mid) {
+      const body = document.getElementById(`module-body-${mid}`);
+      const chev = document.getElementById(`module-chev-${mid}`);
+      if(body) {
+        body.style.display = 'flex';
+        if(chev) chev.style.transform = 'rotate(180deg)';
+      }
+    } else {
+      const body = document.getElementById('module-body-no-module');
+      const chev = document.getElementById('module-chev-no-module');
+      if(body) {
+        body.style.display = 'flex';
+        if(chev) chev.style.transform = 'rotate(180deg)';
+      }
+    }
+    
+    if(el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.borderColor = 'var(--blue)';
+      el.style.boxShadow = '0 0 0 3px rgba(19, 86, 219, 0.25)';
+      el.style.transition = 'all .3s ease';
+      setTimeout(() => {
+        el.style.borderColor = 'var(--border)';
+        el.style.boxShadow = 'none';
+      }, 2000);
+    }
+  }, 250);
 }
 
 function taskCard(t){
