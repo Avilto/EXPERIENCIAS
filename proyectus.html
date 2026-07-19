@@ -2181,8 +2181,8 @@ function renderModulesList(){
             </div>
           </div>
           
-          <button class="btn-primary" onclick="openNewTaskModal('${p.id}', '${m.id}')" style="margin-top:16px;width:100%;justify-content:center;font-size:11px;padding:6px">
-            <span class="msr" style="font-size:14px">add</span> Agregar Tarea
+          <button class="btn-primary" onclick="navigateToModule('${p.id}', '${m.id}')" style="margin-top:16px;width:100%;justify-content:center;font-size:11px;padding:6px">
+            <span class="msr" style="font-size:14px">open_in_new</span> Abrir Módulo
           </button>
         </div>
       `;
@@ -2205,8 +2205,8 @@ function renderModulesList(){
               `).join('')}
             </div>
           </div>
-          <button class="btn-primary" onclick="openNewTaskModal('${p.id}', '')" style="margin-top:16px;width:100%;justify-content:center;font-size:11px;padding:6px">
-            <span class="msr" style="font-size:14px">add</span> Agregar Tarea
+          <button class="btn-primary" onclick="navigateToModule('${p.id}', '')" style="margin-top:16px;width:100%;justify-content:center;font-size:11px;padding:6px">
+            <span class="msr" style="font-size:14px">open_in_new</span> Abrir Sección
           </button>
         </div>
       `;
