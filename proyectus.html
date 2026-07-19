@@ -1176,7 +1176,18 @@ function setDate(){
 }
 
 /* ══ NAVIGATION ══ */
-function navigate(page){
+let lastPage = 'dashboard';
+function navigate(page, saveHistory = true){
+  if(saveHistory) {
+    const activeView = document.querySelector('.view.active');
+    if(activeView) {
+      const activeId = activeView.id.replace('v-', '');
+      if(activeId !== page) {
+        lastPage = activeId;
+      }
+    }
+  }
+
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
 
@@ -1191,7 +1202,12 @@ function navigate(page){
   } else if(page==='projects'){
     document.getElementById('v-projects').classList.add('active');
     document.getElementById('nb-projects').classList.add('active');
-    document.getElementById('topbar-breadcrumb').textContent='Todos los Proyectos';
+    document.getElementById('topbar-breadcrumb').innerHTML=`
+      <button onclick="goBack()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--blue);cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;padding:4px 8px;border-radius:6px;margin-right:8px;border:1.5px solid var(--border)">
+        <span class="msr" style="font-size:16px">arrow_back</span> Atrás
+      </button>
+      <span style="color:var(--t1);font-weight:700">Todos los Proyectos</span>
+    `;
     document.getElementById('topbar-action').innerHTML='<span class="msr" style="font-size:16px">add</span> Nuevo Proyecto';
     document.getElementById('topbar-action').onclick=()=>openModal('mNewProject');
     renderProjectsList();
@@ -1199,7 +1215,14 @@ function navigate(page){
     document.getElementById('v-project-detail').classList.add('active');
     document.getElementById('nb-projects').classList.add('active');
     const p=DB.project(currentProjectId);
-    if(p) document.getElementById('topbar-breadcrumb').textContent=p.title;
+    if(p) {
+      document.getElementById('topbar-breadcrumb').innerHTML=`
+        <button onclick="goBack()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--blue);cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;padding:4px 8px;border-radius:6px;margin-right:8px;border:1.5px solid var(--border)">
+          <span class="msr" style="font-size:16px">arrow_back</span> Atrás
+        </button>
+        <span style="color:var(--t1);font-weight:700">${esc(p.title)}</span>
+      `;
+    }
     document.getElementById('topbar-action').innerHTML='<span class="msr" style="font-size:16px">add_task</span> Nueva Tarea';
     document.getElementById('topbar-action').onclick=()=>openNewTaskModal();
     renderProjectDetail();
@@ -1207,11 +1230,20 @@ function navigate(page){
   } else if(page==='modules'){
     document.getElementById('v-modules').classList.add('active');
     document.getElementById('nb-modules').classList.add('active');
-    document.getElementById('topbar-breadcrumb').textContent='Módulos y Tareas';
+    document.getElementById('topbar-breadcrumb').innerHTML=`
+      <button onclick="goBack()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--blue);cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;padding:4px 8px;border-radius:6px;margin-right:8px;border:1.5px solid var(--border)">
+        <span class="msr" style="font-size:16px">arrow_back</span> Atrás
+      </button>
+      <span style="color:var(--t1);font-weight:700">Módulos y Tareas</span>
+    `;
     document.getElementById('topbar-action').innerHTML='<span class="msr" style="font-size:16px">add</span> Nuevo Módulo';
     document.getElementById('topbar-action').onclick=()=>openNewModuleModal();
     renderModulesList();
   }
+}
+
+function goBack(){
+  navigate(lastPage, false);
 }
 
 function openProject(id){
