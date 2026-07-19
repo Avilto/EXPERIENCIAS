@@ -377,15 +377,29 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
           </button>
         </div>
         <!-- Filters -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="pf-btn active" onclick="filterProjects(this,'ALL')"
-                  style="padding:6px 16px;border-radius:99px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">Todos</button>
-          <button class="pf-btn" onclick="filterProjects(this,'ACTIVE')"
-                  style="padding:6px 16px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s">Activos</button>
-          <button class="pf-btn" onclick="filterProjects(this,'PLANNING')"
-                  style="padding:6px 16px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s">En Planificación</button>
-          <button class="pf-btn" onclick="filterProjects(this,'COMPLETED')"
-                  style="padding:6px 16px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s">Completados</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="pf-btn active" onclick="filterProjects(this,'ALL')"
+                    style="padding:6px 16px;border-radius:99px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">Todos</button>
+            <button class="pf-btn" onclick="filterProjects(this,'ACTIVE')"
+                    style="padding:6px 16px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s">Activos</button>
+            <button class="pf-btn" onclick="filterProjects(this,'PLANNING')"
+                    style="padding:6px 16px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s">En Planificación</button>
+            <button class="pf-btn" onclick="filterProjects(this,'COMPLETED')"
+                    style="padding:6px 16px;border-radius:99px;border:1.5px solid var(--border);background:#fff;color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s">Completados</button>
+          </div>
+          <!-- Importancia Select -->
+          <div style="position:relative">
+            <select id="proj-importance-filter" onchange="renderProjectsList()"
+                    style="appearance:none;padding:8px 36px 8px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;font-family:inherit;outline:none">
+              <option value="ALL">Toda Importancia</option>
+              <option value="CRITICAL">🔴 Crítica</option>
+              <option value="HIGH">🟠 Alta</option>
+              <option value="MEDIUM">🟡 Media</option>
+              <option value="LOW">🟢 Baja</option>
+            </select>
+            <span class="msr" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--t3);pointer-events:none">expand_more</span>
+          </div>
         </div>
         <div id="all-proj-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px"></div>
       </div>
@@ -1584,6 +1598,10 @@ function renderProjectsList(){
   if(!list) return;
   let projs=DB.projects();
   if(projectFilter!=='ALL') projs=projs.filter(p=>p.status===projectFilter);
+  
+  const impFilter = (document.getElementById('proj-importance-filter') || {}).value || 'ALL';
+  if(impFilter!=='ALL') projs=projs.filter(p=>(p.importance||'MEDIUM')===impFilter);
+  
   list.innerHTML=projs.length?projs.map(p=>projCard(p)).join('')
     :'<div class="empty" style="grid-column:1/-1"><span class="msr">folder_open</span><p>Sin proyectos en esta categoría.</p></div>';
 }
