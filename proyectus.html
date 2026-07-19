@@ -1222,6 +1222,19 @@ function openProject(id){
 /* ══ DASHBOARD ══ */
 function renderDashboard(){
   setDate();
+  // ── Section 1: Proyectos ──
+  let projs=DB.projects();
+  projs.sort((a, b) => {
+    const o = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+    return (o[a.importance] || 2) - (o[b.importance] || 2);
+  });
+  const pList=document.getElementById('dash-proj-list');
+  const pEmpty=document.getElementById('dash-proj-empty');
+  if(pList){
+    const show=projs.slice(0,3);
+    if(show.length){ pList.innerHTML=show.map(p=>dashProjCard(p)).join(''); pList.style.display='grid'; if(pEmpty) pEmpty.style.display='none'; }
+    else { pList.style.display='none'; if(pEmpty) pEmpty.style.display='block'; }
+  }
   // ── Section 2: Módulos ──
   renderDashModules();
   // ── Section 3: Finanzas ──
@@ -1234,7 +1247,12 @@ function renderDashModules(){
   const impFilter = (document.getElementById('dash-mod-imp-filter')||{}).value||'ALL';
   const sort = (document.getElementById('dash-mod-sort')||{}).value||'NEWEST';
 
-  const projs = DB.projects().slice(0, 3);
+  let projs = DB.projects();
+  projs.sort((a, b) => {
+    const o = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+    return (o[a.importance] || 2) - (o[b.importance] || 2);
+  });
+  projs = projs.slice(0, 3);
 
   const pSelect = document.getElementById('dash-mod-proj-filter');
   if(pSelect && pSelect.options.length <= 1) {
