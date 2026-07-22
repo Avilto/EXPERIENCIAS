@@ -1107,10 +1107,30 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
       </div>
 
       <div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:12px;padding:14px">
-        <p style="font-size:11px;color:#166534;font-weight:800;margin-bottom:4px">💡 Script de Creación de Tablas (SQL)</p>
-        <p style="font-size:11px;color:#15803D;margin-bottom:10px">Copia este código y pégalo en el <strong>SQL Editor</strong> de tu proyecto en Supabase:</p>
         <button class="btn-ghost" onclick="copySupabaseSQL()" style="font-size:11px;padding:6px 12px;background:white;display:flex;align-items:center;gap:6px;border-color:#BBF7D0;color:#166534">
-          <span class="msr" style="font-size:14px">content_copy</span> C/* ══ SUPABASE CLOUD SYNC ENGINE ══ */
+          <span class="msr" style="font-size:14px">content_copy</span> Copiar Código SQL de Tablas
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn-ghost" onclick="disconnectSupabase()" id="btn-sp-disconnect" style="display:none;color:var(--red);border-color:#FECACA;background:#FEF2F2">Desconectar</button>
+      <button class="btn-ghost" onclick="closeModal('mSupabaseSync')">Cerrar</button>
+      <button class="btn-primary" onclick="saveSupabaseConfig()">
+        <span class="msr" style="font-size:16px">bolt</span> Conectar y Sincronizar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast-el" class="hidden"></div>
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
+<script>
+/* ══ SUPABASE CLOUD SYNC ENGINE ══ */
 let supabaseClient = null;
 let isCloudSyncActive = false;
 
