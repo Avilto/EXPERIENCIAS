@@ -3533,7 +3533,10 @@ function renderMyDayHourlyTimeline() {
                 </div>
               </div>
             </div>
-            <div style="display:flex;align-items:center;gap:4px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <button onclick="sendDailyTaskToWhatsApp('${t.id}')" style="background:#F0FDF4;border:1.5px solid #BBF7D0;color:#15803D;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-family:inherit" title="Enviar esta tarea por WhatsApp">
+                <span class="msr" style="font-size:14px">chat</span> Wsp
+              </button>
               <button class="btn-icon" onclick="openEditDailyTask('${t.id}')" style="width:28px;height:28px" title="Editar"><span class="msr" style="font-size:16px">edit</span></button>
               <button class="btn-icon" onclick="deleteDailyTask('${t.id}')" style="width:28px;height:28px;color:var(--red)" title="Eliminar"><span class="msr" style="font-size:16px">delete</span></button>
             </div>
@@ -4030,6 +4033,26 @@ function testEmailNotification() {
 
   window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_blank');
   toast('✉️ Abriendo cliente de correo para enviar mensaje de prueba...');
+}
+
+function sendDailyTaskToWhatsApp(id) {
+  const t = DB.dailyTasks().find(x => x.id === id);
+  if (!t) return;
+
+  const profile = getUserProfile();
+  const phone = profile.phone ? profile.phone.replace(/[^0-9]/g, '') : '';
+  const proj = t.pid ? DB.project(t.pid) : null;
+
+  const text = `*DO IT App — Recordatorio de Tarea* 📌\n\n📌 *Tarea:* ${t.title}\n⏱️ *Hora:* ${t.start_time} - ${t.end_time || t.start_time}\n📅 *Fecha:* ${t.date}\n📂 *Categoría:* ${t.category || 'General'}${proj ? `\n📁 *Proyecto:* ${proj.title}` : ''}${t.notes ? `\n📝 *Notas:* ${t.notes}` : ''}`;
+
+  const encoded = encodeURIComponent(text);
+
+  if (phone) {
+    window.open(`https://wa.me/${phone}?text=${encoded}`, '_blank');
+  } else {
+    window.open(`https://wa.me/?text=${encoded}`, '_blank');
+  }
+  toast('💬 Abriendo WhatsApp...');
 }
 </script>
 </body>
