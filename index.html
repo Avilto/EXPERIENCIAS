@@ -345,7 +345,15 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
       <span class="msr" id="sync-icon" style="font-size:16px;color:var(--t3)">cloud_off</span>
       <span id="sync-text">Sincronización Nube</span>
     </button>
-    <button class="btn-icon" onclick="openModal('mSearch')"><span class="msr" style="font-size:18px">search</span></button>
+    <button id="notif-badge" onclick="toggleBrowserNotifications()" class="badge badge-slate" style="cursor:pointer;padding:6px 12px;display:flex;align-items:center;gap:6px;font-size:11px;border:1.5px solid var(--border);background:var(--surface);transition:all .2s" title="Activar notificaciones de celular y navegador">
+      <span class="msr" id="notif-icon" style="font-size:16px;color:var(--t3)">notifications</span>
+      <span id="notif-text">Notificaciones</span>
+    </button>
+    <button class="badge badge-slate" onclick="openGlobalSearchModal()" style="cursor:pointer;padding:6px 12px;display:flex;align-items:center;gap:6px;font-size:11px;border:1.5px solid var(--border);background:var(--surface);transition:all .2s" title="Buscador global (Ctrl + K)">
+      <span class="msr" style="font-size:16px;color:var(--blue)">search</span>
+      <span>Buscar...</span>
+      <kbd style="font-size:10px;padding:1px 5px;border-radius:4px;background:var(--border);color:var(--t2);font-weight:700">Ctrl K</kbd>
+    </button>
     <button class="btn-primary" id="topbar-action" onclick="openModal('mNewProject')">
       <span class="msr" style="font-size:16px">add</span> <span style="display:inline-block">Nuevo Proyecto</span>
     </button>
@@ -1304,6 +1312,26 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
   </div>
 </div>
 
+<!-- ── Modal: Buscador Global (Ctrl + K) ── -->
+<div id="mSearch" class="modal-overlay hidden">
+  <div class="modal-box" style="max-width:600px;padding:0;overflow:hidden;border-radius:18px">
+    <div style="padding:16px 20px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+      <span class="msr" style="font-size:22px;color:var(--blue)">search</span>
+      <input id="inp-global-search" type="text" placeholder="Busca proyectos, módulos, tareas o agenda de Mi Día..." 
+             oninput="performGlobalSearch(this.value)"
+             style="width:100%;border:none;outline:none;font-size:15px;font-weight:600;color:var(--t1);font-family:inherit"/>
+      <kbd style="font-size:11px;padding:3px 8px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--t3);font-weight:700">ESC</kbd>
+    </div>
+    
+    <div id="global-search-results" style="max-height:420px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--surface)">
+      <div style="text-align:center;padding:30px;color:var(--t3)">
+        <span class="msr" style="font-size:36px;opacity:.4;display:block;margin-bottom:8px">manage_search</span>
+        <p style="font-size:13px">Escribe para buscar proyectos, tareas, módulos, gastos o agenda diaria.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div id="toast-el" class="hidden"></div>
 
@@ -1738,6 +1766,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   navigate('dashboard');
   renderDashboard();
   initSupabase();
+  updateNotificationUI();
+  startNotificationScheduler();
 });
 
 function seedDemo(){
@@ -3525,6 +3555,272 @@ function deleteDailyTask(id) {
   DB.deleteDailyTask(id);
   toast('🗑️ Tarea eliminada de la agenda');
   renderMyDayView();
+}
+
+/* ══ GLOBAL SEARCH ENGINE (Ctrl + K) ══ */
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    openGlobalSearchModal();
+  }
+  if (e.key === 'Escape') {
+    closeModal('mSearch');
+  }
+});
+
+function openGlobalSearchModal() {
+  openModal('mSearch');
+  const input = document.getElementById('inp-global-search');
+  if (input) {
+    input.value = '';
+    setTimeout(() => input.focus(), 100);
+  }
+  performGlobalSearch('');
+}
+
+function performGlobalSearch(query) {
+  const container = document.getElementById('global-search-results');
+  if (!container) return;
+
+  const q = (query || '').trim().toLowerCase();
+
+  if (!q) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:30px;color:var(--t3)">
+        <span class="msr" style="font-size:36px;opacity:.4;display:block;margin-bottom:8px">manage_search</span>
+        <p style="font-size:13px">Escribe palabras clave para buscar en todo tu espacio de trabajo.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const results = [];
+
+  // Search Projects
+  DB.projects().forEach(p => {
+    if ((p.title || '').toLowerCase().includes(q) || (p.desc || '').toLowerCase().includes(q)) {
+      results.push({
+        type: 'PROJECT',
+        title: p.title,
+        subtitle: `Proyecto · Importancia ${p.importance || 'MEDIA'}`,
+        icon: 'folder',
+        actionName: 'project',
+        id: p.id
+      });
+    }
+  });
+
+  // Search Modules
+  DB.modules().forEach(m => {
+    if ((m.name || '').toLowerCase().includes(q) || (m.desc || '').toLowerCase().includes(q)) {
+      const proj = DB.project(m.pid);
+      results.push({
+        type: 'MODULE',
+        title: m.name,
+        subtitle: `Módulo ${proj ? 'en ' + proj.title : ''}`,
+        icon: 'view_module',
+        actionName: 'module',
+        pid: m.pid,
+        mid: m.id
+      });
+    }
+  });
+
+  // Search Tasks
+  DB.tasks().forEach(t => {
+    if ((t.title || '').toLowerCase().includes(q) || (t.justify || '').toLowerCase().includes(q)) {
+      const proj = DB.project(t.pid);
+      results.push({
+        type: 'TASK',
+        title: t.title,
+        subtitle: `Tarea ${proj ? 'en ' + proj.title : ''} (${statusLabel(t.status)})`,
+        icon: 'check_circle',
+        actionName: 'task',
+        pid: t.pid
+      });
+    }
+  });
+
+  // Search Daily Tasks (Mi Día)
+  DB.dailyTasks().forEach(dt => {
+    if ((dt.title || '').toLowerCase().includes(q) || (dt.notes || '').toLowerCase().includes(q) || (dt.category || '').toLowerCase().includes(q)) {
+      results.push({
+        type: 'DAILY',
+        title: dt.title,
+        subtitle: `Mi Día (${dt.date}) · ${dt.start_time} · ${dt.category || 'General'}`,
+        icon: 'today',
+        actionName: 'daily',
+        date: dt.date
+      });
+    }
+  });
+
+  // Search Expenses
+  DB.expenses().forEach(ex => {
+    if ((ex.concepto || '').toLowerCase().includes(q) || (ex.notes || '').toLowerCase().includes(q) || (ex.category || '').toLowerCase().includes(q)) {
+      const proj = DB.project(ex.pid);
+      results.push({
+        type: 'EXPENSE',
+        title: ex.concepto,
+        subtitle: `Gasto S/ ${parseFloat(ex.amount||0).toFixed(2)} ${proj ? 'en ' + proj.title : ''}`,
+        icon: 'payments',
+        actionName: 'expense',
+        pid: ex.pid
+      });
+    }
+  });
+
+  if (results.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:30px;color:var(--t3)">
+        <span class="msr" style="font-size:36px;opacity:.3;display:block;margin-bottom:8px">search_off</span>
+        <p style="font-size:13px">No se encontraron resultados para "<strong>${esc(query)}</strong>"</p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  results.forEach((r, idx) => {
+    html += `
+      <div onclick="handleSearchResultClick(${idx})" style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--blue)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">
+        <div style="width:36px;height:36px;border-radius:10px;background:#EFF6FF;color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <span class="msr" style="font-size:20px">${r.icon}</span>
+        </div>
+        <div style="flex:1">
+          <p style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:2px">${esc(r.title)}</p>
+          <p style="font-size:11px;color:var(--t3);font-weight:500">${esc(r.subtitle)}</p>
+        </div>
+        <span class="msr" style="font-size:18px;color:var(--t3)">arrow_forward_ios</span>
+      </div>
+    `;
+  });
+
+  window._globalSearchResults = results;
+  container.innerHTML = html;
+}
+
+function handleSearchResultClick(index) {
+  const r = (window._globalSearchResults || [])[index];
+  if (!r) return;
+
+  closeModal('mSearch');
+
+  if (r.actionName === 'project' || r.actionName === 'task' || r.actionName === 'expense') {
+    currentProjectId = r.id || r.pid;
+    navigate('project-detail');
+  } else if (r.actionName === 'module') {
+    navigateToModule(r.pid, r.mid);
+  } else if (r.actionName === 'daily') {
+    selectMyDayCalendarDate(r.date);
+    navigate('my-day');
+  }
+}
+
+/* ══ BROWSER & MOBILE NOTIFICATIONS ENGINE ══ */
+let notificationCheckInterval = null;
+
+function updateNotificationUI() {
+  const badge = document.getElementById('notif-badge');
+  const icon = document.getElementById('notif-icon');
+  const text = document.getElementById('notif-text');
+  if (!badge) return;
+
+  const isEnabled = ('Notification' in window) && Notification.permission === 'granted' && localStorage.getItem('doit_notif_enabled') === 'true';
+
+  if (isEnabled) {
+    badge.className = 'badge badge-green';
+    badge.style.background = '#F0FDF4';
+    badge.style.color = '#166534';
+    badge.style.borderColor = '#BBF7D0';
+    if (icon) { icon.textContent = 'notifications_active'; icon.style.color = '#166534'; }
+    if (text) text.textContent = 'Alertas Activas';
+  } else {
+    badge.className = 'badge badge-slate';
+    badge.style.background = 'var(--surface)';
+    badge.style.color = 'var(--t3)';
+    badge.style.borderColor = 'var(--border)';
+    if (icon) { icon.textContent = 'notifications_off'; icon.style.color = 'var(--t3)'; }
+    if (text) text.textContent = 'Activar Alertas';
+  }
+}
+
+async function toggleBrowserNotifications() {
+  if (!('Notification' in window)) {
+    return toast('⚠️ Tu navegador o dispositivo no soporta notificaciones emergentes.');
+  }
+
+  if (Notification.permission === 'granted') {
+    const currentState = localStorage.getItem('doit_notif_enabled') === 'true';
+    if (currentState) {
+      localStorage.setItem('doit_notif_enabled', 'false');
+      toast('ℹ️ Notificaciones emergentes desactivadas');
+    } else {
+      localStorage.setItem('doit_notif_enabled', 'true');
+      toast('🔔 Alertas de tareas activadas');
+      sendNativeNotification('🔔 Alertas de DO IT Activas', 'Te avisaremos cuando tus tareas de Mi Día estén por iniciar.');
+    }
+  } else if (Notification.permission !== 'denied') {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      localStorage.setItem('doit_notif_enabled', 'true');
+      toast('🔔 Notificaciones permitidas y activadas');
+      sendNativeNotification('🔔 Alertas de DO IT Activas', 'Te avisaremos cuando tus tareas de Mi Día estén por iniciar.');
+    } else {
+      toast('⚠️ Permiso de notificaciones denegado en tu navegador.');
+    }
+  } else {
+    toast('⚠️ Las notificaciones están bloqueadas en tu navegador. Actívalas en la configuración de la barra de direcciones.');
+  }
+
+  updateNotificationUI();
+}
+
+function sendNativeNotification(title, body) {
+  if (('Notification' in window) && Notification.permission === 'granted') {
+    try {
+      new Notification(title, {
+        body,
+        icon: 'https://cdn-icons-png.flaticon.com/512/3652/3652191.png',
+        badge: 'https://cdn-icons-png.flaticon.com/512/3652/3652191.png'
+      });
+    } catch (e) {
+      console.warn('Notification error:', e);
+    }
+  }
+}
+
+function startNotificationScheduler() {
+  if (notificationCheckInterval) clearInterval(notificationCheckInterval);
+  notificationCheckInterval = setInterval(checkScheduledTasksNotifications, 45000);
+}
+
+function checkScheduledTasksNotifications() {
+  if (localStorage.getItem('doit_notif_enabled') !== 'true') return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const todayTasks = DB.dailyTasksByDate(todayStr);
+
+  todayTasks.forEach(t => {
+    if (t.status === 'DONE') return;
+
+    const [h, m] = (t.start_time || '00:00').split(':').map(Number);
+    const taskMinutes = h * 60 + m;
+
+    const diff = taskMinutes - currentMinutes;
+    const notifKey = `doit_alert_${todayStr}_${t.id}`;
+
+    if (diff >= 0 && diff <= 15 && !localStorage.getItem(notifKey)) {
+      localStorage.setItem(notifKey, 'true');
+      const timeMsg = diff === 0 ? '¡Empieza ahora!' : `en ${diff} minutos (${t.start_time})`;
+      sendNativeNotification(`⏱️ Tarea por Iniciar: ${t.title}`, `Programada para las ${t.start_time} (${timeMsg}) · Categoría: ${t.category || 'General'}`);
+      toast(`🔔 Recordatorio: "${t.title}" inicia ${timeMsg}`);
+    }
+  });
 }
 </script>
 </body>
