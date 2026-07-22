@@ -198,13 +198,139 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+/* ── RESPONSIVE MOBILE STYLES ── */
+@media (max-width: 768px) {
+  #topbar {
+    padding: 0 12px !important;
+    gap: 8px !important;
+    height: 56px !important;
+  }
+  
+  #sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: -270px !important;
+    bottom: 0 !important;
+    width: 260px !important;
+    z-index: 300 !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.25) !important;
+  }
+  #sidebar.open {
+    transform: translateX(270px) !important;
+  }
+  
+  #sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(3px);
+    z-index: 299;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  #sidebar-backdrop.open {
+    display: block !important;
+    opacity: 1 !important;
+  }
+
+  .view {
+    padding: 14px 12px 84px 12px !important;
+    gap: 16px !important;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .modal-box {
+    padding: 20px 16px !important;
+    border-radius: 16px !important;
+    width: 95% !important;
+    max-height: 90dvh !important;
+  }
+
+  .stat-card {
+    padding: 14px !important;
+    gap: 10px !important;
+  }
+
+  .stat-value {
+    font-size: 20px !important;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tab-btn {
+    padding: 8px 10px !important;
+    font-size: 11px !important;
+  }
+
+  #bottom-nav {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: #ffffff;
+    border-top: 1.5px solid var(--border);
+    z-index: 100;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    padding: 0 8px;
+  }
+
+  .bnav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    color: var(--t3);
+    font-size: 10px;
+    font-weight: 600;
+    border: none;
+    background: none;
+    cursor: pointer;
+    flex: 1;
+    padding: 6px 0;
+    transition: all 0.2s;
+  }
+  .bnav-item .msr {
+    font-size: 20px;
+  }
+  .bnav-item.active {
+    color: var(--blue);
+    font-weight: 700;
+  }
+}
+
+@media (min-width: 769px) {
+  #mobileNavToggle { display: none !important; }
+  #bottom-nav { display: none !important; }
+  #sidebar-backdrop { display: none !important; }
+}
 </style>
 </head>
 <body>
 <div id="app">
 
+  <!-- ══ BACKDROP FOR MOBILE SIDEBAR ══ -->
+  <div id="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
+
   <!-- ══ TOPBAR ══ -->
   <div id="topbar">
+    <button id="mobileNavToggle" onclick="toggleMobileSidebar()" class="btn-icon" style="display:flex;align-items:center;justify-content:center">
+      <span class="msr">menu</span>
+    </button>
     <div class="flex items-center gap-3">
       <div style="width:36px;height:36px;border-radius:10px;background:var(--blue);display:flex;align-items:center;justify-content:center;">
         <span class="msr filled" style="color:#fff;font-size:20px">rocket_launch</span>
@@ -216,7 +342,7 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
     <div style="flex:1"></div>
     <button class="btn-icon" onclick="openModal('mSearch')"><span class="msr" style="font-size:18px">search</span></button>
     <button class="btn-primary" id="topbar-action" onclick="openModal('mNewProject')">
-      <span class="msr" style="font-size:16px">add</span> Nuevo Proyecto
+      <span class="msr" style="font-size:16px">add</span> <span style="display:inline-block">Nuevo Proyecto</span>
     </button>
   </div>
 
@@ -589,6 +715,32 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
 
     </div><!-- /content -->
   </div><!-- /main -->
+
+  <!-- ══ BOTTOM NAV BAR (MOBILE ONLY) ══ -->
+  <div id="bottom-nav">
+    <button class="bnav-item active" id="bnb-dashboard" onclick="navigate('dashboard')">
+      <span class="msr filled">dashboard</span>
+      <span>Inicio</span>
+    </button>
+    <button class="bnav-item" id="bnb-projects" onclick="navigate('projects')">
+      <span class="msr">folder_open</span>
+      <span>Proyectos</span>
+    </button>
+    <button class="bnav-item" onclick="openModal('mNewProject')">
+      <div style="width:38px;height:38px;border-radius:50%;background:var(--blue);color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(19,86,219,0.3)">
+        <span class="msr" style="font-size:22px">add</span>
+      </div>
+    </button>
+    <button class="bnav-item" onclick="openModal('mNewTask')">
+      <span class="msr">add_task</span>
+      <span>+ Tarea</span>
+    </button>
+    <button class="bnav-item" onclick="toggleMobileSidebar()">
+      <span class="msr">menu</span>
+      <span>Menú</span>
+    </button>
+  </div>
+
 </div><!-- /app -->
 
 <!-- ══════════════════════════════════════════
@@ -1227,9 +1379,35 @@ function setDate(){
   if(el) el.textContent=`${days[d.getDay()]}, ${d.getDate()} de ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+/* ══ MOBILE SIDEBAR DRAWER LOGIC ══ */
+function toggleMobileSidebar(){
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if(sidebar) sidebar.classList.toggle('open');
+  if(backdrop) backdrop.classList.toggle('open');
+}
+
+function closeMobileSidebar(){
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if(sidebar) sidebar.classList.remove('open');
+  if(backdrop) backdrop.classList.remove('open');
+}
+
 /* ══ NAVIGATION ══ */
 let lastPage = 'dashboard';
 function navigate(page, saveHistory = true){
+  closeMobileSidebar();
+
+  document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
+  if(page === 'dashboard') {
+    const b = document.getElementById('bnb-dashboard');
+    if(b) b.classList.add('active');
+  } else if(page === 'projects') {
+    const b = document.getElementById('bnb-projects');
+    if(b) b.classList.add('active');
+  }
+
   if(saveHistory) {
     const activeView = document.querySelector('.view.active');
     if(activeView) {
