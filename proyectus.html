@@ -1106,24 +1106,6 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
         <input id="inp-sp-key" class="form-input" type="password" placeholder="Ej: eyJhY..."/>
       </div>
 
-      <!-- Modo de Sincronización -->
-      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px">
-        <p style="font-size:12px;font-weight:700;color:var(--t1);margin-bottom:8px">Modo de Sincronización:</p>
-        <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;margin-bottom:8px">
-          <input type="radio" name="syncModeRadio" id="radio-sync-live" onchange="setSyncMode(false)">
-          <span><strong>⚡ Modo En Vivo:</strong> Sincronización instantánea a cada cambio.</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
-          <input type="radio" name="syncModeRadio" id="radio-sync-manual" onchange="setSyncMode(true)">
-          <span><strong>📝 Modo Borrador (Manual):</strong> Trabajas todo en local y subes en lote con 1 clic al terminar (Ahorra consultas).</span>
-        </label>
-        <div id="manual-sync-actions" style="margin-top:10px;display:none">
-          <button class="btn-primary" onclick="pushAllLocalToCloud()" style="width:100%;justify-content:center;font-size:12px;padding:8px;background:var(--blue)">
-            <span class="msr" style="font-size:16px">cloud_upload</span> Subir Todos los Cambios a la Nube Ahora
-          </button>
-        </div>
-      </div>
-
       <div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:12px;padding:14px">
         <button class="btn-ghost" onclick="copySupabaseSQL()" style="font-size:11px;padding:6px 12px;background:white;display:flex;align-items:center;gap:6px;border-color:#BBF7D0;color:#166534">
           <span class="msr" style="font-size:14px">content_copy</span> Copiar Código SQL de Tablas
@@ -1151,40 +1133,24 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
 /* ══ SUPABASE CLOUD SYNC ENGINE ══ */
 let supabaseClient = null;
 let isCloudSyncActive = false;
-let isManualSyncMode = localStorage.getItem('doit_manual_sync') === 'true';
-let pendingChangesCount = parseInt(localStorage.getItem('doit_pending_changes') || '0', 10);
 
 let SUPABASE_URL = localStorage.getItem('doit_sp_url') || 'https://zywddctbxmhlajkdwrwq.supabase.co';
 let SUPABASE_ANON_KEY = localStorage.getItem('doit_sp_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5d2RkY3RieG1obGFqa2R3cndxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjYyNjEsImV4cCI6MjEwMDMwMjI2MX0.Hyp8KFJtD5VOR2phxdiFja5w73BG_3EgXozIEg4e4b0';
-
-function setSyncMode(isManual) {
-  isManualSyncMode = isManual;
-  localStorage.setItem('doit_manual_sync', isManual ? 'true' : 'false');
-  updateSyncStatusUI();
-  toast(isManual ? '📝 Modo Borrador activado: Los cambios se guardan localmente hasta presionar "Subir"' : '⚡ Modo En Vivo activado: Sincronización instantánea');
-}
 
 function updateSyncStatusUI() {
   const badge = document.getElementById('cloud-sync-badge');
   const icon = document.getElementById('sync-icon');
   const text = document.getElementById('sync-text');
   const disconnectBtn = document.getElementById('btn-sp-disconnect');
-  const manualActions = document.getElementById('manual-sync-actions');
-  const radioLive = document.getElementById('radio-sync-live');
-  const radioManual = document.getElementById('radio-sync-manual');
-
-  if (radioLive && radioManual) {
-    radioLive.checked = !isManualSyncMode;
-    radioManual.checked = isManualSyncMode;
-  }
-
-  if (manualActions) {
-    manualActions.style.display = isManualSyncMode ? 'block' : 'none';
-  }
 
   if (!badge) return;
 
   if (isCloudSyncActive) {
+    badge.className = 'badge badge-green';
+    badge.style.background = '#F0FDF4';
+    badge.style.color = '#166534';
+    badge.style.borderColor = '#BBF7D0';
+    if (icon) { icon.textContent = 'cloud_done'; icon.style.color = '#166534'; }
     if (text) text.textContent = 'Nube Conectada';
     if (disconnectBtn) disconnectBtn.style.display = 'inline-block';
   } else {
