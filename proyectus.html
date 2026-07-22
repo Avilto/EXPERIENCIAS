@@ -242,7 +242,7 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
     gap: 16px !important;
   }
 
-  .form-row {
+  .form-row, .my-day-grid {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
@@ -361,10 +361,12 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
         <button class="nav-item active" id="nb-dashboard" onclick="navigate('dashboard')">
           <span class="msr filled">dashboard</span> Dashboard
         </button>
+        <button class="nav-item" id="nb-my-day" onclick="navigate('my-day')">
+          <span class="msr">today</span> Mi Día
+        </button>
         <button class="nav-item" id="nb-projects" onclick="navigate('projects')">
           <span class="msr">folder_open</span> Proyectos
         </button>
-
       </nav>
       <div style="padding:16px 20px 24px;border-top:1px solid rgba(255,255,255,0.12)">
         <div style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:500">v1.0 · DO IT</div>
@@ -496,6 +498,107 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
         </div>
 
         <div style="height:8px"></div>
+      </div>
+
+      <!-- ─── VIEW: MI DÍA (DAILY PLANNER) ─── -->
+      <div id="v-my-day" class="view" style="background:var(--surface)">
+        
+        <!-- Header Controls -->
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.03)">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span class="msr filled" style="font-size:28px;color:var(--blue)">calendar_month</span>
+              <div>
+                <h1 style="font-family:'Inter',sans-serif;font-size:22px;font-weight:800;color:var(--t1);line-height:1.2">Mi Día — Planificador Diario</h1>
+                <p id="my-day-date-subtitle" style="font-size:12px;color:var(--t3);margin-top:2px;font-weight:600">Planifica tus tareas día tras día hora a hora</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Date Navigation Strip -->
+          <div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--border);padding:4px 8px;border-radius:99px">
+            <button class="btn-icon" onclick="changeMyDayDate(-1)" style="width:32px;height:32px;border:none;background:white" title="Día Anterior">
+              <span class="msr" style="font-size:18px">chevron_left</span>
+            </button>
+            <div id="my-day-current-label" style="font-size:13px;font-weight:700;color:var(--t1);padding:0 8px;min-width:170px;text-align:center">
+              Cargando fecha...
+            </div>
+            <button class="btn-icon" onclick="changeMyDayDate(1)" style="width:32px;height:32px;border:none;background:white" title="Día Siguiente">
+              <span class="msr" style="font-size:18px">chevron_right</span>
+            </button>
+            <button onclick="goToMyDayToday()" style="padding:5px 14px;font-size:11px;font-weight:700;border-radius:99px;background:var(--blue);color:white;border:none;cursor:pointer;margin-left:4px">
+              Hoy
+            </button>
+          </div>
+
+          <button class="btn-primary" onclick="openNewDailyTaskModal()" style="padding:8px 16px;font-size:13px;border-radius:10px">
+            <span class="msr" style="font-size:18px">add</span> Añadir Tarea por Hora
+          </button>
+        </div>
+
+        <!-- Daily Progress Bar -->
+        <div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:240px">
+            <span class="msr" style="font-size:24px;color:var(--blue)">schedule</span>
+            <div style="flex:1">
+              <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:6px">
+                <span style="color:var(--t1)">Avance de Horas Agendadas</span>
+                <span id="my-day-progress-text" style="color:var(--blue)">0% completado</span>
+              </div>
+              <div class="progress-wrap" style="height:8px">
+                <div id="my-day-progress-bar" class="progress-fill" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center">
+            <span id="my-day-stats-completed" class="badge badge-green" style="font-size:12px;padding:5px 14px">0 Completadas</span>
+            <span id="my-day-stats-pending" class="badge badge-yellow" style="font-size:12px;padding:5px 14px">0 Pendientes</span>
+          </div>
+        </div>
+
+        <!-- Main Content: Mini Calendar Sidebar + Hourly Timeline -->
+        <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start" class="my-day-grid">
+          
+          <!-- LEFT SIDEBAR: Mini Monthly Calendar Selector -->
+          <div style="background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:18px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+              <button class="btn-icon" onclick="changeMyDayMonth(-1)" style="width:30px;height:30px;border:none">
+                <span class="msr" style="font-size:18px">chevron_left</span>
+              </button>
+              <span id="my-day-month-header" style="font-size:15px;font-weight:800;color:var(--t1)">Julio 2026</span>
+              <button class="btn-icon" onclick="changeMyDayMonth(1)" style="width:30px;height:30px;border:none">
+                <span class="msr" style="font-size:18px">chevron_right</span>
+              </button>
+            </div>
+
+            <!-- Weekday Headers -->
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:11px;font-weight:700;color:var(--t3);margin-bottom:10px">
+              <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+            </div>
+
+            <!-- Calendar Days Grid -->
+            <div id="my-day-calendar-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;text-align:center">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- RIGHT PANEL: Hourly Schedule Grid (06:00 to 23:00) -->
+          <div style="background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:20px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:12px">
+              <h3 style="font-size:15px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:8px">
+                <span class="msr" style="color:var(--blue)">query_builder</span> Cronograma de Horarios (06:00 - 23:00)
+              </h3>
+              <span style="font-size:11px;color:var(--t3);font-weight:600">Haz clic en una hora para agendar tarea</span>
+            </div>
+
+            <!-- Hourly Slots Container -->
+            <div id="my-day-hourly-slots" style="display:flex;flex-direction:column;gap:8px">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+        </div>
+
       </div>
 
       <!-- ─── VIEW: PROJECTS ─── -->
@@ -727,14 +830,18 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
       <span class="msr filled">dashboard</span>
       <span>Inicio</span>
     </button>
-    <button class="bnav-item" id="bnb-projects" onclick="navigate('projects')">
-      <span class="msr">folder_open</span>
-      <span>Proyectos</span>
+    <button class="bnav-item" id="bnb-my-day" onclick="navigate('my-day')">
+      <span class="msr">today</span>
+      <span>Mi Día</span>
     </button>
     <button class="bnav-item" onclick="openModal('mNewProject')">
       <div style="width:38px;height:38px;border-radius:50%;background:var(--blue);color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(19,86,219,0.3)">
         <span class="msr" style="font-size:22px">add</span>
       </div>
+    </button>
+    <button class="bnav-item" id="bnb-projects" onclick="navigate('projects')">
+      <span class="msr">folder_open</span>
+      <span>Proyectos</span>
     </button>
     <button class="bnav-item" onclick="openModal('mNewTask')">
       <span class="msr">add_task</span>
@@ -1079,6 +1186,81 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
   </div>
 </div>
 
+<!-- ── Modal: Nueva Tarea por Hora (Mi Día) ── -->
+<div id="mNewDailyTask" class="modal-overlay hidden">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-header">
+      <h2 class="modal-title" id="mDailyTaskTitle" style="display:flex;align-items:center;gap:8px">
+        <span class="msr" style="color:var(--blue);font-size:22px">schedule</span> Agendar Tarea por Hora
+      </h2>
+      <button class="btn-icon" onclick="closeModal('mNewDailyTask')"><span class="msr" style="font-size:20px">close</span></button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="form-group">
+        <label class="form-label">Fecha de la Tarea *</label>
+        <input id="inp-dtDate" class="form-input" type="date"/>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Hora de Inicio *</label>
+          <select id="inp-dtStartTime" class="form-input form-select"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hora de Fin *</label>
+          <select id="inp-dtEndTime" class="form-input form-select"></select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Actividad / Tarea *</label>
+        <input id="inp-dtTitle" class="form-input" type="text" placeholder="Ej: Reunión de avance con equipo"/>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Categoría *</label>
+          <select id="inp-dtCategory" class="form-input form-select">
+            <option value="Trabajo">💼 Trabajo</option>
+            <option value="Reunión">🤝 Reunión</option>
+            <option value="Estudio">📚 Estudio / Capacitación</option>
+            <option value="Personal">🏠 Personal / Hogar</option>
+            <option value="Salud">🏋️ Salud / Deporte</option>
+            <option value="Proyecto">🚀 Proyecto Especial</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prioridad *</label>
+          <select id="inp-dtImportance" class="form-input form-select">
+            <option value="CRITICAL">🔴 Crítica</option>
+            <option value="HIGH">🟠 Alta</option>
+            <option value="MEDIUM" selected>🟡 Media</option>
+            <option value="LOW">🟢 Baja</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Proyecto Asociado (Opcional)</label>
+        <select id="inp-dtProject" class="form-input form-select"></select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notas o detalles adicionales</label>
+        <textarea id="inp-dtNotes" class="form-input form-textarea" placeholder="Anota entregables, enlaces o pendientes de este horario..." style="min-height:70px"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn-ghost" onclick="closeModal('mNewDailyTask')">Cancelar</button>
+      <button class="btn-primary" onclick="saveDailyTask()">
+        <span class="msr" style="font-size:16px">save</span> Guardar en la Agenda
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ── Supabase Sync Modal ── -->
 <div id="mSupabaseSync" class="modal-overlay hidden">
   <div class="modal-box" style="max-width:540px">
@@ -1212,7 +1394,7 @@ async function cloudDelete(table, id) {
 async function syncFromCloud() {
   if (!isCloudSyncActive || !supabaseClient) return;
   try {
-    const tables = ['projects', 'modules', 'tasks', 'risks', 'expenses', 'events'];
+    const tables = ['projects', 'modules', 'tasks', 'risks', 'expenses', 'events', 'daily_tasks'];
     for (const t of tables) {
       const { data, error } = await supabaseClient.from(t).select('*');
       if (!error && data) {
@@ -1225,6 +1407,7 @@ async function syncFromCloud() {
     renderProjectsList();
     renderModulesList();
     renderTaskList();
+    renderMyDayView();
   } catch (e) {
     console.warn('Sync from cloud failed:', e);
   }
@@ -1335,6 +1518,21 @@ CREATE TABLE IF NOT EXISTS events (
   "desc" TEXT,
   level TEXT,
   ts TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS daily_tasks (
+  id TEXT PRIMARY KEY,
+  date DATE,
+  start_time TEXT,
+  end_time TEXT,
+  title TEXT,
+  category TEXT,
+  importance TEXT,
+  pid TEXT,
+  notes TEXT,
+  status TEXT DEFAULT 'TODO',
+  created TIMESTAMPTZ DEFAULT NOW(),
+  updated TIMESTAMPTZ DEFAULT NOW()
 );`;
   navigator.clipboard.writeText(sql).then(() => {
     toast('📋 Script SQL copiado al portapapeles');
@@ -1479,6 +1677,28 @@ const DB = {
     const e={id:this._id(),pid,type,desc,level:level||'LOW',ts:this._ts()};
     const all=this.events(); all.unshift(e); this._s('events',all);
     cloudUpsert('events', e);
+  },
+
+  /* ─ DAILY TASKS (Mi Día) ─ */
+  dailyTasks(){ return this._g('daily_tasks'); },
+  dailyTasksByDate(dateStr){ return this.dailyTasks().filter(t => t.date === dateStr); },
+  saveDailyTask(data){
+    const all = this.dailyTasks();
+    let savedObj = null;
+    if(data.id){
+      const i = all.findIndex(t => t.id === data.id);
+      if(i >= 0){ all[i] = { ...all[i], ...data, updated: this._ts() }; savedObj = all[i]; }
+    } else {
+      savedObj = { ...data, id: this._id(), status: data.status || 'TODO', created: this._ts(), updated: this._ts() };
+      all.unshift(savedObj);
+    }
+    this._s('daily_tasks', all);
+    if(savedObj) cloudUpsert('daily_tasks', savedObj);
+    return savedObj || all[0];
+  },
+  deleteDailyTask(id){
+    this._s('daily_tasks', this.dailyTasks().filter(t => t.id !== id));
+    cloudDelete('daily_tasks', id);
   },
 
   /* ─ STATS ─ */
@@ -1686,6 +1906,9 @@ function navigate(page, saveHistory = true){
   if(page === 'dashboard') {
     const b = document.getElementById('bnb-dashboard');
     if(b) b.classList.add('active');
+  } else if(page === 'my-day') {
+    const b = document.getElementById('bnb-my-day');
+    if(b) b.classList.add('active');
   } else if(page === 'projects') {
     const b = document.getElementById('bnb-projects');
     if(b) b.classList.add('active');
@@ -1710,6 +1933,12 @@ function navigate(page, saveHistory = true){
     document.getElementById('topbar-breadcrumb').innerHTML='';
     document.getElementById('topbar-action').innerHTML='';
     renderDashboard();
+  } else if(page==='my-day'){
+    document.getElementById('v-my-day').classList.add('active');
+    if(document.getElementById('nb-my-day')) document.getElementById('nb-my-day').classList.add('active');
+    document.getElementById('topbar-breadcrumb').innerHTML='';
+    document.getElementById('topbar-action').innerHTML='';
+    renderMyDayView();
   } else if(page==='projects'){
     document.getElementById('v-projects').classList.add('active');
     document.getElementById('nb-projects').classList.add('active');
@@ -2987,6 +3216,316 @@ function deleteModule(id){
   renderModulesList();
   renderTaskList();
   renderDashboard();
+}
+
+/* ══ MI DÍA (DAILY PLANNER & HOURLY SCHEDULE) ══ */
+let currentMyDayDate = new Date().toISOString().split('T')[0];
+let currentMyDayMonth = new Date().getMonth();
+let currentMyDayYear = new Date().getFullYear();
+let editingDailyTaskId = null;
+
+const HOURLY_SLOTS = [
+  '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
+  '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
+  '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'
+];
+
+function changeMyDayDate(offsetDays) {
+  const d = new Date(currentMyDayDate + 'T12:00:00');
+  d.setDate(d.getDate() + offsetDays);
+  currentMyDayDate = d.toISOString().split('T')[0];
+  currentMyDayMonth = d.getMonth();
+  currentMyDayYear = d.getFullYear();
+  renderMyDayView();
+}
+
+function goToMyDayToday() {
+  const today = new Date();
+  currentMyDayDate = today.toISOString().split('T')[0];
+  currentMyDayMonth = today.getMonth();
+  currentMyDayYear = today.getFullYear();
+  renderMyDayView();
+}
+
+function changeMyDayMonth(offsetMonth) {
+  currentMyDayMonth += offsetMonth;
+  if (currentMyDayMonth > 11) {
+    currentMyDayMonth = 0;
+    currentMyDayYear++;
+  } else if (currentMyDayMonth < 0) {
+    currentMyDayMonth = 11;
+    currentMyDayYear--;
+  }
+  renderMyDayCalendar();
+}
+
+function selectMyDayCalendarDate(dateStr) {
+  currentMyDayDate = dateStr;
+  renderMyDayView();
+}
+
+function renderMyDayView() {
+  const d = new Date(currentMyDayDate + 'T12:00:00');
+  const daysOfWeek = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  
+  const dayName = daysOfWeek[d.getDay()];
+  const dayNum = d.getDate();
+  const monthName = months[d.getMonth()];
+  const yearNum = d.getFullYear();
+
+  const labelEl = document.getElementById('my-day-current-label');
+  if (labelEl) labelEl.textContent = `${dayName}, ${dayNum} de ${monthName}`;
+
+  const subtitleEl = document.getElementById('my-day-date-subtitle');
+  if (subtitleEl) subtitleEl.textContent = `Agenda del ${dayName} ${dayNum}/${d.getMonth()+1}/${yearNum}`;
+
+  renderMyDayCalendar();
+  renderMyDayHourlyTimeline();
+}
+
+function renderMyDayCalendar() {
+  const monthHeader = document.getElementById('my-day-month-header');
+  const gridEl = document.getElementById('my-day-calendar-grid');
+  if (!monthHeader || !gridEl) return;
+
+  const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  monthHeader.textContent = `${months[currentMyDayMonth]} ${currentMyDayYear}`;
+
+  const firstDayOfMonth = new Date(currentMyDayYear, currentMyDayMonth, 1);
+  let startingDay = firstDayOfMonth.getDay() - 1;
+  if (startingDay === -1) startingDay = 6;
+
+  const daysInMonth = new Date(currentMyDayYear, currentMyDayMonth + 1, 0).getDate();
+  const allDailyTasks = DB.dailyTasks();
+
+  let html = '';
+  for (let i = 0; i < startingDay; i++) {
+    html += `<div style="padding:6px;font-size:11px;color:var(--border)"></div>`;
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const monthStr = String(currentMyDayMonth + 1).padStart(2, '0');
+    const dayStr = String(day).padStart(2, '0');
+    const fullDateStr = `${currentMyDayYear}-${monthStr}-${dayStr}`;
+
+    const isSelected = fullDateStr === currentMyDayDate;
+    const isToday = fullDateStr === new Date().toISOString().split('T')[0];
+    const hasTasks = allDailyTasks.some(t => t.date === fullDateStr);
+
+    let style = 'padding:6px 2px;font-size:12px;font-weight:700;border-radius:8px;cursor:pointer;position:relative;transition:all .15s;';
+    if (isSelected) {
+      style += 'background:var(--blue);color:white;box-shadow:0 2px 8px rgba(19,86,219,0.3);';
+    } else if (isToday) {
+      style += 'background:#EFF6FF;color:var(--blue);border:1.5px solid #BFDBFE;';
+    } else {
+      style += 'background:transparent;color:var(--t1);';
+    }
+
+    const dotHtml = hasTasks ? `<span style="position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:${isSelected ? 'white' : 'var(--blue)'}"></span>` : '';
+
+    html += `<div style="${style}" onclick="selectMyDayCalendarDate('${fullDateStr}')" title="${fullDateStr}">
+      ${day}${dotHtml}
+    </div>`;
+  }
+
+  gridEl.innerHTML = html;
+}
+
+function renderMyDayHourlyTimeline() {
+  const container = document.getElementById('my-day-hourly-slots');
+  if (!container) return;
+
+  const tasksForDay = DB.dailyTasksByDate(currentMyDayDate);
+
+  const totalTasks = tasksForDay.length;
+  const completedTasks = tasksForDay.filter(t => t.status === 'DONE').length;
+  const pendingTasks = totalTasks - completedTasks;
+  const pct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  const pBar = document.getElementById('my-day-progress-bar');
+  const pText = document.getElementById('my-day-progress-text');
+  const statDone = document.getElementById('my-day-stats-completed');
+  const statPending = document.getElementById('my-day-stats-pending');
+
+  if (pBar) pBar.style.width = pct + '%';
+  if (pText) pText.textContent = `${pct}% completado (${completedTasks}/${totalTasks})`;
+  if (statDone) statDone.textContent = `${completedTasks} Completadas`;
+  if (statPending) statPending.textContent = `${pendingTasks} Pendientes`;
+
+  let html = '';
+
+  HOURLY_SLOTS.forEach(slot => {
+    const slotHourNum = parseInt(slot.split(':')[0], 10);
+
+    const matchingTasks = tasksForDay.filter(t => {
+      const startH = parseInt((t.start_time || '00:00').split(':')[0], 10);
+      return startH === slotHourNum;
+    });
+
+    html += `
+      <div style="display:grid;grid-template-columns:75px 1fr;gap:12px;align-items:start;padding:8px 0;border-bottom:1px dashed var(--border)">
+        <div style="font-size:12px;font-weight:800;color:var(--t3);padding-top:6px;display:flex;align-items:center;gap:4px">
+          <span class="msr" style="font-size:14px;color:var(--t3)">schedule</span> ${slot}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+    `;
+
+    if (matchingTasks.length > 0) {
+      matchingTasks.forEach(t => {
+        const isDone = t.status === 'DONE';
+        const categoryColors = {
+          'Trabajo': 'background:#EFF6FF;color:#1E40AF;border-color:#BFDBFE',
+          'Reunión': 'background:#F5F3FF;color:#6B21A8;border-color:#DDD6FE',
+          'Estudio': 'background:#FEF3C7;color:#92400E;border-color:#FDE68A',
+          'Personal': 'background:#F0FDF4;color:#166534;border-color:#BBF7D0',
+          'Salud': 'background:#FEE2E2;color:#991B1B;border-color:#FCA5A5',
+          'Proyecto': 'background:#E0F2FE;color:#075985;border-color:#BAE6FD'
+        };
+        const catBadgeStyle = categoryColors[t.category] || 'background:var(--surface);color:var(--t2);border-color:var(--border)';
+        const proj = t.pid ? DB.project(t.pid) : null;
+
+        html += `
+          <div style="background:${isDone ? '#F8FAFC' : '#fff'};border:1.5px solid ${isDone ? 'var(--border)' : 'var(--blue)'};border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,0.03);opacity:${isDone ? 0.75 : 1}">
+            <div style="display:flex;align-items:center;gap:12px;flex:1">
+              <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleDailyTaskStatus('${t.id}')" style="width:18px;height:18px;cursor:pointer;accent-color:var(--blue)">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <span style="font-size:13px;font-weight:700;color:var(--t1);${isDone ? 'text-decoration:line-through;color:var(--t3)' : ''}">${esc(t.title)}</span>
+                  <span class="badge" style="font-size:10px;padding:2px 8px;${catBadgeStyle}">${t.category || 'General'}</span>
+                  ${proj ? `<span class="badge badge-slate" style="font-size:10px;padding:2px 8px">📁 ${esc(proj.title)}</span>` : ''}
+                </div>
+                <div style="font-size:11px;color:var(--t3);margin-top:4px;display:flex;align-items:center;gap:10px">
+                  <span>⏱️ ${t.start_time} - ${t.end_time || t.start_time}</span>
+                  ${t.notes ? `<span>📝 ${esc(t.notes)}</span>` : ''}
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <button class="btn-icon" onclick="openEditDailyTask('${t.id}')" style="width:28px;height:28px" title="Editar"><span class="msr" style="font-size:16px">edit</span></button>
+              <button class="btn-icon" onclick="deleteDailyTask('${t.id}')" style="width:28px;height:28px;color:var(--red)" title="Eliminar"><span class="msr" style="font-size:16px">delete</span></button>
+            </div>
+          </div>
+        `;
+      });
+    } else {
+      html += `
+        <div onclick="openNewDailyTaskModal('${slot}')" style="border:1.5px dashed var(--border);border-radius:10px;padding:8px 12px;font-size:11px;color:var(--t3);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;background:transparent;" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--t3)'">
+          <span class="msr" style="font-size:15px">add_circle_outline</span> Libre — Haz clic para agendar tarea a las ${slot}
+        </div>
+      `;
+    }
+
+    html += `
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function openNewDailyTaskModal(presetTime) {
+  editingDailyTaskId = null;
+  setText('mDailyTaskTitle', 'Agendar Tarea por Hora');
+  setVal('inp-dtDate', currentMyDayDate);
+  setVal('inp-dtTitle', '');
+  setVal('inp-dtNotes', '');
+  setVal('inp-dtCategory', 'Trabajo');
+  setVal('inp-dtImportance', 'MEDIUM');
+
+  populateTimeSelects(presetTime || '09:00', presetTime ? calculateEndTime(presetTime) : '10:00');
+  populateDailyTaskProjectDropdown();
+  openModal('mNewDailyTask');
+}
+
+function openEditDailyTask(id) {
+  const t = DB.dailyTasks().find(x => x.id === id);
+  if (!t) return;
+
+  editingDailyTaskId = id;
+  setText('mDailyTaskTitle', 'Editar Tarea Agendada');
+  setVal('inp-dtDate', t.date);
+  setVal('inp-dtTitle', t.title);
+  setVal('inp-dtCategory', t.category || 'Trabajo');
+  setVal('inp-dtImportance', t.importance || 'MEDIUM');
+  setVal('inp-dtNotes', t.notes || '');
+
+  populateTimeSelects(t.start_time || '09:00', t.end_time || '10:00');
+  populateDailyTaskProjectDropdown(t.pid);
+
+  openModal('mNewDailyTask');
+}
+
+function populateTimeSelects(selectedStart, selectedEnd) {
+  const selectStart = document.getElementById('inp-dtStartTime');
+  const selectEnd = document.getElementById('inp-dtEndTime');
+  if (!selectStart || !selectEnd) return;
+
+  let htmlStart = '';
+  let htmlEnd = '';
+
+  HOURLY_SLOTS.forEach(time => {
+    htmlStart += `<option value="${time}" ${time === selectedStart ? 'selected' : ''}>${time}</option>`;
+    htmlEnd += `<option value="${time}" ${time === selectedEnd ? 'selected' : ''}>${time}</option>`;
+  });
+
+  selectStart.innerHTML = htmlStart;
+  selectEnd.innerHTML = htmlEnd;
+}
+
+function calculateEndTime(startTime) {
+  const h = parseInt(startTime.split(':')[0], 10);
+  const nextH = Math.min(23, h + 1);
+  return String(nextH).padStart(2, '0') + ':00';
+}
+
+function populateDailyTaskProjectDropdown(selectedPid) {
+  const select = document.getElementById('inp-dtProject');
+  if (!select) return;
+  const projs = DB.projects();
+  let html = '<option value="">Sin Proyecto Asociado</option>';
+  projs.forEach(p => {
+    html += `<option value="${p.id}" ${p.id === selectedPid ? 'selected' : ''}>📁 ${esc(p.title)}</option>`;
+  });
+  select.innerHTML = html;
+}
+
+function saveDailyTask() {
+  const date = val('inp-dtDate'); if (!date) return toast('⚠️ Selecciona la fecha');
+  const title = val('inp-dtTitle'); if (!title) return toast('⚠️ Ingresa la actividad o tarea');
+  const startTime = val('inp-dtStartTime');
+  const endTime = val('inp-dtEndTime');
+  const category = val('inp-dtCategory');
+  const importance = val('inp-dtImportance');
+  const pid = val('inp-dtProject');
+  const notes = val('inp-dtNotes');
+
+  if (editingDailyTaskId) {
+    DB.saveDailyTask({ id: editingDailyTaskId, date, start_time: startTime, end_time: endTime, title, category, importance, pid, notes });
+    toast('✅ Tarea de la agenda actualizada');
+  } else {
+    DB.saveDailyTask({ date, start_time: startTime, end_time: endTime, title, category, importance, pid, notes, status: 'TODO' });
+    toast('✅ Tarea agregada a la agenda');
+  }
+
+  closeModal('mNewDailyTask');
+  renderMyDayView();
+}
+
+function toggleDailyTaskStatus(id) {
+  const t = DB.dailyTasks().find(x => x.id === id);
+  if (!t) return;
+  const newStatus = t.status === 'DONE' ? 'TODO' : 'DONE';
+  DB.saveDailyTask({ id, status: newStatus });
+  renderMyDayView();
+}
+
+function deleteDailyTask(id) {
+  if (!confirm('¿Eliminar esta tarea de tu agenda diaria?')) return;
+  DB.deleteDailyTask(id);
+  toast('🗑️ Tarea eliminada de la agenda');
+  renderMyDayView();
 }
 </script>
 </body>
