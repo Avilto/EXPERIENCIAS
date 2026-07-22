@@ -509,8 +509,7 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
             <div style="display:flex;align-items:center;gap:10px">
               <span class="msr filled" style="font-size:28px;color:var(--blue)">calendar_month</span>
               <div>
-                <h1 style="font-family:'Inter',sans-serif;font-size:22px;font-weight:800;color:var(--t1);line-height:1.2">Mi Día — Planificador Diario</h1>
-                <p id="my-day-date-subtitle" style="font-size:12px;color:var(--t3);margin-top:2px;font-weight:600">Planifica tus tareas día tras día hora a hora</p>
+                <h1 id="my-day-main-title" style="font-family:'Inter',sans-serif;font-size:24px;font-weight:800;color:var(--t1);line-height:1.2">Cargando fecha...</h1>
               </div>
             </div>
           </div>
@@ -3274,11 +3273,11 @@ function renderMyDayView() {
   const monthName = months[d.getMonth()];
   const yearNum = d.getFullYear();
 
+  const titleEl = document.getElementById('my-day-main-title');
+  if (titleEl) titleEl.textContent = `${dayName}, ${dayNum} de ${monthName} de ${yearNum}`;
+
   const labelEl = document.getElementById('my-day-current-label');
   if (labelEl) labelEl.textContent = `${dayName}, ${dayNum} de ${monthName}`;
-
-  const subtitleEl = document.getElementById('my-day-date-subtitle');
-  if (subtitleEl) subtitleEl.textContent = `Agenda del ${dayName} ${dayNum}/${d.getMonth()+1}/${yearNum}`;
 
   renderMyDayCalendar();
   renderMyDayHourlyTimeline();
