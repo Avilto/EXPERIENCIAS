@@ -1135,7 +1135,7 @@ let supabaseClient = null;
 let isCloudSyncActive = false;
 
 let SUPABASE_URL = localStorage.getItem('doit_sp_url') || 'https://zywddctbxmhlajkdwrwq.supabase.co';
-let SUPABASE_ANON_KEY = localStorage.getItem('doit_sp_key') || '';
+let SUPABASE_ANON_KEY = localStorage.getItem('doit_sp_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5d2RkY3RieG1obGFqa2R3cndxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjYyNjEsImV4cCI6MjEwMDMwMjI2MX0.Hyp8KFJtD5VOR2phxdiFja5w73BG_3EgXozIEg4e4b0';
 
 function updateSyncStatusUI() {
   const badge = document.getElementById('cloud-sync-badge');
