@@ -1680,7 +1680,24 @@ function renderProjectDetail(){
   renderFinance();
 }
 
-/* ── Tasks ── */
+/* ── Tasks & Module Filters ── */
+let moduleFilterQuery = '';
+let moduleFilterImportance = 'ALL';
+let moduleFilterStatus = 'ALL';
+
+function setModuleSearchFilter(q) {
+  moduleFilterQuery = q;
+  renderTaskList();
+}
+function setModuleImportanceFilter(imp) {
+  moduleFilterImportance = imp;
+  renderTaskList();
+}
+function setModuleStatusFilter(st) {
+  moduleFilterStatus = st;
+  renderTaskList();
+}
+
 function renderTaskList(){
   let tasks=DB.tasksByProject(currentProjectId);
   
@@ -1696,18 +1713,79 @@ function renderTaskList(){
   if(!mEl || !tEl) return;
 
   const projectModules = DB.modulesByProject(currentProjectId);
+  let displayModules = [...projectModules];
 
-  // 1. Render Modules Section
+  if (moduleFilterQuery) {
+    const q = moduleFilterQuery.toLowerCase();
+    displayModules = displayModules.filter(m => m.name.toLowerCase().includes(q) || (m.desc && m.desc.toLowerCase().includes(q)));
+  }
+
+  if (moduleFilterImportance !== 'ALL') {
+    displayModules = displayModules.filter(m => (m.importance || 'MEDIUM') === moduleFilterImportance);
+  }
+
+  if (moduleFilterStatus !== 'ALL') {
+    displayModules = displayModules.filter(m => {
+      const mTasks = tasks.filter(t => t.mid === m.id);
+      const isDone = mTasks.length > 0 && mTasks.every(t => t.status === 'DONE');
+      return moduleFilterStatus === 'DONE' ? isDone : !isDone;
+    });
+  }
+
+  // 1. Render Modules Section Header & Filters
   let mHtml = `
-    <h3 style="font-family:'Inter',sans-serif;font-size:16px;font-weight:800;color:var(--t1);margin-bottom:12px;display:flex;align-items:center;gap:8px">
-      <span class="msr" style="font-size:20px;color:var(--blue)">view_module</span> Módulos del Proyecto
-    </h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <h3 style="font-family:'Inter',sans-serif;font-size:16px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:8px;margin:0">
+        <span class="msr" style="font-size:20px;color:var(--blue)">view_module</span> Módulos del Proyecto (${projectModules.length})
+      </h3>
+      <button class="btn-primary" onclick="openNewModuleModal('${currentProjectId}')" style="padding:7px 16px;font-size:12px;border-radius:8px;display:flex;align-items:center;gap:6px;background:var(--blue);color:white;border:none;cursor:pointer;font-weight:700;box-shadow:0 2px 8px rgba(19,86,219,0.25)">
+        <span class="msr" style="font-size:16px">add</span> Crear Módulo
+      </button>
+    </div>
+
+    <!-- Filter Bar for Modules -->
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;background:#f8fafc;padding:12px;border-radius:10px;border:1.5px solid var(--border)">
+      <div style="position:relative;flex:1;min-width:180px">
+        <span class="msr" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--t3)">search</span>
+        <input type="text" placeholder="Filtrar módulo..." value="${esc(moduleFilterQuery)}" oninput="setModuleSearchFilter(this.value)" style="width:100%;padding:7px 10px 7px 32px;font-size:12px;border:1px solid var(--border);border-radius:6px;outline:none;background:white;color:var(--t1)">
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:11px;font-weight:700;color:var(--t3)">Prioridad:</span>
+        <select onchange="setModuleImportanceFilter(this.value)" style="padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:white;color:var(--t1);outline:none;cursor:pointer">
+          <option value="ALL" ${moduleFilterImportance==='ALL'?'selected':''}>Todas</option>
+          <option value="CRITICAL" ${moduleFilterImportance==='CRITICAL'?'selected':''}>Crítico</option>
+          <option value="HIGH" ${moduleFilterImportance==='HIGH'?'selected':''}>Alto</option>
+          <option value="MEDIUM" ${moduleFilterImportance==='MEDIUM'?'selected':''}>Medio</option>
+          <option value="LOW" ${moduleFilterImportance==='LOW'?'selected':''}>Bajo</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:11px;font-weight:700;color:var(--t3)">Estado:</span>
+        <select onchange="setModuleStatusFilter(this.value)" style="padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:white;color:var(--t1);outline:none;cursor:pointer">
+          <option value="ALL" ${moduleFilterStatus==='ALL'?'selected':''}>Todos</option>
+          <option value="IN_PROGRESS" ${moduleFilterStatus==='IN_PROGRESS'?'selected':''}>En Progreso</option>
+          <option value="DONE" ${moduleFilterStatus==='DONE'?'selected':''}>Completados</option>
+        </select>
+      </div>
+    </div>
   `;
 
-  if(!projectModules.length) {
-    mHtml += `<p style="font-size:12px;color:var(--t3);font-style:italic;margin-bottom:16px;padding-left:10px">No hay módulos creados en este proyecto.</p>`;
+  if(!displayModules.length) {
+    if (projectModules.length === 0) {
+      mHtml += `
+        <div style="text-align:center;padding:24px;background:#f8fafc;border:1.5px dashed var(--border);border-radius:12px;margin-bottom:16px">
+          <span class="msr" style="font-size:32px;color:var(--t3);display:block;margin-bottom:8px">view_module</span>
+          <p style="font-size:13px;color:var(--t2);font-weight:600;margin-bottom:12px">No hay módulos creados en este proyecto.</p>
+          <button class="btn-primary" onclick="openNewModuleModal('${currentProjectId}')" style="padding:7px 16px;font-size:12px;border-radius:8px;display:inline-flex;align-items:center;gap:6px">
+            <span class="msr" style="font-size:16px">add</span> Crear Primer Módulo
+          </button>
+        </div>
+      `;
+    } else {
+      mHtml += `<p style="font-size:12px;color:var(--t3);font-style:italic;margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid var(--border)">No se encontraron módulos que coincidan con los filtros aplicados.</p>`;
+    }
   } else {
-    projectModules.forEach(mod => {
+    displayModules.forEach(mod => {
       const modTasks = filteredTasks.filter(t => t.mid === mod.id);
       mHtml += `
         <div class="module-group" id="module-group-${mod.id}" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;transition:all .3s ease">
