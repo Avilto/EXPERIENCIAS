@@ -345,6 +345,10 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
       <span class="msr" id="sync-icon" style="font-size:16px;color:var(--t3)">cloud_off</span>
       <span id="sync-text">Sincronización Nube</span>
     </button>
+    <button id="user-profile-badge" onclick="openUserProfileModal()" class="badge badge-slate" style="cursor:pointer;padding:6px 12px;display:flex;align-items:center;gap:6px;font-size:11px;border:1.5px solid var(--border);background:var(--surface);transition:all .2s" title="Registro de usuario y alertas por WhatsApp, Email y SMS">
+      <span class="msr" id="user-profile-icon" style="font-size:16px;color:var(--blue)">account_circle</span>
+      <span id="user-profile-text">Registro / Alertas (Wsp/Email)</span>
+    </button>
     <button id="notif-badge" onclick="toggleBrowserNotifications()" class="badge badge-slate" style="cursor:pointer;padding:6px 12px;display:flex;align-items:center;gap:6px;font-size:11px;border:1.5px solid var(--border);background:var(--surface);transition:all .2s" title="Activar notificaciones de celular y navegador">
       <span class="msr" id="notif-icon" style="font-size:16px;color:var(--t3)">notifications</span>
       <span id="notif-text">Notificaciones</span>
@@ -1332,6 +1336,91 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
   </div>
 </div>
 
+<!-- ── Modal: Registro de Usuario y Alertas (Email / WhatsApp / SMS) ── -->
+<div id="mUserProfile" class="modal-overlay hidden">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-header">
+      <h2 class="modal-title" style="display:flex;align-items:center;gap:10px">
+        <span class="msr" style="color:var(--blue);font-size:24px">mark_email_unread</span> Registro y Notificaciones Multicanal
+      </h2>
+      <button class="btn-icon" onclick="closeModal('mUserProfile')"><span class="msr" style="font-size:20px">close</span></button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px">
+        <p style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:4px">📧 Recibe recordatorios en tu Correo, WhatsApp y SMS</p>
+        <p style="font-size:12px;color:var(--t3);line-height:1.5">
+          Registra tus datos de contacto para recibir tus tareas agendadas y alertas de proyectos directamente en tu celular o bandeja de entrada.
+        </p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nombre Completo *</label>
+        <input id="inp-uName" class="form-input" type="text" placeholder="Ej: Juan Pérez"/>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Correo Electrónico *</label>
+          <input id="inp-uEmail" class="form-input" type="email" placeholder="ejemplo@correo.com"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">WhatsApp / Teléfono (con código) *</label>
+          <input id="inp-uPhone" class="form-input" type="tel" placeholder="Ej: +51 987654321"/>
+        </div>
+      </div>
+
+      <!-- Canales de Notificación Preferidos -->
+      <div style="background:#F8FAFC;border:1.5px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px">
+        <p style="font-size:12px;font-weight:700;color:var(--t1);margin-bottom:2px">Canales de Notificación Deseados:</p>
+        
+        <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;color:var(--t1)">
+          <input type="checkbox" id="chk-uNotifyWsp" checked style="width:18px;height:18px;accent-color:#25D366">
+          <span>💬 <strong>WhatsApp:</strong> Enviar recordatorios de tareas de Mi Día a mi WhatsApp</span>
+        </label>
+        
+        <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;color:var(--t1)">
+          <input type="checkbox" id="chk-uNotifyEmail" checked style="width:18px;height:18px;accent-color:var(--blue)">
+          <span>✉️ <strong>Correo Electrónico:</strong> Enviar resumen diario y alertas a mi Email</span>
+        </label>
+        
+        <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;color:var(--t1)">
+          <input type="checkbox" id="chk-uNotifySms" style="width:18px;height:18px;accent-color:#E11D48">
+          <span>📱 <strong>Mensaje de Texto (SMS):</strong> Enviar avisos urgentes por SMS</span>
+        </label>
+      </div>
+
+      <!-- Tiempo de anticipación -->
+      <div class="form-group">
+        <label class="form-label">Anticipación de Alerta de Tareas</label>
+        <select id="inp-uReminderLeadTime" class="form-input form-select">
+          <option value="15">⏱️ 15 Minutos antes de iniciar</option>
+          <option value="30">⏱️ 30 Minutos antes de iniciar</option>
+          <option value="60">⏱️ 1 Hora antes de iniciar</option>
+          <option value="0">⏱️ Justo a la hora exacta</option>
+        </select>
+      </div>
+
+      <!-- Botones de Prueba Rápida -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-ghost" onclick="testWhatsAppNotification()" style="flex:1;font-size:11px;padding:8px;border-color:#25D366;color:#15803D;background:#F0FDF4;display:flex;align-items:center;justify-content:center;gap:6px">
+          💬 Probar Mensaje WhatsApp
+        </button>
+        <button class="btn-ghost" onclick="testEmailNotification()" style="flex:1;font-size:11px;padding:8px;border-color:#BFDBFE;color:#1E40AF;background:#EFF6FF;display:flex;align-items:center;justify-content:center;gap:6px">
+          ✉️ Probar Correo
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn-ghost" onclick="closeModal('mUserProfile')">Cancelar</button>
+      <button class="btn-primary" onclick="saveUserProfile()">
+        <span class="msr" style="font-size:16px">save</span> Guardar Registro y Preferencias
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div id="toast-el" class="hidden"></div>
 
@@ -1421,7 +1510,7 @@ async function cloudDelete(table, id) {
 async function syncFromCloud() {
   if (!isCloudSyncActive || !supabaseClient) return;
   try {
-    const tables = ['projects', 'modules', 'tasks', 'risks', 'expenses', 'events', 'daily_tasks'];
+    const tables = ['projects', 'modules', 'tasks', 'risks', 'expenses', 'events', 'daily_tasks', 'user_profiles'];
     for (const t of tables) {
       const { data, error } = await supabaseClient.from(t).select('*');
       if (!error && data) {
@@ -1435,6 +1524,7 @@ async function syncFromCloud() {
     renderModulesList();
     renderTaskList();
     renderMyDayView();
+    updateUserProfileUI();
   } catch (e) {
     console.warn('Sync from cloud failed:', e);
   }
@@ -1559,6 +1649,18 @@ CREATE TABLE IF NOT EXISTS daily_tasks (
   notes TEXT,
   status TEXT DEFAULT 'TODO',
   created TIMESTAMPTZ DEFAULT NOW(),
+  updated TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  email TEXT,
+  phone TEXT,
+  notify_wsp BOOLEAN DEFAULT true,
+  notify_email BOOLEAN DEFAULT true,
+  notify_sms BOOLEAN DEFAULT false,
+  lead_time INTEGER DEFAULT 15,
   updated TIMESTAMPTZ DEFAULT NOW()
 );`;
   navigator.clipboard.writeText(sql).then(() => {
@@ -1767,6 +1869,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderDashboard();
   initSupabase();
   updateNotificationUI();
+  updateUserProfileUI();
   startNotificationScheduler();
 });
 
@@ -3821,6 +3924,112 @@ function checkScheduledTasksNotifications() {
       toast(`🔔 Recordatorio: "${t.title}" inicia ${timeMsg}`);
     }
   });
+}
+
+/* ══ USER REGISTRATION & MULTI-CHANNEL NOTIFICATIONS (EMAIL, WSP, SMS) ══ */
+
+function openUserProfileModal() {
+  const profile = getUserProfile();
+  setVal('inp-uName', profile.name || '');
+  setVal('inp-uEmail', profile.email || '');
+  setVal('inp-uPhone', profile.phone || '');
+
+  const chkWsp = document.getElementById('chk-uNotifyWsp');
+  const chkEmail = document.getElementById('chk-uNotifyEmail');
+  const chkSms = document.getElementById('chk-uNotifySms');
+  const selLead = document.getElementById('inp-uReminderLeadTime');
+
+  if (chkWsp) chkWsp.checked = profile.notifyWsp !== false;
+  if (chkEmail) chkEmail.checked = profile.notifyEmail !== false;
+  if (chkSms) chkSms.checked = profile.notifySms === true;
+  if (selLead) selLead.value = profile.leadTime || '15';
+
+  openModal('mUserProfile');
+}
+
+function getUserProfile() {
+  return JSON.parse(localStorage.getItem('ptus_user_profile') || '{}');
+}
+
+function saveUserProfile() {
+  const name = val('inp-uName'); if (!name) return toast('⚠️ Ingresa tu nombre completo');
+  const email = val('inp-uEmail'); if (!email) return toast('⚠️ Ingresa tu correo electrónico');
+  const phone = val('inp-uPhone'); if (!phone) return toast('⚠️ Ingresa tu número de WhatsApp / Teléfono');
+
+  const chkWsp = document.getElementById('chk-uNotifyWsp');
+  const chkEmail = document.getElementById('chk-uNotifyEmail');
+  const chkSms = document.getElementById('chk-uNotifySms');
+  const selLead = document.getElementById('inp-uReminderLeadTime');
+
+  const profile = {
+    id: 'user_main',
+    name,
+    email,
+    phone,
+    notifyWsp: chkWsp ? chkWsp.checked : true,
+    notifyEmail: chkEmail ? chkEmail.checked : true,
+    notifySms: chkSms ? chkSms.checked : false,
+    leadTime: selLead ? parseInt(selLead.value, 10) : 15,
+    updated: new Date().toISOString()
+  };
+
+  localStorage.setItem('ptus_user_profile', JSON.stringify(profile));
+  cloudUpsert('user_profiles', profile);
+
+  closeModal('mUserProfile');
+  updateUserProfileUI();
+  toast('✅ Registro y preferencias de notificación guardadas');
+}
+
+function updateUserProfileUI() {
+  const profile = getUserProfile();
+  const badge = document.getElementById('user-profile-badge');
+  const text = document.getElementById('user-profile-text');
+  const icon = document.getElementById('user-profile-icon');
+
+  if (!badge) return;
+
+  if (profile.name) {
+    badge.className = 'badge badge-green';
+    badge.style.background = '#F0FDF4';
+    badge.style.color = '#166534';
+    badge.style.borderColor = '#BBF7D0';
+    if (icon) { icon.textContent = 'account_circle'; icon.style.color = '#166534'; }
+    if (text) text.textContent = `👤 ${profile.name.split(' ')[0]}`;
+  } else {
+    badge.className = 'badge badge-slate';
+    badge.style.background = 'var(--surface)';
+    badge.style.color = 'var(--t3)';
+    badge.style.borderColor = 'var(--border)';
+    if (icon) { icon.textContent = 'account_circle'; icon.style.color = 'var(--blue)'; }
+    if (text) text.textContent = 'Registro / Alertas';
+  }
+}
+
+function testWhatsAppNotification() {
+  const phone = val('inp-uPhone') || getUserProfile().phone;
+  const name = val('inp-uName') || getUserProfile().name || 'Usuario';
+
+  if (!phone) return toast('⚠️ Ingresa tu número de teléfono con código de país (ej: +51 987654321)');
+
+  const cleanPhone = phone.replace(/[^0-9]/g, '');
+  const msg = encodeURIComponent(`*DO IT App — Registro de Alertas* 🚀\n\nHola *${name}*, tus notificaciones de WhatsApp han sido vinculadas correctamente.\n\nRecibirás recordatorios automáticos de tus tareas y agenda diaria aquí.`);
+
+  window.open(`https://wa.me/${cleanPhone}?text=${msg}`, '_blank');
+  toast('💬 Abriendo WhatsApp para enviar mensaje de prueba...');
+}
+
+function testEmailNotification() {
+  const email = val('inp-uEmail') || getUserProfile().email;
+  const name = val('inp-uName') || getUserProfile().name || 'Usuario';
+
+  if (!email) return toast('⚠️ Ingresa tu correo electrónico');
+
+  const subject = encodeURIComponent('🚀 Alertas de DO IT activadas para ' + name);
+  const body = encodeURIComponent(`Hola ${name},\n\nTus preferencias de notificación por Correo Electrónico han sido registradas en DO IT.\n\nRecibirás resúmenes diarios y avisos de vencimiento de tareas en este buzón.\n\nAtentamente,\nEquipo DO IT App`);
+
+  window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_blank');
+  toast('✉️ Abriendo cliente de correo para enviar mensaje de prueba...');
 }
 </script>
 </body>
