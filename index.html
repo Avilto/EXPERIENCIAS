@@ -1859,7 +1859,7 @@ let taskPhotoData=null;
 let receiptData=null;
 
 /* ══ SEED VERSION ── debe declararse ANTES del listener ══ */
-const SEED_VERSION = 'v4';
+const SEED_VERSION = 'v5';
 
 /* ══ INIT ══ */
 document.addEventListener('DOMContentLoaded',()=>{
@@ -2967,6 +2967,15 @@ function switchProjectTab(name){
 }
 
 /* ══ CRUD ACTIONS ══ */
+function openNewProjectModal(){
+  editingProjectId=null;
+  setText('mProjTitle','Nuevo Proyecto');
+  setText('btn-save-project',''); document.getElementById('btn-save-project').innerHTML='<span class="msr" style="font-size:16px">save</span> Crear Proyecto';
+  clearInputs('inp-pName','inp-pDesc','inp-pTime','inp-pCapital','inp-pStart','inp-pEnd');
+  setVal('inp-pImportance','MEDIUM');
+  openModal('mNewProject');
+}
+
 function saveProject(){
   const title=val('inp-pName'); if(!title) return toast('⚠️ Ingresa el nombre del proyecto');
   const time=val('inp-pTime'); if(!time) return toast('⚠️ Selecciona el tiempo de ejecución');
