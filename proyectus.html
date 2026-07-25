@@ -2522,12 +2522,7 @@ function setModuleStatusFilter(st) {
 }
 
 function renderTaskList(){
-  const mEl=document.getElementById('project-modules-section');
-  const tEl=document.getElementById('task-list');
-  if(!mEl || !tEl) return;
-
-  const projectModules = DB.modulesByProject(currentProjectId);
-  let tasks = DB.tasksByProject(currentProjectId);
+  let tasks=DB.tasksByProject(currentProjectId);
   
   let filteredTasks = [...tasks];
   if(taskFilter!=='ALL') filteredTasks=filteredTasks.filter(t=>t.status===taskFilter);
@@ -2536,6 +2531,11 @@ function renderTaskList(){
     return (order[a.importance]||2)-(order[b.importance]||2);
   });
 
+  const mEl=document.getElementById('project-modules-section');
+  const tEl=document.getElementById('task-list');
+  if(!mEl || !tEl) return;
+
+  const projectModules = DB.modulesByProject(currentProjectId);
   let displayModules = [...projectModules];
 
   if (moduleFilterQuery) {
@@ -2555,14 +2555,116 @@ function renderTaskList(){
     });
   }
 
-  // 1. Render Modules Section Header & Filters
+function renderModuleTreeHTML(parentId = null, depth = 0, filteredTasks = [], displayModules = []) {
+  const levelModules = displayModules.filter(mod => {
+    if (!parentId) return !mod.parent_id;
+    return String(mod.parent_id) === String(parentId);
+  });
+
+  if (!levelModules.length) return '';
+
+  let html = '';
+  levelModules.forEach(mod => {
+    const modTasks = filteredTasks.filter(t => String(t.mid) === String(mod.id));
+    const isOpen = openModuleIds.has(String(mod.id));
+    const subModulesHTML = renderModuleTreeHTML(mod.id, depth + 1, filteredTasks, displayModules);
+    const doneCount = modTasks.filter(t => t.status === 'DONE').length;
+
+    html += `
+      <div class="module-group" id="module-group-${mod.id}" style="background:${depth === 0 ? '#f8fafc' : '#ffffff'};border:1.5px solid var(--border);border-left:${depth > 0 ? '4px solid var(--blue)' : '1.5px solid var(--border)'};border-radius:12px;padding:${depth === 0 ? '16px' : '12px 14px'};margin-bottom:12px;margin-left:${depth * 14}px;transition:all .3s ease;box-shadow:0 1px 3px rgba(0,0,0,0.03)">
+        <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleModuleAccordion('${mod.id}')">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="msr" id="module-chev-${mod.id}" style="font-size:18px;color:var(--blue);transition:transform .2s;transform:${isOpen ? 'rotate(180deg)' : 'rotate(0deg)'}">expand_more</span>
+            <div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <h4 style="font-family:'Inter',sans-serif;font-size:${depth === 0 ? '14px' : '13px'};font-weight:700;color:var(--t1)">${depth > 0 ? '📁 ' : ''}${esc(mod.name)}</h4>
+                ${depth > 0 ? `<span class="badge badge-blue" style="font-size:9px">Sub-módulo L${depth+1}</span>` : ''}
+              </div>
+              ${mod.desc ? `<p style="font-size:11px;color:var(--t3);margin-top:2px">${esc(mod.desc)}</p>` : ''}
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="badge badge-slate" style="font-size:10px">${doneCount}/${modTasks.length} Tareas</span>
+            <div style="display:flex;gap:4px;flex-wrap:wrap" onclick="event.stopPropagation()">
+              <button class="btn-ghost" onclick="openNewTaskModal('${currentProjectId}', '${mod.id}')" style="font-size:11px;padding:3px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:3px;background:#f0f7ff;color:var(--blue);border:1px solid #bfdbfe;cursor:pointer" title="Agregar Tarea a este Módulo">
+                <span class="msr" style="font-size:13px">add_task</span> + Tarea
+              </button>
+              <button class="btn-ghost" onclick="openNewModuleModal('${currentProjectId}', '${mod.id}')" style="font-size:11px;padding:3px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:3px;background:#fef3c7;color:#92400e;border:1px solid #fde68a;cursor:pointer" title="Agregar Sub-módulo">
+                <span class="msr" style="font-size:13px">create_new_folder</span> + Sub-módulo
+              </button>
+              <button class="btn-icon" onclick="openEditModule('${mod.id}')" style="width:26px;height:26px" title="Editar Módulo">
+                <span class="msr" style="font-size:14px">edit</span>
+              </button>
+              <button class="btn-icon" onclick="deleteModule('${mod.id}')" style="width:26px;height:26px;color:var(--red)" title="Eliminar Módulo">
+                <span class="msr" style="font-size:14px">delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="module-body-${mod.id}" style="display:${isOpen ? 'flex' : 'none'};flex-direction:column;gap:12px;margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+          <!-- TAREAS DIRECTAS DEL MÓDULO -->
+          <div style="display:flex;flex-direction:column;gap:8px">
+            ${modTasks.length ? modTasks.map(t => taskCard(t)).join('') : '<p style="font-size:11px;color:var(--t3);font-style:italic">Sin tareas directas en este módulo.</p>'}
+          </div>
+
+          <!-- SUB-MÓDULOS ANIDADOS RECURSIVOS -->
+          ${subModulesHTML ? `
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--border)">
+              <div style="font-size:11px;font-weight:700;color:var(--t2);display:flex;align-items:center;gap:4px">
+                <span class="msr" style="font-size:14px;color:var(--blue)">folder</span> Sub-módulos:
+              </div>
+              ${subModulesHTML}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  });
+
+  return html;
+}
+
+function renderTaskList(){
+  // Auto-preserve any module currently expanded in DOM
+  document.querySelectorAll('[id^="module-body-"]').forEach(el => {
+    if (el.style.display !== 'none' && el.style.display !== '') {
+      const mid = el.id.replace('module-body-', '');
+      openModuleIds.add(String(mid));
+    }
+  });
+
+  let tasks=DB.tasksByProject(currentProjectId);
+  
+  let filteredTasks = [...tasks];
+  if(taskFilter!=='ALL') filteredTasks=filteredTasks.filter(t=>t.status===taskFilter);
+  filteredTasks.sort((a,b)=>{
+    const order={CRITICAL:0,HIGH:1,MEDIUM:2,LOW:3};
+    return (order[a.importance]||2)-(order[b.importance]||2);
+  });
+
+  const mEl=document.getElementById('project-modules-section');
+  const tEl=document.getElementById('task-list');
+  if(!mEl || !tEl) return;
+
+  const projectModules = DB.modulesByProject(currentProjectId);
+  let displayModules = [...projectModules];
+
+  if (moduleFilterQuery) {
+    displayModules = displayModules.filter(mod => {
+      const modMatches = mod.name.toLowerCase().includes(moduleFilterQuery.toLowerCase());
+      const hasMatchingTasks = filteredTasks.some(t => String(t.mid) === String(mod.id));
+      return modMatches || hasMatchingTasks;
+    });
+  }
+
   let mHtml = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
       <h3 style="font-family:'Inter',sans-serif;font-size:16px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:8px;margin:0">
         <span class="msr" style="font-size:20px;color:var(--blue)">view_module</span> Módulos del Proyecto (${projectModules.length})
       </h3>
       <button class="btn-primary" onclick="openNewModuleModal('${currentProjectId}')" style="padding:7px 16px;font-size:12px;border-radius:8px;display:flex;align-items:center;gap:6px;background:var(--blue);color:white;border:none;cursor:pointer;font-weight:700;box-shadow:0 2px 8px rgba(19,86,219,0.25)">
-        <span class="msr" style="font-size:16px">add</span> Crear Módulo
+        <span class="msr" style="font-size:16px">add</span> Crear Módulo Raíz
       </button>
     </div>
 
@@ -2608,37 +2710,7 @@ function renderTaskList(){
       mHtml += `<p style="font-size:12px;color:var(--t3);font-style:italic;margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid var(--border)">No se encontraron módulos que coincidan con los filtros aplicados.</p>`;
     }
   } else {
-    displayModules.forEach(mod => {
-      const modTasks = filteredTasks.filter(t => String(t.mid) === String(mod.id));
-      const isOpen = openModuleIds.has(String(mod.id));
-      mHtml += `
-        <div class="module-group" id="module-group-${mod.id}" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;transition:all .3s ease">
-          <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleModuleAccordion('${mod.id}')">
-            <div style="display:flex;align-items:center;gap:10px">
-              <span class="msr" id="module-chev-${mod.id}" style="font-size:18px;color:var(--blue);transition:transform .2s;transform:${isOpen?'rotate(180deg)':'rotate(0deg)'}">expand_more</span>
-              <div>
-                <h4 style="font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--t1)">${esc(mod.name)}</h4>
-                ${mod.desc ? `<p style="font-size:11px;color:var(--t3);margin-top:2px">${esc(mod.desc)}</p>` : ''}
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px">
-              <span class="badge badge-slate" style="font-size:10px">${modTasks.filter(t=>t.status==='DONE').length}/${modTasks.length} Tareas</span>
-              <div style="display:flex;gap:4px" onclick="event.stopPropagation()">
-                <button class="btn-icon" onclick="openEditModule('${mod.id}')" style="width:28px;height:28px" title="Editar Módulo">
-                  <span class="msr" style="font-size:14px">edit</span>
-                </button>
-                <button class="btn-icon" onclick="deleteModule('${mod.id}')" style="width:28px;height:28px;color:var(--red)" title="Eliminar Módulo">
-                  <span class="msr" style="font-size:14px">delete</span>
-                </button>
-              </div>
-            </div>
-          </div>
-          <div id="module-body-${mod.id}" style="display:${isOpen?'flex':'none'};flex-direction:column;gap:8px;margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
-            ${modTasks.length ? modTasks.map(t => taskCard(t)).join('') : '<p style="font-size:12px;color:var(--t3);font-style:italic">Sin tareas en este módulo.</p>'}
-          </div>
-        </div>
-      `;
-    });
+    mHtml += renderModuleTreeHTML(null, 0, filteredTasks, displayModules);
   }
   mEl.innerHTML = mHtml;
 
@@ -3021,10 +3093,21 @@ function populateTaskModulesDropdown(pid, selectedMid){
   const select = document.getElementById('inp-tModule');
   if(!select) return;
   const modules = DB.modulesByProject(pid);
-  let html = '<option value="">Sin Módulo</option>';
-  modules.forEach(m => {
-    html += `<option value="${m.id}" ${m.id===selectedMid?'selected':''}>${esc(m.name)}</option>`;
-  });
+  let html = '<option value="">Sin Módulo (Tarea Suelta)</option>';
+
+  function addModuleOptions(parentId = null, depth = 0) {
+    const children = modules.filter(m => {
+      if (!parentId) return !m.parent_id;
+      return String(m.parent_id) === String(parentId);
+    });
+    children.forEach(m => {
+      const indent = depth > 0 ? '&nbsp;&nbsp;'.repeat(depth) + '└─ ' : '';
+      html += `<option value="${m.id}" ${String(m.id)===String(selectedMid)?'selected':''}>${indent}${esc(m.name)}</option>`;
+      addModuleOptions(m.id, depth + 1);
+    });
+  }
+
+  addModuleOptions(null, 0);
   select.innerHTML = html;
 }
 
@@ -3287,10 +3370,15 @@ function renderModulesList(){
   el.innerHTML = html;
 }
 
-function openNewModuleModal(pid){
+let editingModuleParentId = null;
+
+function openNewModuleModal(pid, parentId = null){
   editingModuleId=null;
-  setText('mModuleTitle','Nuevo Módulo');
-  setText('btn-save-module',''); document.getElementById('btn-save-module').innerHTML='<span class="msr" style="font-size:16px">save</span> Crear Módulo';
+  editingModuleParentId=parentId;
+  const parentMod = parentId ? DB.modules().find(m => String(m.id) === String(parentId)) : null;
+
+  setText('mModuleTitle', parentMod ? `Nuevo Sub-módulo (en "${parentMod.name}")` : 'Nuevo Módulo');
+  setText('btn-save-module',''); document.getElementById('btn-save-module').innerHTML='<span class="msr" style="font-size:16px">save</span> ' + (parentMod ? 'Crear Sub-módulo' : 'Crear Módulo');
   setVal('inp-mName','');
   setVal('inp-mDesc','');
   setVal('inp-mImportance','MEDIUM');
@@ -3310,6 +3398,7 @@ function openEditModule(id){
   const modules = DB.modules();
   const m = modules.find(x => x.id === id); if(!m) return;
   editingModuleId=id;
+  editingModuleParentId=m.parent_id || null;
   setText('mModuleTitle','Editar Módulo');
   setText('btn-save-module',''); document.getElementById('btn-save-module').innerHTML='<span class="msr" style="font-size:16px">save</span> Guardar cambios';
   
@@ -3335,11 +3424,14 @@ function saveModule(){
   const importance = val('inp-mImportance') || 'MEDIUM';
   
   if(editingModuleId) {
-    DB.updateModule(editingModuleId, { pid, name, desc, importance });
+    DB.updateModule(editingModuleId, { pid, parent_id: editingModuleParentId || null, name, desc, importance });
     toast('✅ Módulo actualizado');
   } else {
-    DB.createModule({ pid, name, desc, importance });
-    toast('✅ Módulo creado');
+    DB.createModule({ pid, parent_id: editingModuleParentId || null, name, desc, importance });
+    if (editingModuleParentId) {
+      openModuleIds.add(String(editingModuleParentId));
+    }
+    toast('✅ ' + (editingModuleParentId ? 'Sub-módulo creado' : 'Módulo creado'));
   }
   
   closeModal('mNewModule');
@@ -3349,9 +3441,9 @@ function saveModule(){
 }
 
 function deleteModule(id){
-  if(!confirm('¿Estás seguro de eliminar este módulo? Las tareas asociadas no se eliminarán, se moverán a la sección "Sin Módulo".')) return;
+  if(!confirm('¿Estás seguro de eliminar este módulo? (Se eliminarán los sub-módulos anidados y sus tareas asociadas se moverán a "Sin Módulo").')) return;
   DB.deleteModule(id);
-  toast('🗑️ Módulo eliminado');
+  toast('🗑️ Módulo y sub-módulos eliminados');
   renderModulesList();
   renderTaskList();
   renderDashboard();
