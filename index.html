@@ -2609,8 +2609,8 @@ function renderTaskList(){
     }
   } else {
     displayModules.forEach(mod => {
-      const modTasks = filteredTasks.filter(t => t.mid === mod.id);
-      const isOpen = openModuleIds.has(mod.id);
+      const modTasks = filteredTasks.filter(t => String(t.mid) === String(mod.id));
+      const isOpen = openModuleIds.has(String(mod.id));
       mHtml += `
         <div class="module-group" id="module-group-${mod.id}" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;transition:all .3s ease">
           <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleModuleAccordion('${mod.id}')">
@@ -2652,8 +2652,13 @@ function toggleModuleAccordion(mid){
   const body = document.getElementById(`module-body-${mid}`);
   const chev = document.getElementById(`module-chev-${mid}`);
   if(body) {
-    const isCollapsed = body.style.display === 'none';
+    const isCollapsed = body.style.display === 'none' || body.style.display === '';
     body.style.display = isCollapsed ? 'flex' : 'none';
+    if(isCollapsed) {
+      openModuleIds.add(String(mid));
+    } else {
+      openModuleIds.delete(String(mid));
+    }
     if(chev) {
       chev.style.transform = isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
     }
