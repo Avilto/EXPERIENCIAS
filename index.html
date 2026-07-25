@@ -2521,40 +2521,6 @@ function setModuleStatusFilter(st) {
   renderTaskList();
 }
 
-function renderTaskList(){
-  let tasks=DB.tasksByProject(currentProjectId);
-  
-  let filteredTasks = [...tasks];
-  if(taskFilter!=='ALL') filteredTasks=filteredTasks.filter(t=>t.status===taskFilter);
-  filteredTasks.sort((a,b)=>{
-    const order={CRITICAL:0,HIGH:1,MEDIUM:2,LOW:3};
-    return (order[a.importance]||2)-(order[b.importance]||2);
-  });
-
-  const mEl=document.getElementById('project-modules-section');
-  const tEl=document.getElementById('task-list');
-  if(!mEl || !tEl) return;
-
-  const projectModules = DB.modulesByProject(currentProjectId);
-  let displayModules = [...projectModules];
-
-  if (moduleFilterQuery) {
-    const q = moduleFilterQuery.toLowerCase();
-    displayModules = displayModules.filter(m => m.name.toLowerCase().includes(q) || (m.desc && m.desc.toLowerCase().includes(q)));
-  }
-
-  if (moduleFilterImportance !== 'ALL') {
-    displayModules = displayModules.filter(m => (m.importance || 'MEDIUM') === moduleFilterImportance);
-  }
-
-  if (moduleFilterStatus !== 'ALL') {
-    displayModules = displayModules.filter(m => {
-      const mTasks = tasks.filter(t => t.mid === m.id);
-      const isDone = mTasks.length > 0 && mTasks.every(t => t.status === 'DONE');
-      return moduleFilterStatus === 'DONE' ? isDone : !isDone;
-    });
-  }
-
 function renderModuleTreeHTML(parentId = null, depth = 0, filteredTasks = [], displayModules = []) {
   const levelModules = displayModules.filter(mod => {
     if (!parentId) return !mod.parent_id;
