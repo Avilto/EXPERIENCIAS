@@ -2506,6 +2506,7 @@ function renderProjectDetail(){
 let moduleFilterQuery = '';
 let moduleFilterImportance = 'ALL';
 let moduleFilterStatus = 'ALL';
+const openModuleIds = new Set();
 
 function setModuleSearchFilter(q) {
   moduleFilterQuery = q;
@@ -2521,7 +2522,12 @@ function setModuleStatusFilter(st) {
 }
 
 function renderTaskList(){
-  let tasks=DB.tasksByProject(currentProjectId);
+  const mEl=document.getElementById('project-modules-section');
+  const tEl=document.getElementById('task-list');
+  if(!mEl || !tEl) return;
+
+  const projectModules = DB.modulesByProject(currentProjectId);
+  let tasks = DB.tasksByProject(currentProjectId);
   
   let filteredTasks = [...tasks];
   if(taskFilter!=='ALL') filteredTasks=filteredTasks.filter(t=>t.status===taskFilter);
@@ -2530,11 +2536,6 @@ function renderTaskList(){
     return (order[a.importance]||2)-(order[b.importance]||2);
   });
 
-  const mEl=document.getElementById('project-modules-section');
-  const tEl=document.getElementById('task-list');
-  if(!mEl || !tEl) return;
-
-  const projectModules = DB.modulesByProject(currentProjectId);
   let displayModules = [...projectModules];
 
   if (moduleFilterQuery) {
@@ -2609,11 +2610,12 @@ function renderTaskList(){
   } else {
     displayModules.forEach(mod => {
       const modTasks = filteredTasks.filter(t => t.mid === mod.id);
+      const isOpen = openModuleIds.has(mod.id);
       mHtml += `
         <div class="module-group" id="module-group-${mod.id}" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;transition:all .3s ease">
           <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleModuleAccordion('${mod.id}')">
             <div style="display:flex;align-items:center;gap:10px">
-              <span class="msr" id="module-chev-${mod.id}" style="font-size:18px;color:var(--blue);transition:transform .2s">expand_more</span>
+              <span class="msr" id="module-chev-${mod.id}" style="font-size:18px;color:var(--blue);transition:transform .2s;transform:${isOpen?'rotate(180deg)':'rotate(0deg)'}">expand_more</span>
               <div>
                 <h4 style="font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--t1)">${esc(mod.name)}</h4>
                 ${mod.desc ? `<p style="font-size:11px;color:var(--t3);margin-top:2px">${esc(mod.desc)}</p>` : ''}
@@ -2631,7 +2633,7 @@ function renderTaskList(){
               </div>
             </div>
           </div>
-          <div id="module-body-${mod.id}" style="display:none;flex-direction:column;gap:8px;margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
+          <div id="module-body-${mod.id}" style="display:${isOpen?'flex':'none'};flex-direction:column;gap:8px;margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
             ${modTasks.length ? modTasks.map(t => taskCard(t)).join('') : '<p style="font-size:12px;color:var(--t3);font-style:italic">Sin tareas en este módulo.</p>'}
           </div>
         </div>
