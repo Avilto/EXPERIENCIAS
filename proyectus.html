@@ -1950,10 +1950,15 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 function seedDemo(){
   const currentProjs = DB.projects();
-  if(localStorage.getItem('ptus_seed_ver') === SEED_VERSION && currentProjs && currentProjs.length > 0) return;
-  // Limpiar todo el localStorage de la app
+  // NUNCA borrar datos existentes del usuario si ya existen proyectos
+  if (currentProjs && currentProjs.length > 0) {
+    localStorage.setItem('ptus_seed_ver', SEED_VERSION);
+    return;
+  }
+
+  // Solo resembrar si la base de datos está completamente vacía (nuevo usuario)
   ['projects','tasks','risks','expenses','events','modules'].forEach(k=>localStorage.removeItem('ptus_'+k));
-  localStorage.removeItem('ptus_seed_ver');
+  localStorage.setItem('ptus_seed_ver', SEED_VERSION);
 
   /* ═══ PROYECTO 1: Campaña Digital Verano 2025 ═══ */
   const p1 = DB.saveProject({
