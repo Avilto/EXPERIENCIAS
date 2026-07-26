@@ -1896,7 +1896,17 @@ const DB = {
   _s(k,v){ try{ localStorage.setItem('ptus_'+k,JSON.stringify(v)); }catch(e){ toast('⚠️ Almacenamiento lleno. Elimina archivos adjuntos.'); } },
 
   /* ─ PROJECTS ─ */
-  projects(){ return this._g('projects'); },
+  projects(){ 
+    const projs = this._g('projects'); 
+    if (projs && projs.length > 0) return projs;
+    const defaults = [
+      { id: "mrvpc79894bo", title: "Ciudadia", desc: "Proyectos y estrategia principal de Ciudadia", time: "6 meses", importance: "CRITICAL", capital: 50000, status: "ACTIVE", created: "2026-07-23T04:00:00.000Z", updated: "2026-07-25T23:00:00.000Z" },
+      { id: "mrx157xgm6yi", title: "Do It", desc: "Plataforma de gestión y seguimiento de tareas", time: "3 meses", importance: "HIGH", capital: 20000, status: "ACTIVE", created: "2026-07-23T12:00:00.000Z", updated: "2026-07-25T23:00:00.000Z" },
+      { id: "ms0zs0p8rk0v", title: "Crm Ciudadia", desc: "CRM de contactos y leads inmobiliarios de Ciudadia", time: "4 meses", importance: "HIGH", capital: 15000, status: "ACTIVE", created: "2026-07-25T00:00:00.000Z", updated: "2026-07-25T23:00:00.000Z" }
+    ];
+    this._s('projects', defaults);
+    return defaults;
+  },
   project(id){ return this.projects().find(p=>p.id===id)||null; },
   saveProject(data){
     const all=this.projects();
@@ -2349,15 +2359,15 @@ function renderDashboard(){
   let projs = DB.projects();
   
   if(globalStatus !== 'ALL') {
-    projs = projs.filter(p => p.status === globalStatus);
+    projs = projs.filter(p => (p.status || 'ACTIVE').toUpperCase() === globalStatus.toUpperCase());
   }
   if(globalImportance !== 'ALL') {
-    projs = projs.filter(p => p.importance === globalImportance);
+    projs = projs.filter(p => (p.importance || 'MEDIUM').toUpperCase() === globalImportance.toUpperCase());
   }
   
   projs.sort((a, b) => {
     const o = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
-    return (o[a.importance] || 2) - (o[b.importance] || 2);
+    return (o[a.importance || 'MEDIUM'] || 2) - (o[b.importance || 'MEDIUM'] || 2);
   });
   
   const pList = document.getElementById('dash-proj-list');
@@ -2372,10 +2382,6 @@ function renderDashboard(){
       if(pEmpty) pEmpty.style.display = 'block'; 
     }
   }
-  // ── Section 2: Módulos ──
-  renderDashModules(globalStatus, globalImportance);
-  // ── Section 3: Finanzas ──
-  renderDashFinance(globalStatus, globalImportance);
 }
 
 function dashProjCard(p){
