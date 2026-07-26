@@ -1412,10 +1412,10 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
 
 <!-- ── Modal: Iniciar Sesión / Registro ── -->
 <div id="mAuthModal" class="modal-overlay hidden">
-  <div class="modal-box" style="max-width:480px;padding:0;overflow:hidden;border-radius:20px">
+  <div class="modal-box" style="max-width:520px;padding:0;max-height:85vh;overflow-y:auto;border-radius:20px">
     
-    <!-- Tab Selector Header -->
-    <div style="display:flex;background:#F8FAFC;border-bottom:1px solid var(--border)">
+    <!-- Tab Selector Header (Sticky at top) -->
+    <div style="display:flex;background:#F8FAFC;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10">
       <button id="auth-tab-login" onclick="switchAuthTab('login')" style="flex:1;padding:16px;font-size:14px;font-weight:700;border:none;background:white;color:var(--blue);border-bottom:3px solid var(--blue);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
         <span class="msr" style="font-size:18px">login</span> Iniciar Sesión
       </button>
