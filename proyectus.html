@@ -2599,50 +2599,6 @@ function navigateToModule(pid, mid){
   }, 250);
 }
 
-function renderDashFinance(globalStatus = 'ALL', globalImportance = 'ALL'){
-  let projs=DB.projects();
-  
-  // Apply global filters
-  if(globalStatus !== 'ALL') {
-    projs = projs.filter(p => p.status === globalStatus);
-  }
-  if(globalImportance !== 'ALL') {
-    projs = projs.filter(p => p.importance === globalImportance);
-  }
-
-  const totalCapital=projs.reduce((s,p)=>s+parseFloat(p.capital||0),0);
-  setText('dash-fin-total','Capital total: S/ '+totalCapital.toLocaleString('es-PE',{minimumFractionDigits:2}));
-  const fList=document.getElementById('dash-fin-list');
-  const fEmpty=document.getElementById('dash-fin-empty');
-  if(!fList) return;
-  const show=projs.filter(p=>parseFloat(p.capital||0)>0).slice(0,3);
-  if(show.length){
-    fList.innerHTML=show.map(p=>dashFinCard(p)).join('');
-    fList.style.display='grid'; if(fEmpty) fEmpty.style.display='none';
-  } else {
-    fList.style.display='none'; if(fEmpty) fEmpty.style.display='block';
-  }
-}
-
-      <div style="margin-bottom:10px">
-        <h3 style="font-weight:700;font-size:14px;color:var(--t1);margin-bottom:4px;line-height:1.3">${esc(p.title)}</h3>
-        <span class="badge" style="background:${accentColor}18;color:${accentColor};font-size:10px">${impLabels[p.importance||'MEDIUM']}</span>
-      </div>
-      <div style="margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-          <span style="font-size:10px;color:var(--t3);font-weight:600">Progreso</span>
-          <span style="font-size:10px;font-weight:700;color:var(--blue)">${pct}%</span>
-        </div>
-        <div class="progress-wrap"><div class="progress-fill" style="width:${pct}%"></div></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:11px;color:var(--t3);font-weight:500">${done}/${tasks.length} tareas</span>
-        <span style="font-size:11px;color:var(--t3);font-weight:500">${p.time||'—'}</span>
-      </div>
-    </div>
-  </div>`;
-}
-
 function dashTaskCard(t){
   const impColors={CRITICAL:'#DC2626',HIGH:'#EA580C',MEDIUM:'#D4A848',LOW:'#16A34A'};
   const impLabels={CRITICAL:'🔴 Crítica',HIGH:'🟠 Alta',MEDIUM:'🟡 Media',LOW:'🟢 Baja'};
