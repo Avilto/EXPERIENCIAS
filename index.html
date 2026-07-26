@@ -347,12 +347,6 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
       <span id="sync-text">Sincronización Nube</span>
     </button>
     
-    <!-- Botón Notificaciones & Alertas -->
-    <button id="notif-settings-btn" onclick="openModal('mNotificationSettings')" class="badge badge-slate" style="cursor:pointer;padding:7px 14px;display:flex;align-items:center;gap:6px;font-size:12px;border:1.5px solid var(--border);background:var(--surface);border-radius:10px;font-weight:600;color:var(--t1);transition:all .2s" title="Configurar preferencias de alertas y notificaciones">
-      <span class="msr" style="font-size:18px;color:var(--amber)">notifications_active</span>
-      <span>Notificaciones & Alertas</span>
-    </button>
-
     <!-- Botón Iniciar Sesión / Registro -->
     <button id="auth-btn" onclick="openAuthModal()" class="badge badge-slate" style="cursor:pointer;padding:7px 14px;display:flex;align-items:center;gap:6px;font-size:12px;border:1.5px solid var(--blue);background:#EFF6FF;border-radius:10px;font-weight:700;color:var(--blue);transition:all .2s" title="Iniciar sesión o registrar cuenta de usuario">
       <span class="msr" id="auth-btn-icon" style="font-size:18px">account_circle</span>
@@ -1487,112 +1481,47 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
         <input id="reg-pass" class="form-input" type="password" required placeholder="Crea tu contraseña"/>
       </div>
 
-      <button type="submit" class="btn-primary" style="width:100%;padding:12px;font-size:14px;font-weight:700;margin-top:8px;border-radius:10px;background:#10B981">
+      <!-- Configuración de Alertas integrada en el Registro -->
+      <div style="background:#F8FAFC;border:1.5px solid var(--border);border-radius:14px;padding:16px;margin-top:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px">
+          <div>
+            <h4 style="font-size:12px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:6px">
+              <span class="msr" style="color:var(--amber);font-size:18px">notifications_active</span> Configuración de Alertas & Permisos
+            </h4>
+            <p style="font-size:11px;color:var(--t3)">Elige cómo deseas recibir tus alertas de tareas y proyectos:</p>
+          </div>
+          <button type="button" id="btn-request-notif-perm" class="btn-primary" onclick="requestBrowserNotificationPermission()" style="padding:6px 12px;font-size:11px;border-radius:8px;background:#D97706;border:none;white-space:nowrap;font-weight:700">
+            Autorizar Permiso
+          </button>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <label style="display:flex;align-items:center;gap:10px;font-size:11px;cursor:pointer;color:var(--t1)">
+            <input type="checkbox" id="chk-alert-push" checked style="width:16px;height:16px;accent-color:var(--blue)">
+            <span>💻 <strong>Notificaciones Push</strong> en pantalla/navegador</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:11px;cursor:pointer;color:var(--t1)">
+            <input type="checkbox" id="chk-alert-wsp" checked style="width:16px;height:16px;accent-color:#25D366">
+            <span>💬 <strong>Recordatorios por WhatsApp</strong></span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:11px;cursor:pointer;color:var(--t1)">
+            <input type="checkbox" id="chk-alert-email" checked style="width:16px;height:16px;accent-color:#3B82F6">
+            <span>✉️ <strong>Resumen por Correo Electrónico</strong></span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:11px;cursor:pointer;color:var(--t1)">
+            <input type="checkbox" id="chk-alert-sound" checked style="width:16px;height:16px;accent-color:#8B5CF6">
+            <span>🔊 <strong>Alerta Sonora</strong> al vencer la tarea</span>
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" style="width:100%;padding:12px;font-size:14px;font-weight:700;margin-top:12px;border-radius:10px;background:#10B981">
         <span class="msr" style="font-size:18px">check_circle</span> Registrarme y Crear Cuenta
       </button>
     </form>
 
     <div style="background:#F8FAFC;padding:12px 24px;border-top:1px solid var(--border);text-align:right">
       <button class="btn-ghost" onclick="closeModal('mAuthModal')" style="font-size:12px">Cerrar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── Modal: Configuración de Notificaciones & Alertas ── -->
-<div id="mNotificationSettings" class="modal-overlay hidden">
-  <div class="modal-box" style="max-width:540px;border-radius:20px">
-    <div class="modal-header">
-      <h2 class="modal-title" style="display:flex;align-items:center;gap:10px">
-        <span class="msr" style="color:var(--amber);font-size:26px">notifications_active</span> Preferencias de Alertas y Notificaciones
-      </h2>
-      <button class="btn-icon" onclick="closeModal('mNotificationSettings')"><span class="msr" style="font-size:20px">close</span></button>
-    </div>
-
-    <div style="display:flex;flex-direction:column;gap:16px;margin-top:10px">
-
-      <!-- Sección 1: Autorización Principal -->
-      <div style="background:#FEF3C7;border:1.5px solid #FDE68A;border-radius:14px;padding:16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-          <div>
-            <h4 style="font-size:13px;font-weight:800;color:#92400E;margin-bottom:3px">🔔 Autorización de Notificaciones</h4>
-            <p style="font-size:11px;color:#B45309;line-height:1.4">Autoriza el envío de alertas en pantalla y recordatorios cuando una tarea vence.</p>
-          </div>
-          <button id="btn-request-notif-perm" class="btn-primary" onclick="requestBrowserNotificationPermission()" style="padding:7px 14px;font-size:11px;border-radius:8px;background:#D97706;border:none;white-space:nowrap;font-weight:700">
-            Autorizar en Navegador
-          </button>
-        </div>
-        <div id="notif-perm-status" style="margin-top:10px;font-size:11px;font-weight:700;color:#78350F;display:flex;align-items:center;gap:6px">
-          <span class="msr" style="font-size:16px">info</span> Estado del permiso: <span id="notif-perm-text">Pendiente</span>
-        </div>
-      </div>
-
-      <!-- Sección 2: Canales de Notificación (Elección múltiple) -->
-      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px">
-        <h4 style="font-size:13px;font-weight:800;color:var(--t1);margin-bottom:12px;display:flex;align-items:center;gap:8px">
-          <span class="msr" style="color:var(--blue);font-size:18px">checklist_rtl</span> Elige cómo deseas recibir tus alertas (Múltiples opciones):
-        </h4>
-
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <label style="display:flex;align-items:center;gap:12px;font-size:12px;cursor:pointer;color:var(--t1);padding:10px 12px;background:#F8FAFC;border-radius:10px;border:1px solid var(--border)">
-            <input type="checkbox" id="chk-alert-push" checked style="width:18px;height:18px;accent-color:var(--blue)">
-            <div>
-              <strong>💻 Notificaciones Push de Escritorio / Celular:</strong>
-              <div style="font-size:11px;color:var(--t3)">Avisos emergentes en pantalla cuando vence una tarea agendada.</div>
-            </div>
-          </label>
-
-          <label style="display:flex;align-items:center;gap:12px;font-size:12px;cursor:pointer;color:var(--t1);padding:10px 12px;background:#F8FAFC;border-radius:10px;border:1px solid var(--border)">
-            <input type="checkbox" id="chk-alert-wsp" checked style="width:18px;height:18px;accent-color:#25D366">
-            <div>
-              <strong>💬 Recordatorios por WhatsApp:</strong>
-              <div style="font-size:11px;color:var(--t3)">Mensaje directo al chat de tu celular con tus tareas del día.</div>
-            </div>
-          </label>
-
-          <label style="display:flex;align-items:center;gap:12px;font-size:12px;cursor:pointer;color:var(--t1);padding:10px 12px;background:#F8FAFC;border-radius:10px;border:1px solid var(--border)">
-            <input type="checkbox" id="chk-alert-email" checked style="width:18px;height:18px;accent-color:#3B82F6">
-            <div>
-              <strong>✉️ Resumen por Correo Electrónico:</strong>
-              <div style="font-size:11px;color:var(--t3)">Envío diario de resumen de proyectos y tareas pendientes.</div>
-            </div>
-          </label>
-
-          <label style="display:flex;align-items:center;gap:12px;font-size:12px;cursor:pointer;color:var(--t1);padding:10px 12px;background:#F8FAFC;border-radius:10px;border:1px solid var(--border)">
-            <input type="checkbox" id="chk-alert-sound" checked style="width:18px;height:18px;accent-color:#8B5CF6">
-            <div>
-              <strong>🔊 Alerta Sonora de Vencimiento:</strong>
-              <div style="font-size:11px;color:var(--t3)">Emite un tono audible al finalizar el tiempo de una tarea.</div>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <!-- Sección 3: Eventos a Notificar -->
-      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:14px">
-        <h4 style="font-size:12px;font-weight:800;color:var(--t1);margin-bottom:8px">Tipos de Eventos a Notificar:</h4>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
-            <input type="checkbox" id="chk-ev-today" checked style="accent-color:var(--blue)"> Tareas de "Mi Día"
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
-            <input type="checkbox" id="chk-ev-high-risk" checked style="accent-color:var(--red)"> Riesgos críticos
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
-            <input type="checkbox" id="chk-ev-proj-updates" checked style="accent-color:var(--green)"> Módulos actualizados
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
-            <input type="checkbox" id="chk-ev-invites" checked style="accent-color:var(--amber)"> Invitación de miembros
-          </label>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="modal-actions" style="margin-top:20px">
-      <button class="btn-ghost" onclick="closeModal('mNotificationSettings')">Cancelar</button>
-      <button class="btn-primary" onclick="saveNotificationSettings()" style="background:var(--blue)">
-        <span class="msr" style="font-size:16px">save</span> Guardar Preferencias
-      </button>
     </div>
   </div>
 </div>
@@ -4605,6 +4534,9 @@ function handleUserRegister(e) {
   const pass = val('reg-pass');
 
   if (!name || !email || !pass) return toast('⚠️ Completa todos los campos obligatorios');
+
+  // Guardar automáticamente las preferencias de notificaciones seleccionadas en el registro
+  saveNotificationSettings();
 
   const user = {
     id: 'usr_' + Date.now().toString(36),
