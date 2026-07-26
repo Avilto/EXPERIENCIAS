@@ -2309,15 +2309,7 @@ function navigate(page, saveHistory = true){
     document.getElementById('v-project-detail').classList.add('active');
     const nb = document.getElementById('nb-projects') || document.getElementById('nb-dashboard');
     if(nb) nb.classList.add('active');
-    const p=DB.project(currentProjectId);
-    if(p) {
-      document.getElementById('topbar-breadcrumb').innerHTML=`
-        <button onclick="goBack()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--blue);cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;padding:4px 8px;border-radius:6px;margin-right:8px;border:1.5px solid var(--border)">
-          <span class="msr" style="font-size:16px">arrow_back</span> Atrás
-        </button>
-        <span style="color:var(--t1);font-weight:700">${esc(p.title)}</span>
-      `;
-    }
+    document.getElementById('topbar-breadcrumb').innerHTML = '';
     document.getElementById('topbar-action').innerHTML='<span class="msr" style="font-size:16px">add_task</span> Nueva Tarea';
     document.getElementById('topbar-action').onclick=()=>openNewTaskModal();
     renderProjectDetail();
