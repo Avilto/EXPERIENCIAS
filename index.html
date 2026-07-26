@@ -2286,25 +2286,29 @@ function navigate(page, saveHistory = true){
 
   if(page==='dashboard'){
     document.getElementById('v-dashboard').classList.add('active');
-    document.getElementById('nb-dashboard').classList.add('active');
+    const nb = document.getElementById('nb-dashboard');
+    if(nb) nb.classList.add('active');
     document.getElementById('topbar-breadcrumb').innerHTML='';
     document.getElementById('topbar-action').innerHTML='';
     renderDashboard();
   } else if(page==='my-day'){
     document.getElementById('v-my-day').classList.add('active');
-    if(document.getElementById('nb-my-day')) document.getElementById('nb-my-day').classList.add('active');
+    const nb = document.getElementById('nb-my-day');
+    if(nb) nb.classList.add('active');
     document.getElementById('topbar-breadcrumb').innerHTML='';
     document.getElementById('topbar-action').innerHTML='';
     renderMyDayView();
   } else if(page==='projects'){
     document.getElementById('v-projects').classList.add('active');
-    document.getElementById('nb-projects').classList.add('active');
+    const nb = document.getElementById('nb-projects') || document.getElementById('nb-dashboard');
+    if(nb) nb.classList.add('active');
     document.getElementById('topbar-breadcrumb').innerHTML='';
     document.getElementById('topbar-action').innerHTML='';
     renderProjectsList();
   } else if(page==='project-detail'){
     document.getElementById('v-project-detail').classList.add('active');
-    document.getElementById('nb-projects').classList.add('active');
+    const nb = document.getElementById('nb-projects') || document.getElementById('nb-dashboard');
+    if(nb) nb.classList.add('active');
     const p=DB.project(currentProjectId);
     if(p) {
       document.getElementById('topbar-breadcrumb').innerHTML=`
@@ -2320,7 +2324,8 @@ function navigate(page, saveHistory = true){
     switchProjectTab('tasks');
   } else if(page==='modules'){
     document.getElementById('v-modules').classList.add('active');
-    document.getElementById('nb-modules').classList.add('active');
+    const nb = document.getElementById('nb-modules') || document.getElementById('nb-dashboard');
+    if(nb) nb.classList.add('active');
     document.getElementById('topbar-breadcrumb').innerHTML=`
       <button onclick="goBack()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--blue);cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;padding:4px 8px;border-radius:6px;margin-right:8px;border:1.5px solid var(--border)">
         <span class="msr" style="font-size:16px">arrow_back</span> Atrás
