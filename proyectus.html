@@ -1890,12 +1890,12 @@ const DB = {
     this._s('projects', defaults);
     return defaults;
   },
-  project(id){ return this.projects().find(p=>p.id===id)||null; },
+  project(id){ if(!id) return null; return this.projects().find(p=>String(p.id)===String(id))||null; },
   saveProject(data){
     const all=this.projects();
     let savedObj = null;
     if(data.id){
-      const i=all.findIndex(p=>p.id===data.id);
+      const i=all.findIndex(p=>String(p.id)===String(data.id));
       if(i>=0){ all[i]={...all[i],...data,updated:this._ts()}; savedObj = all[i]; }
     } else {
       savedObj = {...data,id:this._id(),status:'ACTIVE',created:this._ts(),updated:this._ts()};
@@ -1906,12 +1906,12 @@ const DB = {
     return savedObj || all[0];
   },
   deleteProject(id){
-    this._s('projects',this.projects().filter(p=>p.id!==id));
-    this._s('tasks',this.tasks().filter(t=>t.pid!==id));
-    this._s('risks',this.risks().filter(r=>r.pid!==id));
-    this._s('expenses',this.expenses().filter(e=>e.pid!==id));
-    this._s('events',this.events().filter(e=>e.pid!==id));
-    this._s('modules',this.modules().filter(m=>m.pid!==id));
+    this._s('projects',this.projects().filter(p=>String(p.id)!==String(id)));
+    this._s('tasks',this.tasks().filter(t=>String(t.pid)!==String(id)));
+    this._s('risks',this.risks().filter(r=>String(r.pid)!==String(id)));
+    this._s('expenses',this.expenses().filter(e=>String(e.pid)!==String(id)));
+    this._s('events',this.events().filter(e=>String(e.pid)!==String(id)));
+    this._s('modules',this.modules().filter(m=>String(m.pid)!==String(id)));
     cloudDelete('projects', id);
   },
   projectProgress(id){
@@ -1922,8 +1922,18 @@ const DB = {
   setProjectMembers(pid, members){ this._s('members_' + pid, members); },
 
   /* ─ MODULES ─ */
-  modules(){ return this._g('modules'); },
-  modulesByProject(pid){ return this.modules().filter(m=>m.pid===pid); },
+  modules(){ 
+    const mods = this._g('modules'); 
+    if(mods && mods.length > 0) return mods;
+    const defaults = [
+      { id: 'mrxrpl91ruz1', pid: 'mrvpc79894bo', name: 'posicionamiento en la web', desc: 'lograr que la pagina web aparezca en los primeros lugares de google', importance: 'HIGH', created: '2026-07-23T17:11:00.565Z', updated: '2026-07-23T17:11:00.565Z' },
+      { id: 'mrxv9fgdx45a', pid: 'mrvpc79894bo', name: 'Red de brokers', desc: 'creacion de una red de brokers para poder tener un mayor acceso o alcance a mas inmuebles', importance: 'MEDIUM', created: '2026-07-23T18:50:25.021Z', updated: '2026-07-23T18:50:25.021Z' },
+      { id: 'mrx04jkdqppu', pid: 'mrvpc79894bo', name: 'Creacion de contenido para pagina de Instagram', desc: '', importance: 'CRITICAL', created: '2026-07-23T04:18:48.974Z', updated: '2026-07-23T18:52:21.077Z' }
+    ];
+    this._s('modules', defaults);
+    return defaults;
+  },
+  modulesByProject(pid){ return this.modules().filter(m=>String(m.pid)===String(pid)); },
   createModule(d){
     const m={...d,id:this._id(),created:this._ts(),updated:this._ts()};
     const all=this.modules(); all.push(m); this._s('modules',all);
