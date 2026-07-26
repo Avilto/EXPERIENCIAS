@@ -1585,11 +1585,36 @@ async function syncFromCloud() {
   try {
     const tables = ['projects', 'modules', 'tasks', 'risks', 'expenses', 'events', 'daily_tasks', 'user_profiles'];
     for (const t of tables) {
-      const { data, error } = await supabaseClient.from(t).select('*');
-      if (!error && data) {
-        if (data.length > 0) {
-          localStorage.setItem('ptus_' + t, JSON.stringify(data));
-        }
+      const { data: cloudData, error } = await supabaseClient.from(t).select('*');
+      if (!error && cloudData) {
+        const localData = DB._g(t) || [];
+        const mergedMap = new Map();
+
+        // 1. Agregar elementos de la nube
+        cloudData.forEach(item => {
+          if (item && item.id) mergedMap.set(String(item.id), item);
+        });
+
+        // 2. Fusionar elementos locales (preserva lo creado localmente y lo sube a la nube)
+        localData.forEach(item => {
+          if (item && item.id) {
+            const existing = mergedMap.get(String(item.id));
+            if (!existing) {
+              mergedMap.set(String(item.id), item);
+              cloudUpsert(t, item);
+            } else {
+              const localTs = new Date(item.updated || item.created || 0).getTime();
+              const cloudTs = new Date(existing.updated || existing.created || 0).getTime();
+              if (localTs > cloudTs) {
+                mergedMap.set(String(item.id), item);
+                cloudUpsert(t, item);
+              }
+            }
+          }
+        });
+
+        const finalMerged = Array.from(mergedMap.values());
+        DB._s(t, finalMerged);
       }
     }
     renderDashboard();
