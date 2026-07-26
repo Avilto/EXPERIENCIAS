@@ -599,6 +599,18 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
           <div style="position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.07)"></div>
           <div style="position:absolute;bottom:-40px;left:60%;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.05)"></div>
           <div style="position:relative;z-index:1">
+            <!-- Project Members Bar (Moved to Top Above Project Name) -->
+            <div style="margin-bottom:18px;background:rgba(255,255,255,0.12);border-radius:12px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span class="msr" style="font-size:16px;color:#fff">group</span>
+                <span style="font-size:12px;font-weight:700;color:#fff">Equipo & Invitados:</span>
+                <div id="det-project-members-list" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"></div>
+              </div>
+              <button onclick="openInviteMemberModal()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:4px" title="Invitar colaborador o cliente">
+                <span class="msr" style="font-size:14px">person_add</span> + Administrar Permisos
+              </button>
+            </div>
+
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
               <div>
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
@@ -638,18 +650,6 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
                 <p style="font-size:10px;color:rgba(255,255,255,0.92);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Capital</p>
                 <p id="det-capital" style="font-family:'Inter',sans-serif;font-size:18px;font-weight:700">S/ 0</p>
               </div>
-            </div>
-
-            <!-- Project Members Bar -->
-            <div style="margin-top:14px;background:rgba(255,255,255,0.12);border-radius:12px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-              <div style="display:flex;align-items:center;gap:8px">
-                <span class="msr" style="font-size:16px;color:#fff">group</span>
-                <span style="font-size:12px;font-weight:700;color:#fff">Equipo & Invitados:</span>
-                <div id="det-project-members-list" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"></div>
-              </div>
-              <button onclick="openInviteMemberModal()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:4px" title="Invitar colaborador o cliente">
-                <span class="msr" style="font-size:14px">person_add</span> + Administrar Permisos
-              </button>
             </div>
           </div>
         </div>
