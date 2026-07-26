@@ -1938,23 +1938,19 @@ const SEED_VERSION = 'v5';
 
 /* ══ INIT ══ */
 document.addEventListener('DOMContentLoaded',()=>{
-  seedDemo();
   setDate();
   navigate('dashboard');
-  renderDashboard();
   initSupabase();
+  renderDashboard();
   updateNotificationUI();
   updateUserProfileUI();
   startNotificationScheduler();
 });
 
 function seedDemo(){
+  // Solo se ejecuta manualmente si el usuario lo solicita explícitamente
   const currentProjs = DB.projects();
-  // NUNCA borrar datos existentes del usuario si ya existen proyectos
-  if (currentProjs && currentProjs.length > 0) {
-    localStorage.setItem('ptus_seed_ver', SEED_VERSION);
-    return;
-  }
+  if (currentProjs && currentProjs.length > 0) return;
 
   // Solo resembrar si la base de datos está completamente vacía (nuevo usuario)
   ['projects','tasks','risks','expenses','events','modules'].forEach(k=>localStorage.removeItem('ptus_'+k));
