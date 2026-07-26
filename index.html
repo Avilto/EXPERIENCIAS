@@ -1539,7 +1539,7 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
     </form>
 
     <!-- Formulario de Registro -->
-    <form id="auth-form-register" onsubmit="handleUserRegister(event)" class="hidden" style="padding:24px;display:flex;flex-direction:column;gap:14px">
+    <form id="auth-form-register" onsubmit="handleUserRegister(event)" class="hidden" style="padding:24px;display:none;flex-direction:column;gap:14px">
       <div style="text-align:center;margin-bottom:4px">
         <h3 style="font-size:18px;font-weight:800;color:var(--t1);margin-bottom:4px">Crear Cuenta Nueva</h3>
         <p style="font-size:12px;color:var(--t3)">Regístrate gratis para organizar tus proyectos, tareas y alertas</p>
@@ -4587,8 +4587,8 @@ function switchAuthTab(tab) {
     btnReg.style.background = 'transparent';
     btnReg.style.color = 'var(--t3)';
     btnReg.style.borderBottom = '3px solid transparent';
-    formLogin.classList.remove('hidden');
-    formReg.classList.add('hidden');
+    formLogin.style.display = 'flex';
+    formReg.style.display = 'none';
   } else {
     btnReg.style.background = 'white';
     btnReg.style.color = 'var(--blue)';
@@ -4596,8 +4596,8 @@ function switchAuthTab(tab) {
     btnLogin.style.background = 'transparent';
     btnLogin.style.color = 'var(--t3)';
     btnLogin.style.borderBottom = '3px solid transparent';
-    formReg.classList.remove('hidden');
-    formLogin.classList.add('hidden');
+    formReg.style.display = 'flex';
+    formLogin.style.display = 'none';
   }
 }
 
