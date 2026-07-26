@@ -713,6 +713,18 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
                 <p id="det-capital" style="font-family:'Inter',sans-serif;font-size:18px;font-weight:700">S/ 0</p>
               </div>
             </div>
+
+            <!-- Project Members Bar -->
+            <div style="margin-top:14px;background:rgba(255,255,255,0.12);border-radius:12px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span class="msr" style="font-size:16px;color:#fff">group</span>
+                <span style="font-size:12px;font-weight:700;color:#fff">Equipo & Invitados:</span>
+                <div id="det-project-members-list" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"></div>
+              </div>
+              <button onclick="openInviteMemberModal()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:4px" title="Invitar colaborador o cliente">
+                <span class="msr" style="font-size:14px">person_add</span> + Administrar Permisos
+              </button>
+            </div>
           </div>
         </div>
 
@@ -869,6 +881,67 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
 <!-- ══════════════════════════════════════════
      MODALS
 ══════════════════════════════════════════ -->
+
+<!-- ── Modal: Invitar Colaborador & Permisos Granulares ── -->
+<div id="mInviteMember" class="modal-overlay hidden">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-header">
+      <h2 class="modal-title" id="mInviteTitle">🔑 Invitar Colaborador & Asignar Permisos</h2>
+      <button class="btn-icon" onclick="closeModal('mInviteMember')"><span class="msr" style="font-size:20px">close</span></button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="form-group">
+        <label class="form-label">Correo Electrónico del Invitado *</label>
+        <input id="inp-invEmail" class="form-input" type="email" placeholder="ejemplo: colaborador@empresa.com"/>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Rol del Invitado en este Proyecto *</label>
+        <select id="inp-invRole" class="form-input form-select" onchange="updateRolePresetToggles()">
+          <option value="owner">👑 Propietario / Administrador (Control Total)</option>
+          <option value="editor" selected>💼 Editor / Equipo (Crear y avanzar tareas)</option>
+          <option value="assignee">📋 Solo Tareas Asignadas (Enfoque limitado)</option>
+          <option value="viewer">👁️ Visualizador / Cliente (Solo Lectura)</option>
+        </select>
+      </div>
+
+      <!-- Granular Permission Switches -->
+      <div style="background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px">
+        <p style="font-size:12px;font-weight:700;color:var(--t1)">Interruptores de Permiso Personalizables:</p>
+        
+        <label style="display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--t2);cursor:pointer">
+          <span>📁 Ver Módulos y Tareas</span>
+          <input type="checkbox" id="chk-perm-tasks" checked style="accent-color:var(--blue);width:16px;height:16px">
+        </label>
+        <label style="display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--t2);cursor:pointer">
+          <span>✅ Marcar / Cambiar estado de Tareas</span>
+          <input type="checkbox" id="chk-perm-edit-tasks" checked style="accent-color:var(--blue);width:16px;height:16px">
+        </label>
+        <label style="display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--t2);cursor:pointer">
+          <span>💰 Ver Sección de Finanzas & Capital</span>
+          <input type="checkbox" id="chk-perm-finance" style="accent-color:var(--blue);width:16px;height:16px">
+        </label>
+        <label style="display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--t2);cursor:pointer">
+          <span>⚙️ Crear y Eliminar Módulos</span>
+          <input type="checkbox" id="chk-perm-manage-modules" style="accent-color:var(--blue);width:16px;height:16px">
+        </label>
+      </div>
+
+      <!-- Members Currently in Project -->
+      <div style="margin-top:8px">
+        <p style="font-size:12px;font-weight:700;color:var(--t1);margin-bottom:8px">Miembros Actuales del Proyecto:</p>
+        <div id="modal-project-members-list" style="display:flex;flex-direction:column;gap:8px;max-height:160px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn-ghost" onclick="closeModal('mInviteMember')">Cancelar</button>
+      <button class="btn-primary" onclick="sendProjectInvitation()">
+        <span class="msr" style="font-size:16px">send</span> Enviar Invitación & Guardar
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ── New / Edit Project ── -->
 <div id="mNewProject" class="modal-overlay hidden">
@@ -1707,6 +1780,8 @@ const DB = {
     const t=this.tasksByProject(id);
     return t.length?Math.round(t.filter(x=>x.status==='DONE').length/t.length*100):0;
   },
+  projectMembers(pid){ return this._g('members_' + pid) || []; },
+  setProjectMembers(pid, members){ this._s('members_' + pid, members); },
 
   /* ─ MODULES ─ */
   modules(){ return this._g('modules'); },
@@ -2500,6 +2575,151 @@ function renderProjectDetail(){
   renderTimeline();
   renderRiskList();
   renderFinance();
+  renderProjectMembersBar();
+}
+
+/* ══ PROJECT MEMBERS & PERMISSIONS ══ */
+function openInviteMemberModal() {
+  if (!currentProjectId) return toast('⚠️ Selecciona un proyecto');
+  setVal('inp-invEmail', '');
+  setVal('inp-invRole', 'editor');
+  updateRolePresetToggles();
+  renderModalProjectMembers();
+  openModal('mInviteMember');
+}
+
+function updateRolePresetToggles() {
+  const role = val('inp-invRole');
+  const chkTasks = document.getElementById('chk-perm-tasks');
+  const chkEditTasks = document.getElementById('chk-perm-edit-tasks');
+  const chkFinance = document.getElementById('chk-perm-finance');
+  const chkModules = document.getElementById('chk-perm-manage-modules');
+
+  if (!chkTasks || !chkEditTasks || !chkFinance || !chkModules) return;
+
+  if (role === 'owner') {
+    chkTasks.checked = true;
+    chkEditTasks.checked = true;
+    chkFinance.checked = true;
+    chkModules.checked = true;
+  } else if (role === 'editor') {
+    chkTasks.checked = true;
+    chkEditTasks.checked = true;
+    chkFinance.checked = false;
+    chkModules.checked = true;
+  } else if (role === 'assignee') {
+    chkTasks.checked = true;
+    chkEditTasks.checked = true;
+    chkFinance.checked = false;
+    chkModules.checked = false;
+  } else if (role === 'viewer') {
+    chkTasks.checked = true;
+    chkEditTasks.checked = false;
+    chkFinance.checked = false;
+    chkModules.checked = false;
+  }
+}
+
+function sendProjectInvitation() {
+  const email = val('inp-invEmail');
+  if (!email || !email.includes('@')) return toast('⚠️ Ingresa un correo electrónico válido');
+
+  const role = val('inp-invRole');
+  const canSeeFinance = document.getElementById('chk-perm-finance').checked;
+  const canEditTasks = document.getElementById('chk-perm-edit-tasks').checked;
+  const canManageModules = document.getElementById('chk-perm-manage-modules').checked;
+
+  const members = DB.projectMembers(currentProjectId);
+  const existingIndex = members.findIndex(m => m.email.toLowerCase() === email.toLowerCase());
+
+  const newMember = {
+    id: Date.now().toString(),
+    pid: currentProjectId,
+    email,
+    role,
+    permissions: {
+      finance: canSeeFinance,
+      editTasks: canEditTasks,
+      manageModules: canManageModules
+    },
+    created_at: new Date().toISOString()
+  };
+
+  if (existingIndex >= 0) {
+    members[existingIndex] = newMember;
+    toast(`✅ Permisos actualizados para ${email}`);
+  } else {
+    members.push(newMember);
+    toast(`🎉 Invitación enviada a ${email} con rol ${role.toUpperCase()}`);
+  }
+
+  DB.setProjectMembers(currentProjectId, members);
+  renderModalProjectMembers();
+  renderProjectMembersBar();
+  closeModal('mInviteMember');
+}
+
+function removeProjectMember(memberId) {
+  if (!confirm('¿Quitar los accesos de este miembro al proyecto?')) return;
+  let members = DB.projectMembers(currentProjectId);
+  members = members.filter(m => m.id !== memberId);
+  DB.setProjectMembers(currentProjectId, members);
+  toast('🗑️ Miembro removido del proyecto');
+  renderModalProjectMembers();
+  renderProjectMembersBar();
+}
+
+function renderModalProjectMembers() {
+  const container = document.getElementById('modal-project-members-list');
+  if (!container) return;
+
+  const members = DB.projectMembers(currentProjectId);
+  const roleLabels = { owner: '👑 Propietario', editor: '💼 Editor', assignee: '📋 Asignado', viewer: '👁️ Visualizador' };
+
+  if (members.length === 0) {
+    container.innerHTML = '<p style="font-size:11px;color:var(--t3);font-style:italic">Aún no hay invitados externos en este proyecto.</p>';
+    return;
+  }
+
+  let html = '';
+  members.forEach(m => {
+    html += `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 12px">
+        <div>
+          <span style="font-size:12px;font-weight:700;color:var(--t1)">${esc(m.email)}</span>
+          <span class="badge badge-blue" style="font-size:10px;margin-left:6px">${roleLabels[m.role] || m.role}</span>
+          <p style="font-size:10px;color:var(--t3);margin-top:2px">Finanzas: ${m.permissions?.finance ? '✅ Permiso' : '🔒 Oculto'} | Tareas: ${m.permissions?.editTasks ? '✅ Editar' : '👁️ Ver'}</p>
+        </div>
+        <button class="btn-icon" onclick="removeProjectMember('${m.id}')" style="color:var(--red);width:26px;height:26px" title="Quitar acceso">
+          <span class="msr" style="font-size:14px">person_remove</span>
+        </button>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function renderProjectMembersBar() {
+  const container = document.getElementById('det-project-members-list');
+  if (!container) return;
+
+  const members = DB.projectMembers(currentProjectId);
+  const roleBadges = { owner: '👑', editor: '💼', assignee: '📋', viewer: '👁️' };
+
+  let html = `
+    <span class="badge" style="background:rgba(255,255,255,0.25);color:#fff;font-size:11px;font-weight:700">👑 Tú (Owner)</span>
+  `;
+
+  members.forEach(m => {
+    const initial = m.email.substring(0, 2).toUpperCase();
+    html += `
+      <span class="badge" style="background:rgba(255,255,255,0.2);color:#fff;font-size:11px;border:1px solid rgba(255,255,255,0.3)" title="${m.email} (${m.role})">
+        ${roleBadges[m.role] || '👤'} ${initial}
+      </span>
+    `;
+  });
+
+  container.innerHTML = html;
 }
 
 /* ── Tasks & Module Filters ── */
