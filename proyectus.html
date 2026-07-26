@@ -1874,10 +1874,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 function seedDemo(){
-  // Limpiar y resembrar si la versión no coincide
-  if(localStorage.getItem('ptus_seed_ver') === SEED_VERSION) return;
+  const currentProjs = DB.projects();
+  if(localStorage.getItem('ptus_seed_ver') === SEED_VERSION && currentProjs && currentProjs.length > 0) return;
   // Limpiar todo el localStorage de la app
-  ['projects','tasks','risks','expenses','events'].forEach(k=>localStorage.removeItem('ptus_'+k));
+  ['projects','tasks','risks','expenses','events','modules'].forEach(k=>localStorage.removeItem('ptus_'+k));
   localStorage.removeItem('ptus_seed_ver');
 
   /* ═══ PROYECTO 1: Campaña Digital Verano 2025 ═══ */
