@@ -1,8 +1,7 @@
 {
-  "version": 2,
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/", "dest": "/index.html" },
-    { "src": "/proyectus", "dest": "/proyectus.html" }
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/proyectus", "destination": "/proyectus.html" }
   ]
 }
