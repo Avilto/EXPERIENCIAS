@@ -1529,6 +1529,51 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
 <!-- Toast -->
 <div id="toast-el" class="hidden"></div>
 
+<!-- ── Modal: Perfil de Usuario Sesión Activa ── -->
+<div id="mUserProfileModal" class="modal-overlay hidden">
+  <div class="modal-box" style="max-width:440px;border-radius:20px">
+    <div class="modal-header">
+      <h2 class="modal-title" style="display:flex;align-items:center;gap:8px">
+        <span class="msr" style="color:#16A34A;font-size:24px">account_circle</span> Mi Perfil de Usuario
+      </h2>
+      <button class="btn-icon" onclick="closeModal('mUserProfileModal')"><span class="msr" style="font-size:20px">close</span></button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <!-- Tarjeta de Usuario Activo -->
+      <div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:16px;padding:18px;display:flex;align-items:center;gap:14px">
+        <div style="width:50px;height:50px;border-radius:50%;background:#16A34A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;flex-shrink:0">
+          <span class="msr" style="font-size:28px">person</span>
+        </div>
+        <div>
+          <h3 id="uprof-name" style="font-size:16px;font-weight:800;color:#14532D;margin-bottom:2px">Usuario</h3>
+          <span class="badge" style="background:#DCFCE7;color:#15803D;font-size:10px;font-weight:800;border:1px solid #86EFAC">👑 Propietario (Acceso Total)</span>
+        </div>
+      </div>
+
+      <!-- Detalle de Datos -->
+      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;font-size:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:1px solid var(--border)">
+          <span style="color:var(--t3);font-weight:600">Correo Electrónico:</span>
+          <span id="uprof-email" style="font-weight:700;color:var(--t1)">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:1px solid var(--border)">
+          <span style="color:var(--t3);font-weight:600">WhatsApp / Teléfono:</span>
+          <span id="uprof-phone" style="font-weight:700;color:var(--t1)">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="color:var(--t3);font-weight:600">Permisos del Sistema:</span>
+          <span style="font-weight:700;color:#16A34A">Administrador / Owner</span>
+        </div>
+      </div>
+
+      <button onclick="logoutUser()" class="btn-danger" style="width:100%;padding:11px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:10px">
+        <span class="msr" style="font-size:18px">logout</span> Cerrar Sesión
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════════════ -->
@@ -4552,32 +4597,50 @@ function handleUserRegister(e) {
   toast(`🎉 ¡Cuenta creada con éxito! Bienvenido, ${name}`);
 }
 
+function openUserProfileModal() {
+  const user = getAuthUser();
+  if (!user) return openAuthModal();
+
+  setText('uprof-name', user.name || 'Usuario');
+  setText('uprof-email', user.email || '—');
+  setText('uprof-phone', user.phone || 'Sin número registrado');
+  openModal('mUserProfileModal');
+}
+
 function logoutUser() {
   localStorage.removeItem('doit_auth_user');
+  closeModal('mUserProfileModal');
   updateAuthUI();
   toast('🔒 Sesión cerrada correctamente');
 }
 
 function updateAuthUI() {
   const user = getAuthUser();
-  const btnText = document.getElementById('auth-btn-text');
-  const btnIcon = document.getElementById('auth-btn-icon');
   const btn = document.getElementById('auth-btn');
-
   if (!btn) return;
 
   if (user && user.email) {
-    if (btnText) btnText.textContent = `👤 ${user.name.split(' ')[0]}`;
-    if (btnIcon) btnIcon.textContent = 'person';
+    const firstName = user.name ? user.name.split(' ')[0] : 'Usuario';
+    btn.innerHTML = `
+      <span class="msr" style="font-size:18px;color:#16A34A">account_circle</span>
+      <span style="font-weight:800">${esc(firstName)}</span>
+      <span class="badge" style="background:#DCFCE7;color:#15803D;font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;margin-left:2px">👑 Propietario</span>
+    `;
     btn.style.background = '#F0FDF4';
-    btn.style.color = '#166534';
-    btn.style.borderColor = '#BBF7D0';
+    btn.style.color = '#14532D';
+    btn.style.borderColor = '#86EFAC';
+    btn.onclick = () => openUserProfileModal();
+    btn.title = `Perfil de ${user.name} (Propietario / Admin)`;
   } else {
-    if (btnText) btnText.textContent = 'Iniciar Sesión / Registro';
-    if (btnIcon) btnIcon.textContent = 'account_circle';
+    btn.innerHTML = `
+      <span class="msr" style="font-size:18px">account_circle</span>
+      <span>Iniciar Sesión / Registro</span>
+    `;
     btn.style.background = '#EFF6FF';
     btn.style.color = 'var(--blue)';
     btn.style.borderColor = 'var(--blue)';
+    btn.onclick = () => openAuthModal();
+    btn.title = 'Iniciar sesión o registrar cuenta de usuario';
   }
 }
 
