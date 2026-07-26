@@ -1656,8 +1656,8 @@ function updateSyncStatusUI() {
 }
 
 function initSupabase() {
-  SUPABASE_URL = localStorage.getItem('doit_sp_url') || '';
-  SUPABASE_ANON_KEY = localStorage.getItem('doit_sp_key') || '';
+  SUPABASE_URL = localStorage.getItem('doit_sp_url') || 'https://zywddctbxmhlajkdwrwq.supabase.co';
+  SUPABASE_ANON_KEY = localStorage.getItem('doit_sp_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5d2RkY3RieG1obGFqa2R3cndxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjYyNjEsImV4cCI6MjEwMDMwMjI2MX0.Hyp8KFJtD5VOR2phxdiFja5w73BG_3EgXozIEg4e4b0';
 
   const inputUrl = document.getElementById('inp-sp-url');
   const inputKey = document.getElementById('inp-sp-key');
