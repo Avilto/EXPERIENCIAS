@@ -341,24 +341,25 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
     <div style="flex:1"></div>
     <div id="topbar-breadcrumb" style="font-size:13px;color:var(--t3);font-weight:500"></div>
     <div style="flex:1"></div>
-    <button id="cloud-sync-badge" onclick="openModal('mSupabaseSync')" class="badge badge-slate" style="cursor:pointer;padding:6px 12px;display:flex;align-items:center;gap:6px;font-size:11px;border:1.5px solid var(--border);background:var(--surface);transition:all .2s">
-      <span class="msr" id="sync-icon" style="font-size:16px;color:var(--t3)">cloud_off</span>
+    <!-- Hidden cloud sync button per user directive -->
+    <button id="cloud-sync-badge" onclick="openModal('mSupabaseSync')" class="badge badge-slate hidden" style="display:none">
+      <span class="msr" id="sync-icon">cloud_off</span>
       <span id="sync-text">Sincronización Nube</span>
     </button>
-    <button id="user-profile-badge" onclick="openUserProfileModal()" class="badge badge-slate" style="cursor:pointer;padding:6px 12px;display:flex;align-items:center;gap:6px;font-size:11px;border:1.5px solid var(--border);background:var(--surface);transition:all .2s" title="Registro de usuario y alertas por WhatsApp, Email y SMS">
-      <span class="msr" id="user-profile-icon" style="font-size:16px;color:var(--blue)">account_circle</span>
-      <span id="user-profile-text">Registro / Alertas (Wsp/Email)</span>
+    
+    <!-- Botón Notificaciones & Alertas -->
+    <button id="notif-settings-btn" onclick="openModal('mNotificationSettings')" class="badge badge-slate" style="cursor:pointer;padding:7px 14px;display:flex;align-items:center;gap:6px;font-size:12px;border:1.5px solid var(--border);background:var(--surface);border-radius:10px;font-weight:600;color:var(--t1);transition:all .2s" title="Configurar preferencias de alertas y notificaciones">
+      <span class="msr" style="font-size:18px;color:var(--amber)">notifications_active</span>
+      <span>Notificaciones & Alertas</span>
     </button>
-    <button id="notif-badge" onclick="toggleBrowserNotifications()" class="badge badge-slate" style="cursor:pointer;padding:6px 12px;display:flex;align-items:center;gap:6px;font-size:11px;border:1.5px solid var(--border);background:var(--surface);transition:all .2s" title="Activar notificaciones de celular y navegador">
-      <span class="msr" id="notif-icon" style="font-size:16px;color:var(--t3)">notifications</span>
-      <span id="notif-text">Notificaciones</span>
+
+    <!-- Botón Iniciar Sesión / Registro -->
+    <button id="auth-btn" onclick="openAuthModal()" class="badge badge-slate" style="cursor:pointer;padding:7px 14px;display:flex;align-items:center;gap:6px;font-size:12px;border:1.5px solid var(--blue);background:#EFF6FF;border-radius:10px;font-weight:700;color:var(--blue);transition:all .2s" title="Iniciar sesión o registrar cuenta de usuario">
+      <span class="msr" id="auth-btn-icon" style="font-size:18px">account_circle</span>
+      <span id="auth-btn-text">Iniciar Sesión / Registro</span>
     </button>
-    <button class="badge badge-slate" onclick="openGlobalSearchModal()" style="cursor:pointer;padding:6px 12px;display:flex;align-items:center;gap:6px;font-size:11px;border:1.5px solid var(--border);background:var(--surface);transition:all .2s" title="Buscador global (Ctrl + K)">
-      <span class="msr" style="font-size:16px;color:var(--blue)">search</span>
-      <span>Buscar...</span>
-      <kbd style="font-size:10px;padding:1px 5px;border-radius:4px;background:var(--border);color:var(--t2);font-weight:700">Ctrl K</kbd>
-    </button>
-    <button class="btn-primary" id="topbar-action" onclick="openModal('mNewProject')">
+
+    <button class="btn-primary" id="topbar-action" onclick="openModal('mNewProject')" style="padding:7px 16px;font-size:12px;border-radius:10px">
       <span class="msr" style="font-size:16px">add</span> <span style="display:inline-block">Nuevo Proyecto</span>
     </button>
   </div>
@@ -1494,6 +1495,187 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
   </div>
 </div>
 
+<!-- ── Modal: Iniciar Sesión / Registro ── -->
+<div id="mAuthModal" class="modal-overlay hidden">
+  <div class="modal-box" style="max-width:480px;padding:0;overflow:hidden;border-radius:20px">
+    
+    <!-- Tab Selector Header -->
+    <div style="display:flex;background:#F8FAFC;border-bottom:1px solid var(--border)">
+      <button id="auth-tab-login" onclick="switchAuthTab('login')" style="flex:1;padding:16px;font-size:14px;font-weight:700;border:none;background:white;color:var(--blue);border-bottom:3px solid var(--blue);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <span class="msr" style="font-size:18px">login</span> Iniciar Sesión
+      </button>
+      <button id="auth-tab-register" onclick="switchAuthTab('register')" style="flex:1;padding:16px;font-size:14px;font-weight:700;border:none;background:transparent;color:var(--t3);border-bottom:3px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <span class="msr" style="font-size:18px">person_add</span> Crear Cuenta / Registro
+      </button>
+    </div>
+
+    <!-- Formulario de Iniciar Sesión -->
+    <form id="auth-form-login" onsubmit="handleUserLogin(event)" style="padding:24px;display:flex;flex-direction:column;gap:16px">
+      <div style="text-align:center;margin-bottom:4px">
+        <h3 style="font-size:18px;font-weight:800;color:var(--t1);margin-bottom:4px">Bienvenido a DO IT</h3>
+        <p style="font-size:12px;color:var(--t3)">Ingresa con tu correo registrado para administrar tus proyectos</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Correo Electrónico *</label>
+        <input id="login-email" class="form-input" type="email" required placeholder="tu@correo.com"/>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Contraseña *</label>
+        <input id="login-pass" class="form-input" type="password" required placeholder="••••••••"/>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--t3)">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" checked style="accent-color:var(--blue)"/> Recordar mi sesión
+        </label>
+        <a href="#" onclick="alert('Contacta al administrador para restablecer tu clave.');return false;" style="color:var(--blue);font-weight:600;text-decoration:none">¿Olvidaste clave?</a>
+      </div>
+
+      <button type="submit" class="btn-primary" style="width:100%;padding:12px;font-size:14px;font-weight:700;margin-top:8px;border-radius:10px">
+        <span class="msr" style="font-size:18px">login</span> Iniciar Sesión
+      </button>
+    </form>
+
+    <!-- Formulario de Registro -->
+    <form id="auth-form-register" onsubmit="handleUserRegister(event)" class="hidden" style="padding:24px;display:flex;flex-direction:column;gap:14px">
+      <div style="text-align:center;margin-bottom:4px">
+        <h3 style="font-size:18px;font-weight:800;color:var(--t1);margin-bottom:4px">Crear Cuenta Nueva</h3>
+        <p style="font-size:12px;color:var(--t3)">Regístrate gratis para organizar tus proyectos, tareas y alertas</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nombre Completo *</label>
+        <input id="reg-name" class="form-input" type="text" required placeholder="Ej: Juan Pérez"/>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Correo Electrónico *</label>
+          <input id="reg-email" class="form-input" type="email" required placeholder="ejemplo@correo.com"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">WhatsApp / Teléfono *</label>
+          <input id="reg-phone" class="form-input" type="tel" required placeholder="+51 987654321"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Contraseña *</label>
+        <input id="reg-pass" class="form-input" type="password" required placeholder="Crea tu contraseña"/>
+      </div>
+
+      <button type="submit" class="btn-primary" style="width:100%;padding:12px;font-size:14px;font-weight:700;margin-top:8px;border-radius:10px;background:#10B981">
+        <span class="msr" style="font-size:18px">check_circle</span> Registrarme y Crear Cuenta
+      </button>
+    </form>
+
+    <div style="background:#F8FAFC;padding:12px 24px;border-top:1px solid var(--border);text-align:right">
+      <button class="btn-ghost" onclick="closeModal('mAuthModal')" style="font-size:12px">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Configuración de Notificaciones & Alertas ── -->
+<div id="mNotificationSettings" class="modal-overlay hidden">
+  <div class="modal-box" style="max-width:540px;border-radius:20px">
+    <div class="modal-header">
+      <h2 class="modal-title" style="display:flex;align-items:center;gap:10px">
+        <span class="msr" style="color:var(--amber);font-size:26px">notifications_active</span> Preferencias de Alertas y Notificaciones
+      </h2>
+      <button class="btn-icon" onclick="closeModal('mNotificationSettings')"><span class="msr" style="font-size:20px">close</span></button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px;margin-top:10px">
+
+      <!-- Sección 1: Autorización Principal -->
+      <div style="background:#FEF3C7;border:1.5px solid #FDE68A;border-radius:14px;padding:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div>
+            <h4 style="font-size:13px;font-weight:800;color:#92400E;margin-bottom:3px">🔔 Autorización de Notificaciones</h4>
+            <p style="font-size:11px;color:#B45309;line-height:1.4">Autoriza el envío de alertas en pantalla y recordatorios cuando una tarea vence.</p>
+          </div>
+          <button id="btn-request-notif-perm" class="btn-primary" onclick="requestBrowserNotificationPermission()" style="padding:7px 14px;font-size:11px;border-radius:8px;background:#D97706;border:none;white-space:nowrap;font-weight:700">
+            Autorizar en Navegador
+          </button>
+        </div>
+        <div id="notif-perm-status" style="margin-top:10px;font-size:11px;font-weight:700;color:#78350F;display:flex;align-items:center;gap:6px">
+          <span class="msr" style="font-size:16px">info</span> Estado del permiso: <span id="notif-perm-text">Pendiente</span>
+        </div>
+      </div>
+
+      <!-- Sección 2: Canales de Notificación (Elección múltiple) -->
+      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px">
+        <h4 style="font-size:13px;font-weight:800;color:var(--t1);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+          <span class="msr" style="color:var(--blue);font-size:18px">checklist_rtl</span> Elige cómo deseas recibir tus alertas (Múltiples opciones):
+        </h4>
+
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <label style="display:flex;align-items:center;gap:12px;font-size:12px;cursor:pointer;color:var(--t1);padding:10px 12px;background:#F8FAFC;border-radius:10px;border:1px solid var(--border)">
+            <input type="checkbox" id="chk-alert-push" checked style="width:18px;height:18px;accent-color:var(--blue)">
+            <div>
+              <strong>💻 Notificaciones Push de Escritorio / Celular:</strong>
+              <div style="font-size:11px;color:var(--t3)">Avisos emergentes en pantalla cuando vence una tarea agendada.</div>
+            </div>
+          </label>
+
+          <label style="display:flex;align-items:center;gap:12px;font-size:12px;cursor:pointer;color:var(--t1);padding:10px 12px;background:#F8FAFC;border-radius:10px;border:1px solid var(--border)">
+            <input type="checkbox" id="chk-alert-wsp" checked style="width:18px;height:18px;accent-color:#25D366">
+            <div>
+              <strong>💬 Recordatorios por WhatsApp:</strong>
+              <div style="font-size:11px;color:var(--t3)">Mensaje directo al chat de tu celular con tus tareas del día.</div>
+            </div>
+          </label>
+
+          <label style="display:flex;align-items:center;gap:12px;font-size:12px;cursor:pointer;color:var(--t1);padding:10px 12px;background:#F8FAFC;border-radius:10px;border:1px solid var(--border)">
+            <input type="checkbox" id="chk-alert-email" checked style="width:18px;height:18px;accent-color:#3B82F6">
+            <div>
+              <strong>✉️ Resumen por Correo Electrónico:</strong>
+              <div style="font-size:11px;color:var(--t3)">Envío diario de resumen de proyectos y tareas pendientes.</div>
+            </div>
+          </label>
+
+          <label style="display:flex;align-items:center;gap:12px;font-size:12px;cursor:pointer;color:var(--t1);padding:10px 12px;background:#F8FAFC;border-radius:10px;border:1px solid var(--border)">
+            <input type="checkbox" id="chk-alert-sound" checked style="width:18px;height:18px;accent-color:#8B5CF6">
+            <div>
+              <strong>🔊 Alerta Sonora de Vencimiento:</strong>
+              <div style="font-size:11px;color:var(--t3)">Emite un tono audible al finalizar el tiempo de una tarea.</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Sección 3: Eventos a Notificar -->
+      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:14px">
+        <h4 style="font-size:12px;font-weight:800;color:var(--t1);margin-bottom:8px">Tipos de Eventos a Notificar:</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" id="chk-ev-today" checked style="accent-color:var(--blue)"> Tareas de "Mi Día"
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" id="chk-ev-high-risk" checked style="accent-color:var(--red)"> Riesgos críticos
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" id="chk-ev-proj-updates" checked style="accent-color:var(--green)"> Módulos actualizados
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" id="chk-ev-invites" checked style="accent-color:var(--amber)"> Invitación de miembros
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn-ghost" onclick="closeModal('mNotificationSettings')">Cancelar</button>
+      <button class="btn-primary" onclick="saveNotificationSettings()" style="background:var(--blue)">
+        <span class="msr" style="font-size:16px">save</span> Guardar Preferencias
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div id="toast-el" class="hidden"></div>
 
@@ -1969,6 +2151,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderDashboard();
   updateNotificationUI();
   updateUserProfileUI();
+  updateAuthUI();
   startNotificationScheduler();
 });
 
@@ -4373,6 +4556,166 @@ function sendDailyTaskToWhatsApp(id) {
     window.open(`https://wa.me/?text=${encoded}`, '_blank');
   }
   toast('💬 Abriendo WhatsApp...');
+}
+
+/* ══ AUTH HANDLERS ══ */
+function openAuthModal() {
+  const user = getAuthUser();
+  if (user && user.email) {
+    const confirmLogout = confirm(`Sesión activa: ${user.name || user.email}\n\n¿Deseas cerrar sesión?`);
+    if (confirmLogout) {
+      logoutUser();
+    }
+    return;
+  }
+  switchAuthTab('login');
+  openModal('mAuthModal');
+}
+
+function switchAuthTab(tab) {
+  const btnLogin = document.getElementById('auth-tab-login');
+  const btnReg = document.getElementById('auth-tab-register');
+  const formLogin = document.getElementById('auth-form-login');
+  const formReg = document.getElementById('auth-form-register');
+
+  if (!btnLogin || !btnReg || !formLogin || !formReg) return;
+
+  if (tab === 'login') {
+    btnLogin.style.background = 'white';
+    btnLogin.style.color = 'var(--blue)';
+    btnLogin.style.borderBottom = '3px solid var(--blue)';
+    btnReg.style.background = 'transparent';
+    btnReg.style.color = 'var(--t3)';
+    btnReg.style.borderBottom = '3px solid transparent';
+    formLogin.classList.remove('hidden');
+    formReg.classList.add('hidden');
+  } else {
+    btnReg.style.background = 'white';
+    btnReg.style.color = 'var(--blue)';
+    btnReg.style.borderBottom = '3px solid var(--blue)';
+    btnLogin.style.background = 'transparent';
+    btnLogin.style.color = 'var(--t3)';
+    btnLogin.style.borderBottom = '3px solid transparent';
+    formReg.classList.remove('hidden');
+    formLogin.classList.add('hidden');
+  }
+}
+
+function getAuthUser() {
+  try {
+    return JSON.parse(localStorage.getItem('doit_auth_user')) || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function handleUserLogin(e) {
+  e.preventDefault();
+  const email = val('login-email');
+  const pass = val('login-pass');
+
+  if (!email || !pass) return toast('⚠️ Ingresa tu correo y contraseña');
+
+  const user = {
+    id: 'usr_' + Date.now().toString(36),
+    name: email.split('@')[0],
+    email: email,
+    phone: '',
+    loggedInAt: new Date().toISOString()
+  };
+
+  localStorage.setItem('doit_auth_user', JSON.stringify(user));
+  closeModal('mAuthModal');
+  updateAuthUI();
+  toast(`👋 ¡Bienvenido de nuevo, ${user.name}!`);
+}
+
+function handleUserRegister(e) {
+  e.preventDefault();
+  const name = val('reg-name');
+  const email = val('reg-email');
+  const phone = val('reg-phone');
+  const pass = val('reg-pass');
+
+  if (!name || !email || !pass) return toast('⚠️ Completa todos los campos obligatorios');
+
+  const user = {
+    id: 'usr_' + Date.now().toString(36),
+    name: name,
+    email: email,
+    phone: phone,
+    loggedInAt: new Date().toISOString()
+  };
+
+  localStorage.setItem('doit_auth_user', JSON.stringify(user));
+  closeModal('mAuthModal');
+  updateAuthUI();
+  toast(`🎉 ¡Cuenta creada con éxito! Bienvenido, ${name}`);
+}
+
+function logoutUser() {
+  localStorage.removeItem('doit_auth_user');
+  updateAuthUI();
+  toast('🔒 Sesión cerrada correctamente');
+}
+
+function updateAuthUI() {
+  const user = getAuthUser();
+  const btnText = document.getElementById('auth-btn-text');
+  const btnIcon = document.getElementById('auth-btn-icon');
+  const btn = document.getElementById('auth-btn');
+
+  if (!btn) return;
+
+  if (user && user.email) {
+    if (btnText) btnText.textContent = `👤 ${user.name.split(' ')[0]}`;
+    if (btnIcon) btnIcon.textContent = 'person';
+    btn.style.background = '#F0FDF4';
+    btn.style.color = '#166534';
+    btn.style.borderColor = '#BBF7D0';
+  } else {
+    if (btnText) btnText.textContent = 'Iniciar Sesión / Registro';
+    if (btnIcon) btnIcon.textContent = 'account_circle';
+    btn.style.background = '#EFF6FF';
+    btn.style.color = 'var(--blue)';
+    btn.style.borderColor = 'var(--blue)';
+  }
+}
+
+/* ══ NOTIFICATION SETTINGS HANDLERS ══ */
+function requestBrowserNotificationPermission() {
+  if (!('Notification' in window)) {
+    return toast('⚠️ Tu navegador no soporta notificaciones de escritorio');
+  }
+
+  Notification.requestPermission().then(permission => {
+    const statusText = document.getElementById('notif-perm-text');
+    if (permission === 'granted') {
+      if (statusText) statusText.textContent = '✅ Concedido';
+      toast('🔔 ¡Notificaciones de pantalla autorizadas!');
+    } else {
+      if (statusText) statusText.textContent = '❌ Denegado';
+      toast('⚠️ Permiso denegado por el navegador');
+    }
+  });
+}
+
+function saveNotificationSettings() {
+  const prefs = {
+    push: document.getElementById('chk-alert-push') ? document.getElementById('chk-alert-push').checked : true,
+    wsp: document.getElementById('chk-alert-wsp') ? document.getElementById('chk-alert-wsp').checked : true,
+    email: document.getElementById('chk-alert-email') ? document.getElementById('chk-alert-email').checked : true,
+    sound: document.getElementById('chk-alert-sound') ? document.getElementById('chk-alert-sound').checked : true,
+    evToday: document.getElementById('chk-ev-today') ? document.getElementById('chk-ev-today').checked : true,
+    evRisk: document.getElementById('chk-ev-high-risk') ? document.getElementById('chk-ev-high-risk').checked : true,
+    evModules: document.getElementById('chk-ev-proj-updates') ? document.getElementById('chk-ev-proj-updates').checked : true,
+    evInvites: document.getElementById('chk-ev-invites') ? document.getElementById('chk-ev-invites').checked : true,
+    updatedAt: new Date().toISOString()
+  };
+
+  localStorage.setItem('doit_notif_prefs', JSON.stringify(prefs));
+  closeModal('mNotificationSettings');
+  toast('⚙️ Preferencias de notificaciones y alertas guardadas');
 }
 </script>
 </body>
