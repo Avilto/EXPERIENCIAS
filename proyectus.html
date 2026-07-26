@@ -437,76 +437,23 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
             </h2>
             <button class="btn-ghost" onclick="navigate('projects')" style="font-size:12px;font-weight:700;padding:8px 18px">
               VER TODOS <span class="msr" style="font-size:15px">arrow_forward</span>
-            </button>
-          </div>
-          <div id="dash-proj-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px"></div>
-          <div id="dash-proj-empty" style="display:none;text-align:center;padding:40px;color:var(--t3)">
-            <span class="msr" style="font-size:40px;display:block;margin-bottom:10px;opacity:.3">folder_open</span>
-            <p style="font-size:13px">No hay proyectos. Crea el primero.</p>
-          </div>
-        </div>
-
-        <!-- ══ SECCIÓN 2: MÓDULOS ══ -->
+        <!-- ══ SECCIÓN DE PROYECTOS (PANEL DE CONTROL) ══ -->
         <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:28px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
             <h2 style="font-family:'Inter',sans-serif;font-size:22px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:10px">
               <span style="display:inline-block;width:5px;height:22px;background:var(--blue);border-radius:99px"></span>
-              MÓDULOS
+              PROYECTOS Y RESUMEN GENERAL
             </h2>
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-              <input type="text" id="dash-mod-search" oninput="renderDashModules()" placeholder="Buscar módulo..."
-                     style="padding:6px 14px;border-radius:99px;border:1.5px solid var(--border);font-size:11px;outline:none;width:140px;font-family:inherit"/>
-              <div style="position:relative">
-                <select id="dash-mod-proj-filter" onchange="renderDashModules()"
-                        style="appearance:none;padding:8px 36px 8px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;font-family:inherit;outline:none">
-                  <option value="ALL">Todos los Proyectos</option>
-                </select>
-                <span class="msr" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--t3);pointer-events:none">expand_more</span>
-              </div>
-              <div style="position:relative">
-                <select id="dash-mod-imp-filter" onchange="renderDashModules()"
-                        style="appearance:none;padding:8px 36px 8px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;font-family:inherit;outline:none">
-                  <option value="ALL">Toda Importancia</option>
-                  <option value="CRITICAL">🔴 Crítica</option>
-                  <option value="HIGH">🟠 Alta</option>
-                  <option value="MEDIUM">🟡 Media</option>
-                  <option value="LOW">🟢 Baja</option>
-                </select>
-                <span class="msr" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--t3);pointer-events:none">expand_more</span>
-              </div>
-              <div style="position:relative">
-                <select id="dash-mod-sort" onchange="renderDashModules()"
-                        style="appearance:none;padding:8px 36px 8px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;font-family:inherit;outline:none">
-                  <option value="NEWEST">Más recientes</option>
-                  <option value="OLDEST">Más antiguos</option>
-                </select>
-                <span class="msr" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--t3);pointer-events:none">expand_more</span>
-              </div>
-              <button class="btn-ghost" onclick="navigate('modules')" style="font-size:12px;font-weight:700;padding:8px 18px">
-                VER TODO <span class="msr" style="font-size:15px">arrow_forward</span>
-              </button>
-            </div>
+            <button class="btn-primary" onclick="openModal('mNewProject')" style="padding:8px 16px;font-size:12px;border-radius:10px">
+              <span class="msr" style="font-size:16px">add</span> Nuevo Proyecto
+            </button>
           </div>
-          <div id="dash-modules-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px"></div>
-          <div id="dash-modules-empty" style="display:none;text-align:center;padding:40px;color:var(--t3)">
-            <span class="msr" style="font-size:40px;display:block;margin-bottom:10px;opacity:.3">view_module</span>
-            <p style="font-size:13px">Sin módulos que coincidan con los filtros.</p>
-          </div>
-        </div>
 
-        <!-- ══ SECCIÓN 3: FINANZAS ══ -->
-        <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:28px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-            <h2 style="font-family:'Inter',sans-serif;font-size:22px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:10px">
-              <span style="display:inline-block;width:5px;height:22px;background:#16A34A;border-radius:99px"></span>
-              FINANZAS
-            </h2>
-            <span class="badge" id="dash-fin-total" style="font-size:12px;font-weight:700;padding:7px 16px;background:#F0FDF4;color:#16A34A">Capital total: S/ 0</span>
-          </div>
-          <div id="dash-fin-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px"></div>
-          <div id="dash-fin-empty" style="display:none;text-align:center;padding:40px;color:var(--t3)">
-            <span class="msr" style="font-size:40px;display:block;margin-bottom:10px;opacity:.3">payments</span>
-            <p style="font-size:13px">Crea proyectos con capital para ver el resumen financiero.</p>
+          <div id="dash-proj-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px"></div>
+          <div id="dash-proj-empty" style="display:none;text-align:center;padding:50px;color:var(--t3)">
+            <span class="msr" style="font-size:48px;display:block;margin-bottom:12px;opacity:.3">folder_open</span>
+            <p style="font-size:14px;font-weight:700">No hay proyectos creados aún.</p>
+            <p style="font-size:12px;margin-top:4px">Crea tu primer proyecto para ver su tarjeta de control general.</p>
           </div>
         </div>
 
@@ -2408,10 +2355,8 @@ function renderDashboard(){
   const globalStatus = (document.getElementById('dash-global-status-filter') || { value: 'ALL' }).value;
   const globalImportance = (document.getElementById('dash-global-importance-filter') || { value: 'ALL' }).value;
   
-  // ── Section 1: Proyectos ──
-  let projs=DB.projects();
+  let projs = DB.projects();
   
-  // Apply global filters
   if(globalStatus !== 'ALL') {
     projs = projs.filter(p => p.status === globalStatus);
   }
@@ -2424,17 +2369,110 @@ function renderDashboard(){
     return (o[a.importance] || 2) - (o[b.importance] || 2);
   });
   
-  const pList=document.getElementById('dash-proj-list');
-  const pEmpty=document.getElementById('dash-proj-empty');
+  const pList = document.getElementById('dash-proj-list');
+  const pEmpty = document.getElementById('dash-proj-empty');
   if(pList){
-    const show=projs.slice(0,3);
-    if(show.length){ pList.innerHTML=show.map(p=>dashProjCard(p)).join(''); pList.style.display='grid'; if(pEmpty) pEmpty.style.display='none'; }
-    else { pList.style.display='none'; if(pEmpty) pEmpty.style.display='block'; }
+    if(projs.length){ 
+      pList.innerHTML = projs.map(p => dashProjCard(p)).join(''); 
+      pList.style.display = 'grid'; 
+      if(pEmpty) pEmpty.style.display = 'none'; 
+    } else { 
+      pList.style.display = 'none'; 
+      if(pEmpty) pEmpty.style.display = 'block'; 
+    }
   }
   // ── Section 2: Módulos ──
   renderDashModules(globalStatus, globalImportance);
   // ── Section 3: Finanzas ──
   renderDashFinance(globalStatus, globalImportance);
+}
+
+function dashProjCard(p){
+  const pct = DB.projectProgress(p.id);
+  const tasks = DB.tasksByProject(p.id);
+  const doneTasks = tasks.filter(t => t.status === 'DONE').length;
+  const modules = DB.modules().filter(m => m.pid === p.id);
+  const risks = DB.risks().filter(r => r.pid === p.id);
+  const capital = parseFloat(p.capital || 0);
+
+  const impColors = { CRITICAL: '#DC2626', HIGH: '#EA580C', MEDIUM: '#D4A848', LOW: '#16A34A' };
+  const impLabels = { CRITICAL: 'Crítico', HIGH: 'Alto', MEDIUM: 'Medio', LOW: 'Bajo' };
+  const accentColor = impColors[p.importance || 'MEDIUM'];
+
+  return `
+  <div onclick="openProject('${p.id}')"
+       style="border:1.5px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;transition:all .25s ease;background:#fff;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.03)"
+       onmouseover="this.style.borderColor='var(--blue)';this.style.boxShadow='0 8px 24px rgba(19,86,219,0.14)';this.style.transform='translateY(-2px)'"
+       onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='0 2px 10px rgba(0,0,0,0.03)';this.style.transform='translateY(0)'">
+    <div style="height:5px;background:${accentColor}"></div>
+    
+    <div style="padding:22px;display:flex;flex-direction:column;gap:16px;flex:1">
+      <!-- Header: Title & Importance -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+        <div>
+          <h3 style="font-weight:800;font-size:16px;color:var(--t1);margin-bottom:4px;line-height:1.3">${esc(p.title)}</h3>
+          <p style="font-size:12px;color:var(--t3);line-height:1.4">${esc(p.desc || 'Sin descripción')}</p>
+        </div>
+        <span class="badge" style="background:${accentColor}15;color:${accentColor};border:1px solid ${accentColor}30;font-size:10px;font-weight:700;padding:4px 10px;border-radius:99px">
+          ${impLabels[p.importance || 'MEDIUM']}
+        </span>
+      </div>
+
+      <!-- Progress Bar -->
+      <div style="background:#F8FAFC;padding:12px;border-radius:12px;border:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:11px">
+          <span style="color:var(--t3);font-weight:700">Progreso General</span>
+          <span style="font-weight:800;color:var(--blue)">${pct}%</span>
+        </div>
+        <div class="progress-wrap" style="height:7px"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>
+
+      <!-- General Info Metrics Grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11px">
+        <div style="background:var(--surface);padding:10px 12px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;gap:8px">
+          <span class="msr" style="font-size:18px;color:var(--blue)">view_module</span>
+          <div>
+            <div style="font-size:10px;color:var(--t3);font-weight:600">Módulos</div>
+            <div style="font-weight:800;color:var(--t1)">${modules.length} módulos</div>
+          </div>
+        </div>
+
+        <div style="background:var(--surface);padding:10px 12px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;gap:8px">
+          <span class="msr" style="font-size:18px;color:#16A34A">check_circle</span>
+          <div>
+            <div style="font-size:10px;color:var(--t3);font-weight:600">Tareas</div>
+            <div style="font-weight:800;color:var(--t1)">${doneTasks}/${tasks.length} tareas</div>
+          </div>
+        </div>
+
+        <div style="background:var(--surface);padding:10px 12px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;gap:8px">
+          <span class="msr" style="font-size:18px;color:#D97706">payments</span>
+          <div>
+            <div style="font-size:10px;color:var(--t3);font-weight:600">Financiamiento</div>
+            <div style="font-weight:800;color:var(--t1)">S/ ${capital.toLocaleString('es-PE', {minimumFractionDigits: 0})}</div>
+          </div>
+        </div>
+
+        <div style="background:var(--surface);padding:10px 12px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;gap:8px">
+          <span class="msr" style="font-size:18px;color:${risks.length > 0 ? '#DC2626' : 'var(--t3)'}">warning</span>
+          <div>
+            <div style="font-size:10px;color:var(--t3);font-weight:600">Riesgos</div>
+            <div style="font-weight:800;color:${risks.length > 0 ? '#DC2626' : 'var(--t1)'}">${risks.length} riesgos</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Action -->
+    <div style="background:#F8FAFC;padding:12px 22px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:11px;color:var(--t3);font-weight:600;display:flex;align-items:center;gap:4px">
+        <span class="msr" style="font-size:14px">schedule</span> ${esc(p.time || 'Sin plazo')}
+      </span>
+      <span style="font-size:12px;font-weight:800;color:var(--blue);display:flex;align-items:center;gap:4px">
+        Abrir Proyecto <span class="msr" style="font-size:16px">arrow_forward</span>
+      </span>
+    </div>
+  </div>`;
 }
 
 function renderDashModules(globalStatus = 'ALL', globalImportance = 'ALL'){
@@ -2595,20 +2633,6 @@ function renderDashFinance(globalStatus = 'ALL', globalImportance = 'ALL'){
   }
 }
 
-function dashProjCard(p){
-  const pct=DB.projectProgress(p.id);
-  const tasks=DB.tasksByProject(p.id);
-  const done=tasks.filter(t=>t.status==='DONE').length;
-  const impColors={CRITICAL:'#DC2626',HIGH:'#EA580C',MEDIUM:'#D4A848',LOW:'#16A34A'};
-  const impLabels={CRITICAL:'Crítico',HIGH:'Alto',MEDIUM:'Medio',LOW:'Bajo'};
-  const accentColor=impColors[p.importance||'MEDIUM'];
-  return `
-  <div onclick="openProject('${p.id}')"
-       style="border:1.5px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .2s;background:#fff"
-       onmouseover="this.style.borderColor='var(--blue)';this.style.boxShadow='0 4px 16px rgba(19,86,219,0.12)'"
-       onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
-    <div style="height:4px;background:${accentColor}"></div>
-    <div style="padding:18px">
       <div style="margin-bottom:10px">
         <h3 style="font-weight:700;font-size:14px;color:var(--t1);margin-bottom:4px;line-height:1.3">${esc(p.title)}</h3>
         <span class="badge" style="background:${accentColor}18;color:${accentColor};font-size:10px">${impLabels[p.importance||'MEDIUM']}</span>
