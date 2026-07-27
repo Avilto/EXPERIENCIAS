@@ -1199,11 +1199,11 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Hora de Inicio *</label>
-          <select id="inp-dtStartTime" class="form-input form-select"></select>
+          <input id="inp-dtStartTime" class="form-input" type="time" value="09:00"/>
         </div>
         <div class="form-group">
           <label class="form-label">Hora de Fin *</label>
-          <select id="inp-dtEndTime" class="form-input form-select"></select>
+          <input id="inp-dtEndTime" class="form-input" type="time" value="10:00"/>
         </div>
       </div>
 
@@ -4021,14 +4021,18 @@ function renderMyDayHourlyTimeline() {
 
 function openNewDailyTaskModal(presetTime) {
   editingDailyTaskId = null;
-  setText('mDailyTaskTitle', 'Agendar Tarea por Hora');
+  setText('mDailyTaskTitle', 'Agendar Tarea por Hora (Mi Día)');
   setVal('inp-dtDate', currentMyDayDate);
   setVal('inp-dtTitle', '');
   setVal('inp-dtNotes', '');
   setVal('inp-dtCategory', 'Trabajo');
   setVal('inp-dtImportance', 'MEDIUM');
 
-  populateTimeSelects(presetTime || '09:00', presetTime ? calculateEndTime(presetTime) : '10:00');
+  const startTime = presetTime ? presetTime : '09:00';
+  const endTime = calculateEndTime(startTime);
+
+  setVal('inp-dtStartTime', startTime);
+  setVal('inp-dtEndTime', endTime);
   populateDailyTaskProjectDropdown();
   openModal('mNewDailyTask');
 }
@@ -4038,34 +4042,23 @@ function openEditDailyTask(id) {
   if (!t) return;
 
   editingDailyTaskId = id;
-  setText('mDailyTaskTitle', 'Editar Tarea Agendada');
+  setText('mDailyTaskTitle', 'Editar Tarea Agendada (Mi Día)');
   setVal('inp-dtDate', t.date);
   setVal('inp-dtTitle', t.title);
   setVal('inp-dtCategory', t.category || 'Trabajo');
   setVal('inp-dtImportance', t.importance || 'MEDIUM');
   setVal('inp-dtNotes', t.notes || '');
 
-  populateTimeSelects(t.start_time || '09:00', t.end_time || '10:00');
+  setVal('inp-dtStartTime', t.start_time || '09:00');
+  setVal('inp-dtEndTime', t.end_time || '10:00');
   populateDailyTaskProjectDropdown(t.pid);
 
   openModal('mNewDailyTask');
 }
 
 function populateTimeSelects(selectedStart, selectedEnd) {
-  const selectStart = document.getElementById('inp-dtStartTime');
-  const selectEnd = document.getElementById('inp-dtEndTime');
-  if (!selectStart || !selectEnd) return;
-
-  let htmlStart = '';
-  let htmlEnd = '';
-
-  HOURLY_SLOTS.forEach(time => {
-    htmlStart += `<option value="${time}" ${time === selectedStart ? 'selected' : ''}>${time}</option>`;
-    htmlEnd += `<option value="${time}" ${time === selectedEnd ? 'selected' : ''}>${time}</option>`;
-  });
-
-  selectStart.innerHTML = htmlStart;
-  selectEnd.innerHTML = htmlEnd;
+  setVal('inp-dtStartTime', selectedStart || '09:00');
+  setVal('inp-dtEndTime', selectedEnd || '10:00');
 }
 
 function calculateEndTime(startTime) {
