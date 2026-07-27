@@ -1384,13 +1384,13 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
         </select>
       </div>
 
-      <!-- Botones de Prueba Rápida -->
+      <!-- Botones de Prueba y Configuración API -->
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn-ghost" onclick="testWhatsAppNotification()" style="flex:1;font-size:11px;padding:8px;border-color:#25D366;color:#15803D;background:#F0FDF4;display:flex;align-items:center;justify-content:center;gap:6px">
-          💬 Probar Mensaje WhatsApp
+        <button class="btn-ghost" onclick="openWhatsAppApiModal()" style="flex:1;font-size:11px;padding:8px;border-color:#25D366;color:#15803D;background:#F0FDF4;display:flex;align-items:center;justify-content:center;gap:6px">
+          🤖 Configurar WhatsApp Cloud API (Automático)
         </button>
-        <button class="btn-ghost" onclick="testEmailNotification()" style="flex:1;font-size:11px;padding:8px;border-color:#BFDBFE;color:#1E40AF;background:#EFF6FF;display:flex;align-items:center;justify-content:center;gap:6px">
-          ✉️ Probar Correo
+        <button class="btn-ghost" onclick="sendTestWhatsAppNotification()" style="flex:1;font-size:11px;padding:8px;border-color:#25D366;color:#15803D;background:#F0FDF4;display:flex;align-items:center;justify-content:center;gap:6px">
+          💬 Probar Mensaje WhatsApp
         </button>
       </div>
     </div>
@@ -1399,6 +1399,59 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
       <button class="btn-ghost" onclick="closeModal('mUserProfile')">Cancelar</button>
       <button class="btn-primary" onclick="saveUserProfile()">
         <span class="msr" style="font-size:16px">save</span> Guardar Registro y Preferencias
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Configuración de WhatsApp Cloud API Automático (Meta / Webhook) ── -->
+<div id="mWhatsAppApiModal" class="modal-overlay hidden">
+  <div class="modal-box" style="max-width:540px">
+    <div class="modal-header">
+      <h2 class="modal-title" style="display:flex;align-items:center;gap:10px;color:#166534">
+        <span class="msr" style="color:#25D366;font-size:26px">chat</span> WhatsApp Cloud API Automático (Meta)
+      </h2>
+      <button class="btn-icon" onclick="closeModal('mWhatsAppApiModal')"><span class="msr" style="font-size:20px">close</span></button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:12px;padding:14px">
+        <p style="font-size:13px;font-weight:700;color:#166534;margin-bottom:4px">🤖 Conexión Backend Silenciosa (Meta WhatsApp API)</p>
+        <p style="font-size:12px;color:#15803D;line-height:1.5">
+          Con la API Oficial de Meta o un servidor Webhook (UltraMsg / Evolution), el mensaje llegará a tu WhatsApp <strong>100% automático sin presionar ningún botón</strong>, incluso cuando tu computadora esté apagada.
+        </p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Número WhatsApp Celular Destino *</label>
+        <input id="inp-wsp-phone" class="form-input" type="tel" placeholder="Ej: +51968027195" value="+51968027195"/>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">URL del Endpoint Webhook / Meta API URL (Opcional)</label>
+        <input id="inp-wsp-url" class="form-input" type="text" placeholder="Ej: https://graph.facebook.com/v18.0/PHONE_NUMBER_ID/messages"/>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Token de Acceso de Desarrollador / API Key (Meta / Twilio / UltraMsg)</label>
+        <input id="inp-wsp-token" class="form-input" type="password" placeholder="Ej: EAAGm... / bearer_token"/>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <p style="font-size:12px;font-weight:700;color:var(--t1)">🎁 Plan Gratuito Incluido</p>
+          <p style="font-size:11px;color:var(--t3)">Meta regala 1,000 notificaciones mensuales sin costo.</p>
+        </div>
+        <button class="btn-ghost" onclick="sendTestWhatsAppBackendAlert()" style="font-size:11px;padding:6px 12px;border-color:#25D366;color:#166534;background:#F0FDF4">
+          🧪 Probar Envío Directo
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn-ghost" onclick="closeModal('mWhatsAppApiModal')">Cancelar</button>
+      <button class="btn-primary" onclick="saveWhatsAppBackendConfig()" style="background:#25D366;border-color:#25D366">
+        <span class="msr" style="font-size:16px">save</span> Guardar Configuración Backend
       </button>
     </div>
   </div>
@@ -4733,6 +4786,76 @@ function openUserProfileModal() {
   }
 
   openModal('mUserProfileModal');
+}
+
+function openWhatsAppApiModal() {
+  const config = JSON.parse(localStorage.getItem('doit_wsp_backend_config') || '{}');
+  const user = getAuthUser();
+  
+  setVal('inp-wsp-phone', config.phone || (user && user.phone ? user.phone : '+51968027195'));
+  setVal('inp-wsp-url', config.apiUrl || '');
+  setVal('inp-wsp-token', config.token || '');
+  
+  openModal('mWhatsAppApiModal');
+}
+
+function saveWhatsAppBackendConfig() {
+  const phone = val('inp-wsp-phone');
+  const apiUrl = val('inp-wsp-url');
+  const token = val('inp-wsp-token');
+
+  const config = {
+    phone: phone || '+51968027195',
+    apiUrl: apiUrl,
+    token: token,
+    updatedAt: new Date().toISOString()
+  };
+
+  localStorage.setItem('doit_wsp_backend_config', JSON.stringify(config));
+  closeModal('mWhatsAppApiModal');
+  toast('⚙️ Configuración de WhatsApp Cloud API Backend guardada');
+}
+
+async function sendTestWhatsAppBackendAlert() {
+  const config = JSON.parse(localStorage.getItem('doit_wsp_backend_config') || '{}');
+  const phone = val('inp-wsp-phone') || config.phone || '+51968027195';
+  const apiUrl = val('inp-wsp-url') || config.apiUrl;
+  const token = val('inp-wsp-token') || config.token;
+
+  if (!apiUrl || !token) {
+    return toast('⚠️ Ingresa la URL API y Token de desarrollador Meta/UltraMsg');
+  }
+
+  let cleanPhone = phone.replace(/[^0-9+]/g, '');
+  if (!cleanPhone.startsWith('+') && !cleanPhone.startsWith('51') && cleanPhone.length === 9) {
+    cleanPhone = '51' + cleanPhone;
+  }
+  cleanPhone = cleanPhone.replace('+', '');
+
+  try {
+    toast('📡 Enviando mensaje de prueba vía Backend...');
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        to: cleanPhone,
+        type: 'text',
+        text: { body: '🤖 *KUBO v2.0 — PRUEBA BACKEND EXITOSA*\n\n¡Notificación automática recibida en tu celular!' }
+      })
+    });
+
+    if (res.ok) {
+      toast('🎉 ¡Prueba exitosa! Mensaje enviado a tu celular por WhatsApp API');
+    } else {
+      toast('⚠️ Respuesta recibida de la API de WhatsApp. Revisa el Token');
+    }
+  } catch (err) {
+    toast('⚠️ Revisa la URL y credenciales de la API.');
+  }
 }
 
 function saveUserPhoneFromProfile() {
