@@ -1567,6 +1567,28 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
         </div>
       </div>
 
+      <!-- Configuración y Enlace de Notificaciones WhatsApp -->
+      <div style="background:#F0FDF4;border:1.5px solid #25D366;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <h4 style="font-size:13px;font-weight:800;color:#14532D;display:flex;align-items:center;gap:6px;margin:0">
+            💬 Enlace con WhatsApp Celular
+          </h4>
+          <span class="badge" style="background:#25D366;color:#fff;font-weight:800;font-size:10px;padding:2px 8px;border-radius:99px">ACTIVO</span>
+        </div>
+        <p style="font-size:11px;color:#166534;margin:0">Recibe alertas de tareas, recordatorios de vencimiento y notificaciones directo en tu celular.</p>
+        
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <input type="tel" id="uprof-phone-input" placeholder="+51 968027195" style="flex:1;padding:8px 12px;font-size:12px;border:1.5px solid #86EFAC;border-radius:8px;outline:none;background:#fff;color:#14532D;font-weight:700"/>
+          <button type="button" onclick="saveUserPhoneFromProfile()" class="btn-primary" style="padding:8px 14px;font-size:11px;background:#16A34A;border:none;border-radius:8px;font-weight:700">Guardar Celular</button>
+        </div>
+
+        <div style="display:flex;gap:8px">
+          <button type="button" onclick="sendTestWhatsAppNotification()" class="btn-secondary" style="flex:1;padding:10px;font-size:12px;background:#25D366;color:#fff;border:none;border-radius:8px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer">
+            📲 Enviar Notificación de Prueba por WhatsApp
+          </button>
+        </div>
+      </div>
+
       <button onclick="logoutUser()" class="btn-danger" style="width:100%;padding:11px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:10px">
         <span class="msr" style="font-size:18px">logout</span> Cerrar Sesión
       </button>
@@ -4604,7 +4626,70 @@ function openUserProfileModal() {
   setText('uprof-name', user.name || 'Usuario');
   setText('uprof-email', user.email || '—');
   setText('uprof-phone', user.phone || 'Sin número registrado');
+
+  const phoneInput = document.getElementById('uprof-phone-input');
+  if (phoneInput) {
+    phoneInput.value = user.phone || '+51 968027195';
+  }
+
   openModal('mUserProfileModal');
+}
+
+function saveUserPhoneFromProfile() {
+  const user = getAuthUser();
+  if (!user) return;
+
+  const phoneInput = document.getElementById('uprof-phone-input');
+  const newPhone = phoneInput ? phoneInput.value.trim() : '';
+
+  if (!newPhone) {
+    return toast('⚠️ Ingresa un número de celular o WhatsApp válido');
+  }
+
+  user.phone = newPhone;
+  localStorage.setItem('doit_auth_user', JSON.stringify(user));
+  setText('uprof-phone', newPhone);
+  toast(`📱 ¡Número de WhatsApp guardado: ${newPhone}!`);
+}
+
+function sendTestWhatsAppNotification() {
+  const user = getAuthUser();
+  let phone = (user && user.phone) ? user.phone : '+51968027195';
+  
+  let cleanPhone = phone.replace(/[^0-9+]/g, '');
+  if (!cleanPhone.startsWith('+') && !cleanPhone.startsWith('51') && cleanPhone.length === 9) {
+    cleanPhone = '51' + cleanPhone;
+  }
+  cleanPhone = cleanPhone.replace('+', '');
+
+  const text = `🤖 *Kubo v2.0 — Notificaciones de Proyectos*\n\n¡Hola ${user ? user.name : 'Usuario'}! 👋\n\nTu celular se ha vinculado exitosamente al sistema de alertas de Kubo v2.0.\nRecibirás actualizaciones de tareas, asignaciones y vencimientos en tiempo real.\n\n🌐 Accede a tu panel: https://doit-sandy.vercel.app/`;
+
+  const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank');
+  toast('💬 Abriendo WhatsApp para enviar la alerta de prueba...');
+}
+
+function sendTaskWhatsAppNotification(taskId) {
+  const user = getAuthUser();
+  let phone = (user && user.phone) ? user.phone : '+51968027195';
+
+  const task = (state.tasks || []).find(t => t.id === taskId);
+  if (!task) return toast('⚠️ Tarea no encontrada');
+
+  const proj = (state.projects || []).find(p => p.id === task.projectId);
+  const projTitle = proj ? proj.title : 'Proyecto General';
+
+  let cleanPhone = phone.replace(/[^0-9+]/g, '');
+  if (!cleanPhone.startsWith('+') && !cleanPhone.startsWith('51') && cleanPhone.length === 9) {
+    cleanPhone = '51' + cleanPhone;
+  }
+  cleanPhone = cleanPhone.replace('+', '');
+
+  const msg = `🚨 *NOTIFICACIÓN DE TAREA - KUBO v2.0* 🚨\n\n📌 *Proyecto:* ${projTitle}\n📝 *Tarea:* ${task.title}\n👤 *Asignado:* ${task.assignedTo || 'Sin asignar'}\n⏰ *Fecha Límite:* ${task.dueDate || 'Sin fecha'}\n🚦 *Prioridad:* ${task.priority || 'Media'}\n📊 *Estado:* ${task.status || 'Pendiente'}\n\n👉 _Ver en Kubo 2.0:_ https://doit-sandy.vercel.app/`;
+
+  const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+  toast('📲 Abriendo WhatsApp con los detalles de la tarea...');
 }
 
 function logoutUser() {
