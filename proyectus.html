@@ -4793,7 +4793,7 @@ function openWhatsAppApiModal() {
   const user = getAuthUser();
   
   setVal('inp-wsp-phone', config.phone || (user && user.phone ? user.phone : '+51968027195'));
-  setVal('inp-wsp-url', config.apiUrl || '');
+  setVal('inp-wsp-url', config.apiUrl || 'https://graph.facebook.com/v25.0/1258054830720471/messages');
   setVal('inp-wsp-token', config.token || '');
   
   openModal('mWhatsAppApiModal');
