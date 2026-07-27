@@ -1004,15 +1004,9 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
           <option value="">Sin Módulo</option>
         </select>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Fecha límite *</label>
-          <input id="inp-tDate" class="form-input" type="date"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Hora límite</label>
-          <input id="inp-tTime" class="form-input" type="time"/>
-        </div>
+      <div class="form-group">
+        <label class="form-label">Fecha límite *</label>
+        <input id="inp-tDate" class="form-input" type="date"/>
       </div>
 
       <!-- Inspiration section -->
@@ -3130,7 +3124,7 @@ function taskCard(t){
   const impColors={CRITICAL:'#DC2626',HIGH:'#EA580C',MEDIUM:'#D4A848',LOW:'#16A34A'};
   const impLabels={CRITICAL:'🔴 Crítica',HIGH:'🟠 Alta',MEDIUM:'🟡 Media',LOW:'🟢 Baja'};
   const due=t.date?new Date(t.date).toLocaleDateString('es-PE',{day:'2-digit',month:'short'}):'';
-  const overdue=t.date&&new Date(t.date+'T'+(t.time||'23:59'))<new Date()&&!isDone;
+  const overdue=t.date&&new Date(t.date+'T23:59:59')<new Date()&&!isDone;
   const inspIcons={instagram:'📸',pinterest:'📌',photo:'🖼️',web:'🌐'};
 
   return `
@@ -3147,7 +3141,7 @@ function taskCard(t){
       ${t.justify?`<p style="font-size:11px;color:var(--t3);margin-bottom:8px;font-style:italic">"${esc(t.justify)}"</p>`:''}
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         ${due?`<span class="badge ${overdue?'badge-red':'badge-slate'}" style="font-size:10px">
-          <span class="msr" style="font-size:12px">calendar_today</span> ${due}${t.time?' · '+t.time:''}</span>`:''}
+          <span class="msr" style="font-size:12px">calendar_today</span> ${due}</span>`:''}
         ${t.inspType&&t.inspType!=='none'?`<span class="badge badge-blue" style="font-size:10px">
           ${inspIcons[t.inspType]||'🔗'} Inspiración</span>`:''}
         <span class="badge ${isDone?'badge-green':isIP?'badge-blue':'badge-slate'}" style="font-size:10px">
@@ -3412,7 +3406,7 @@ function openNewTaskModal(pid, mid){
   editingTaskId=null;
   setText('mTaskTitle','Nueva Tarea');
   setText('btn-save-task',''); document.getElementById('btn-save-task').innerHTML='<span class="msr" style="font-size:16px">add_task</span> Crear Tarea';
-  clearInputs('inp-tTitle','inp-tJustify','inp-tDate','inp-tTime','inp-tInspUrl','inp-tNotes');
+  clearInputs('inp-tTitle','inp-tJustify','inp-tDate','inp-tInspUrl','inp-tNotes');
   setVal('inp-tImportance','MEDIUM');
   setVal('inp-tStatus','TODO');
   
@@ -3435,7 +3429,6 @@ function openEditTask(id){
   setVal('inp-tImportance', t.importance||'MEDIUM');
   setVal('inp-tStatus', t.status||'TODO');
   setVal('inp-tDate', t.date||'');
-  setVal('inp-tTime', t.time||'');
   setVal('inp-tNotes', t.notes||'');
 
   populateTaskModulesDropdown(t.pid, t.mid || '');
@@ -3484,7 +3477,7 @@ function saveTask(){
   
   const payload = {
     title, justify:val('inp-tJustify'),
-    importance:val('inp-tImportance'), date, time:val('inp-tTime'),
+    importance:val('inp-tImportance'), date, time: '',
     status:val('inp-tStatus'), inspType:currentInspType,
     inspUrl:currentInspType==='photo'?taskPhotoData:(currentInspType!=='none'?val('inp-tInspUrl'):null),
     notes:val('inp-tNotes'),
