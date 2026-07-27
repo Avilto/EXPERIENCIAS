@@ -4350,8 +4350,8 @@ function sendNativeNotification(title, body) {
 
 function startNotificationScheduler() {
   if (notificationCheckInterval) clearInterval(notificationCheckInterval);
-  // Revisa alertas de vencimiento cada 15 segundos
-  notificationCheckInterval = setInterval(checkScheduledTasksNotifications, 15000);
+  // Revisa alertas cada 5 segundos para tiempo real sin retrasos
+  notificationCheckInterval = setInterval(checkScheduledTasksNotifications, 5000);
   checkScheduledTasksNotifications();
 }
 
@@ -4363,7 +4363,7 @@ function playAlertSound() {
     osc.type = 'sine';
     osc.frequency.setValueAtTime(587.33, ctx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.3);
-    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -4372,6 +4372,49 @@ function playAlertSound() {
   } catch (e) {
     console.warn('Sound alert:', e);
   }
+}
+
+function showTaskDeadlineAlertModal(t, userPhone) {
+  const user = getAuthUser();
+  let cleanPhone = (userPhone || '+51968027195').replace(/[^0-9+]/g, '');
+  if (!cleanPhone.startsWith('+') && !cleanPhone.startsWith('51') && cleanPhone.length === 9) {
+    cleanPhone = '51' + cleanPhone;
+  }
+  cleanPhone = cleanPhone.replace('+', '');
+
+  const wspText = `🚨 *ALERTA DE TAREA EN KUBO v2.0* 🚨\n\n📌 *Tarea:* ${t.title}\n⏰ *Hora de Vencimiento:* ${t.start_time}\n🏷️ *Categoría:* ${t.category || 'General'}\n👤 *Usuario:* ${user ? user.name : 'Usuario'}\n\n👉 _Acceder a la app:_ https://doit-sandy.vercel.app/`;
+  const wspUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(wspText)}`;
+
+  let modalEl = document.getElementById('mDeadlineAlertModal');
+  if (!modalEl) {
+    modalEl = document.createElement('div');
+    modalEl.id = 'mDeadlineAlertModal';
+    modalEl.className = 'modal-overlay';
+    modalEl.style.zIndex = '999999';
+    document.body.appendChild(modalEl);
+  }
+
+  modalEl.innerHTML = `
+    <div class="modal-box" style="max-width:480px;border:2px solid #25D366;box-shadow:0 10px 40px rgba(37,211,102,0.35);border-radius:20px;padding:24px">
+      <div style="text-align:center">
+        <div style="width:64px;height:64px;background:#DCFCE7;color:#166534;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px">
+          <span class="msr" style="font-size:36px">notifications_active</span>
+        </div>
+        <h2 style="font-size:20px;font-weight:800;color:var(--t1)">🚨 ¡LLEGÓ LA HORA DE LA TAREA!</h2>
+        <p style="font-size:15px;color:var(--t1);margin-top:8px;font-weight:700">"${esc(t.title)}"</p>
+        <div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:12px;padding:12px;margin-top:14px;font-size:13px;color:#166534">
+          ⏰ Hora programada: <strong>${t.start_time}</strong> · Categoría: <strong>${t.category || 'General'}</strong>
+        </div>
+      </div>
+      <div class="modal-actions" style="margin-top:22px;display:flex;gap:10px">
+        <button class="btn-ghost" onclick="document.getElementById('mDeadlineAlertModal').classList.add('hidden')" style="flex:1">Cerrar</button>
+        <button class="btn-primary" onclick="window.open('${wspUrl}', '_blank');document.getElementById('mDeadlineAlertModal').classList.add('hidden')" style="flex:2;background:#25D366;border-color:#25D366;box-shadow:0 4px 14px rgba(37,211,102,0.4)">
+          📲 Enviar Notificación WhatsApp
+        </button>
+      </div>
+    </div>
+  `;
+  modalEl.classList.remove('hidden');
 }
 
 function checkScheduledTasksNotifications() {
@@ -4399,8 +4442,8 @@ function checkScheduledTasksNotifications() {
 
     const notifKey = `doit_alert_daily_${todayStr}_${t.id}`;
 
-    // Si la tarea vence o inicia en los próximos 2 minutos o acaba de vencer
-    if (diff <= 2 && diff >= -10 && !localStorage.getItem(notifKey)) {
+    // Si la tarea vence o inicia en el rango de coincidencia (-15 min a +2 min)
+    if (diff <= 2 && diff >= -15 && !localStorage.getItem(notifKey)) {
       localStorage.setItem(notifKey, 'true');
 
       if (isSoundActive) playAlertSound();
@@ -4414,22 +4457,8 @@ function checkScheduledTasksNotifications() {
 
       toast(`🚨 ¡ALERTA VENCIMIENTO! Tarea: "${t.title}" (${t.start_time})`);
 
-      // Si WhatsApp está activo, sugerir o abrir envío de alerta al número configurado
       if (isWspActive) {
-        setTimeout(() => {
-          let cleanPhone = userPhone.replace(/[^0-9+]/g, '');
-          if (!cleanPhone.startsWith('+') && !cleanPhone.startsWith('51') && cleanPhone.length === 9) {
-            cleanPhone = '51' + cleanPhone;
-          }
-          cleanPhone = cleanPhone.replace('+', '');
-
-          const wspText = `🚨 *ALERTA DE TAREA EN KUBO v2.0* 🚨\n\n📌 *Tarea:* ${t.title}\n⏰ *Hora de Vencimiento:* ${t.start_time}\n🏷️ *Categoría:* ${t.category || 'General'}\n👤 *Usuario:* ${user ? user.name : 'Usuario'}\n\n👉 _Acceder a la app:_ https://doit-sandy.vercel.app/`;
-          const wspUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(wspText)}`;
-          
-          if (confirm(`🚨 ¡Llegó la hora de la tarea "${t.title}" (${t.start_time})!\n\n¿Deseas enviar el aviso a tu WhatsApp (${userPhone}) ahora?`)) {
-            window.open(wspUrl, '_blank');
-          }
-        }, 800);
+        showTaskDeadlineAlertModal(t, userPhone);
       }
     }
   });
@@ -4445,7 +4474,6 @@ function checkScheduledTasksNotifications() {
       const notifKey = `doit_alert_proj_${todayStr}_${t.id}`;
 
       if (!localStorage.getItem(notifKey)) {
-        // Enviar aviso inicial del día de entrega
         localStorage.setItem(notifKey, 'true');
         if (isSoundActive) playAlertSound();
         if (isPushActive) {
@@ -4454,6 +4482,13 @@ function checkScheduledTasksNotifications() {
       }
     }
   });
+}
+
+// Iniciar planificador automáticamente en carga
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startNotificationScheduler);
+} else {
+  startNotificationScheduler();
 }
 
 /* ══ USER REGISTRATION & MULTI-CHANNEL NOTIFICATIONS (EMAIL, WSP, SMS) ══ */
