@@ -4603,13 +4603,17 @@ function handleUserRegister(e) {
   if (!name || !email || !pass) return toast('⚠️ Completa todos los campos obligatorios');
 
   // Guardar automáticamente las preferencias de notificaciones seleccionadas en el registro
-  saveNotificationSettings();
+  try {
+    saveNotificationSettings(false);
+  } catch (err) {
+    console.warn('Notification settings save handled:', err);
+  }
 
   const user = {
     id: 'usr_' + Date.now().toString(36),
     name: name,
     email: email,
-    phone: phone,
+    phone: phone || '',
     loggedInAt: new Date().toISOString()
   };
 
@@ -4747,7 +4751,7 @@ function requestBrowserNotificationPermission() {
   });
 }
 
-function saveNotificationSettings() {
+function saveNotificationSettings(closeModalFlag = true) {
   const prefs = {
     push: document.getElementById('chk-alert-push') ? document.getElementById('chk-alert-push').checked : true,
     wsp: document.getElementById('chk-alert-wsp') ? document.getElementById('chk-alert-wsp').checked : true,
@@ -4761,8 +4765,10 @@ function saveNotificationSettings() {
   };
 
   localStorage.setItem('doit_notif_prefs', JSON.stringify(prefs));
-  closeModal('mNotificationSettings');
-  toast('⚙️ Preferencias de notificaciones y alertas guardadas');
+  if (closeModalFlag) {
+    closeModal('mNotificationSettings');
+    toast('⚙️ Preferencias de notificaciones y alertas guardadas');
+  }
 }
 </script>
 </body>
