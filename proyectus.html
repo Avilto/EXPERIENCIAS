@@ -1629,9 +1629,12 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
           <button type="button" onclick="saveUserPhoneFromProfile()" class="btn-primary" style="padding:8px 14px;font-size:11px;background:#16A34A;border:none;border-radius:8px;font-weight:700">Guardar Celular</button>
         </div>
 
-        <div style="display:flex;gap:8px">
+        <div style="display:flex;flex-direction:column;gap:8px">
           <button type="button" onclick="sendTestWhatsAppNotification()" class="btn-secondary" style="flex:1;padding:10px;font-size:12px;background:#25D366;color:#fff;border:none;border-radius:8px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer">
             📲 Enviar Notificación de Prueba por WhatsApp
+          </button>
+          <button type="button" onclick="openWhatsAppApiModal()" class="btn-secondary" style="flex:1;padding:10px;font-size:12px;background:#15803D;color:#fff;border:none;border-radius:8px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer">
+            🤖 Configurar WhatsApp Cloud API (Meta Automático)
           </button>
         </div>
       </div>
