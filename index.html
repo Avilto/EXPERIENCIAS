@@ -3871,7 +3871,14 @@ function deleteModule(id){
 }
 
 /* ══ MI DÍA (DAILY PLANNER & HOURLY SCHEDULE) ══ */
-let currentMyDayDate = new Date().toISOString().split('T')[0];
+function getLocalDateString(d = new Date()) {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+let currentMyDayDate = getLocalDateString();
 let currentMyDayMonth = new Date().getMonth();
 let currentMyDayYear = new Date().getFullYear();
 let editingDailyTaskId = null;
@@ -3885,7 +3892,7 @@ const HOURLY_SLOTS = [
 function changeMyDayDate(offsetDays) {
   const d = new Date(currentMyDayDate + 'T12:00:00');
   d.setDate(d.getDate() + offsetDays);
-  currentMyDayDate = d.toISOString().split('T')[0];
+  currentMyDayDate = getLocalDateString(d);
   currentMyDayMonth = d.getMonth();
   currentMyDayYear = d.getFullYear();
   renderMyDayView();
@@ -3893,7 +3900,7 @@ function changeMyDayDate(offsetDays) {
 
 function goToMyDayToday() {
   const today = new Date();
-  currentMyDayDate = today.toISOString().split('T')[0];
+  currentMyDayDate = getLocalDateString(today);
   currentMyDayMonth = today.getMonth();
   currentMyDayYear = today.getFullYear();
   renderMyDayView();
@@ -3962,7 +3969,7 @@ function renderMyDayCalendar() {
     const fullDateStr = `${currentMyDayYear}-${monthStr}-${dayStr}`;
 
     const isSelected = fullDateStr === currentMyDayDate;
-    const isToday = fullDateStr === new Date().toISOString().split('T')[0];
+    const isToday = fullDateStr === getLocalDateString();
     const hasTasks = allDailyTasks.some(t => t.date === fullDateStr);
 
     let style = 'padding:6px 2px;font-size:12px;font-weight:700;border-radius:8px;cursor:pointer;position:relative;transition:all .15s;';
@@ -4487,7 +4494,7 @@ function checkScheduledTasksNotifications() {
   const isPushActive = notifPrefs.push !== false;
   const isSoundActive = notifPrefs.sound !== false;
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
