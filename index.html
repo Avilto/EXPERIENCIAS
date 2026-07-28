@@ -4821,10 +4821,11 @@ function toggleTokenVisibility() {
 function openWhatsAppApiModal() {
   const config = JSON.parse(localStorage.getItem('doit_wsp_backend_config') || '{}');
   const user = getAuthUser();
+  const DEFAULT_META_TOKEN = 'EAAMSsARWyVcBSDQOGvnZBfryWhOesY6FZAZA5XMtccj5swGlJfawVo4HEKdOlklrxC1ZAzJzyWhkW53vkDWFx6c7jo9sy9ZAnsX3XIJFghw9iM8bH3Qv10Fd8j4uT7G8sZAk9CgzgcdymxVsBaM2PBOXQXtFyfRQy2BUFJeQZAlyQdn8mEWgVaoF7KB3ozp9N6VCAaJ0xAxN7aZBvZC2vmgObsGZCV2ZCxl8W3ZCyZBBtG25HiGLK9sScNwHaW8yaJW6KpjP1ZBihsSrQlgAuEnNzE1nleehx0';
   
   setVal('inp-wsp-phone', config.phone || (user && user.phone ? user.phone : '+51968027195'));
   setVal('inp-wsp-url', config.apiUrl || 'https://graph.facebook.com/v25.0/1258054830720471/messages');
-  setVal('inp-wsp-token', config.token || '');
+  setVal('inp-wsp-token', config.token || DEFAULT_META_TOKEN);
   
   openModal('mWhatsAppApiModal');
 }
@@ -4907,8 +4908,9 @@ async function dispatchAutomaticWhatsAppBackendAlert(task, userPhone) {
   }
   cleanPhone = cleanPhone.replace('+', '');
 
+  const DEFAULT_META_TOKEN = 'EAAMSsARWyVcBSDQOGvnZBfryWhOesY6FZAZA5XMtccj5swGlJfawVo4HEKdOlklrxC1ZAzJzyWhkW53vkDWFx6c7jo9sy9ZAnsX3XIJFghw9iM8bH3Qv10Fd8j4uT7G8sZAk9CgzgcdymxVsBaM2PBOXQXtFyfRQy2BUFJeQZAlyQdn8mEWgVaoF7KB3ozp9N6VCAaJ0xAxN7aZBvZC2vmgObsGZCV2ZCxl8W3ZCyZBBtG25HiGLK9sScNwHaW8yaJW6KpjP1ZBihsSrQlgAuEnNzE1nleehx0';
   const apiUrl = config.apiUrl || 'https://graph.facebook.com/v25.0/1258054830720471/messages';
-  const token = (config.token || '').trim();
+  const token = (config.token || DEFAULT_META_TOKEN).trim();
 
   if (token) {
     try {
