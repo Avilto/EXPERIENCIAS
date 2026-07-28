@@ -4822,11 +4822,11 @@ function saveWhatsAppBackendConfig() {
 async function sendTestWhatsAppBackendAlert() {
   const config = JSON.parse(localStorage.getItem('doit_wsp_backend_config') || '{}');
   const phone = val('inp-wsp-phone') || config.phone || '+51968027195';
-  const apiUrl = val('inp-wsp-url') || config.apiUrl;
+  const apiUrl = val('inp-wsp-url') || config.apiUrl || 'https://graph.facebook.com/v25.0/1258054830720471/messages';
   const token = val('inp-wsp-token') || config.token;
 
-  if (!apiUrl || !token) {
-    return toast('⚠️ Ingresa la URL API y Token de desarrollador Meta/UltraMsg');
+  if (!token) {
+    return toast('⚠️ Pega tu Token de acceso de Meta Developers antes de probar');
   }
 
   let cleanPhone = phone.replace(/[^0-9+]/g, '');
@@ -4836,28 +4836,39 @@ async function sendTestWhatsAppBackendAlert() {
   cleanPhone = cleanPhone.replace('+', '');
 
   try {
-    toast('📡 Enviando mensaje de prueba vía Backend...');
+    toast('📡 Conectando con servidores de Meta WhatsApp...');
+    
+    // Payload oficial de plantilla Meta 'hello_world'
     const res = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token.trim()}`
       },
       body: JSON.stringify({
         messaging_product: 'whatsapp',
         to: cleanPhone,
-        type: 'text',
-        text: { body: '🤖 *KUBO v2.0 — PRUEBA BACKEND EXITOSA*\n\n¡Notificación automática recibida en tu celular!' }
+        type: 'template',
+        template: {
+          name: 'hello_world',
+          language: { code: 'en_US' }
+        }
       })
     });
 
-    if (res.ok) {
-      toast('🎉 ¡Prueba exitosa! Mensaje enviado a tu celular por WhatsApp API');
+    const data = await res.json();
+
+    if (res.ok && data.messages && data.messages[0]) {
+      toast('🎉 ¡ÉXITO! Mensaje de WhatsApp enviado a tu celular');
+      alert(`🎉 ¡ENVIADO CON ÉXITO POR LA APP KUBO v2.0!\n\nMensaje enviado a: +${cleanPhone}\nID de Meta: ${data.messages[0].id}\n\n¡Revisa tu WhatsApp en tu celular!`);
     } else {
-      toast('⚠️ Respuesta recibida de la API de WhatsApp. Revisa el Token');
+      const errMsg = (data.error && data.error.message) ? data.error.message : JSON.stringify(data);
+      console.warn('Meta API error:', data);
+      alert(`⚠️ Aviso de Meta API:\n\n${errMsg}\n\n📌 Solución: Verifica si tu número (+${cleanPhone}) está agregado en la lista de 'Destinatario' en Meta Developers o si el Token ha caducado.`);
     }
   } catch (err) {
-    toast('⚠️ Revisa la URL y credenciales de la API.');
+    console.error('Fetch error:', err);
+    alert(`⚠️ Error de conexión: ${err.message}`);
   }
 }
 
@@ -4872,31 +4883,30 @@ async function dispatchAutomaticWhatsAppBackendAlert(task, userPhone) {
   cleanPhone = cleanPhone.replace('+', '');
 
   const apiUrl = config.apiUrl || 'https://graph.facebook.com/v25.0/1258054830720471/messages';
-  const token = config.token;
+  const token = (config.token || '').trim();
 
   if (token) {
     try {
-      const payload = {
-        messaging_product: 'whatsapp',
-        to: cleanPhone,
-        type: 'template',
-        template: {
-          name: 'hello_world',
-          language: { code: 'en_US' }
-        }
-      };
-
       const res = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          messaging_product: 'whatsapp',
+          to: cleanPhone,
+          type: 'template',
+          template: {
+            name: 'hello_world',
+            language: { code: 'en_US' }
+          }
+        })
       });
 
-      if (res.ok) {
-        toast(`🚀 Notificación automática enviada a tu WhatsApp (${cleanPhone}) por Meta API`);
+      const data = await res.json();
+      if (res.ok && data.messages && data.messages[0]) {
+        toast(`🚀 Notificación automática enviada a tu WhatsApp (+${cleanPhone})`);
         return true;
       }
     } catch (e) {
