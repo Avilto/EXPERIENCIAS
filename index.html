@@ -4062,9 +4062,6 @@ function renderMyDayHourlyTimeline() {
               </div>
             </div>
             <div style="display:flex;align-items:center;gap:6px">
-              <button onclick="sendDailyTaskToWhatsApp('${t.id}')" style="background:#F0FDF4;border:1.5px solid #BBF7D0;color:#15803D;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-family:inherit" title="Enviar esta tarea por WhatsApp">
-                <span class="msr" style="font-size:14px">chat</span> Wsp
-              </button>
               <button class="btn-icon" onclick="openEditDailyTask('${t.id}')" style="width:28px;height:28px" title="Editar"><span class="msr" style="font-size:16px">edit</span></button>
               <button class="btn-icon" onclick="deleteDailyTask('${t.id}')" style="width:28px;height:28px;color:var(--red)" title="Eliminar"><span class="msr" style="font-size:16px">delete</span></button>
             </div>
@@ -4166,8 +4163,7 @@ function saveDailyTask() {
   } else {
     newTask.status = 'TODO';
     DB.saveDailyTask(newTask);
-    toast('✅ Tarea agregada a la agenda');
-    dispatchAutomaticWhatsAppBackendAlert(newTask);
+    toast(`⏰ Tarea agendada. Aviso de WhatsApp programado 10 min antes (${startTime})`);
   }
 
   closeModal('mNewDailyTask');
@@ -4514,22 +4510,22 @@ function checkScheduledTasksNotifications() {
     const taskMinutes = h * 60 + m;
     const diff = taskMinutes - currentMinutes;
 
-    const notifKey = `doit_alert_daily_${todayStr}_${t.id}`;
+    const notifKey = `doit_alert_daily_10m_${todayStr}_${t.id}`;
 
-    // Si la tarea vence o inicia en el rango de coincidencia (-15 min a +2 min)
-    if (diff <= 2 && diff >= -15 && !localStorage.getItem(notifKey)) {
+    // Alerta de WhatsApp automática 10 MINUTOS ANTES de la hora de inicio de la tarea
+    if (diff <= 10 && diff >= 0 && !localStorage.getItem(notifKey)) {
       localStorage.setItem(notifKey, 'true');
 
       if (isSoundActive) playAlertSound();
 
-      const alertTitle = `🚨 ALERTA DE TAREA: ${t.title}`;
-      const alertBody = `⏰ Hora: ${t.start_time} · Categoría: ${t.category || 'General'}`;
+      const alertTitle = `⏰ RECORDATORIO EN 10 MINUTOS: ${t.title}`;
+      const alertBody = `Tu tarea empieza a las ${t.start_time} · Categoría: ${t.category || 'General'}`;
 
       if (isPushActive) {
         sendNativeNotification(alertTitle, alertBody);
       }
 
-      toast(`🚨 ¡ALERTA VENCIMIENTO! Tarea: "${t.title}" (${t.start_time})`);
+      toast(`⏰ Recordatorio de WhatsApp (10 min antes): "${t.title}" inicia a las ${t.start_time}`);
 
       if (isWspActive) {
         dispatchAutomaticWhatsAppBackendAlert(t, userPhone);
