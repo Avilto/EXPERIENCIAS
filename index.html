@@ -1434,7 +1434,12 @@ html, body { height: 100%; overflow: hidden; background: #fff; color: var(--t1);
 
       <div class="form-group">
         <label class="form-label">Token de Acceso de Desarrollador / API Key (Meta / Twilio / UltraMsg)</label>
-        <input id="inp-wsp-token" class="form-input" type="password" placeholder="Ej: EAAGm... / bearer_token"/>
+        <div style="position:relative;display:flex;align-items:center">
+          <input id="inp-wsp-token" class="form-input" type="password" placeholder="Ej: EAAGm... / bearer_token" style="padding-right:42px;font-family:monospace"/>
+          <button type="button" onclick="toggleTokenVisibility()" style="position:absolute;right:10px;background:none;border:none;cursor:pointer;color:var(--t2);display:flex;align-items:center;padding:4px" title="Ver / Ocultar Código de Token">
+            <span class="msr" id="btn-toggle-token-icon" style="font-size:20px">visibility</span>
+          </button>
+        </div>
       </div>
 
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:space-between">
@@ -4789,6 +4794,21 @@ function openUserProfileModal() {
   }
 
   openModal('mUserProfileModal');
+}
+
+function toggleTokenVisibility() {
+  const inp = document.getElementById('inp-wsp-token');
+  const icon = document.getElementById('btn-toggle-token-icon');
+  if (!inp) return;
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    if (icon) icon.textContent = 'visibility_off';
+    toast('👁️ Código de Token visible');
+  } else {
+    inp.type = 'password';
+    if (icon) icon.textContent = 'visibility';
+    toast('🔒 Código de Token oculto');
+  }
 }
 
 function openWhatsAppApiModal() {
