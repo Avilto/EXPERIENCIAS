@@ -4924,47 +4924,47 @@ async function dispatchAutomaticWhatsAppBackendAlert(task, userPhone) {
   const apiUrl = config.apiUrl || 'https://graph.facebook.com/v25.0/1258054830720471/messages';
   const token = (config.token || DEFAULT_META_TOKEN).trim();
 
-  let sentViaCloud = false;
-
-  if (token) {
-    try {
-      const res = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          to: cleanPhone,
-          type: 'template',
-          template: {
-            name: 'hello_world',
-            language: { code: 'en_US' }
-          }
-        })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.messages && data.messages[0]) {
-        toast(`🚀 Notificación Meta Cloud API enviada a tu WhatsApp (+${cleanPhone})`);
-        sentViaCloud = true;
-        return true;
-      } else {
-        const errCode = (data.error && data.error.code) ? data.error.code : 0;
-        console.warn(`Meta API WhatsApp Error ${errCode}:`, data);
-        if (errCode === 190) {
-          toast('⚠️ Token temporal de Meta expirado (24h). Usando envío por WhatsApp Web...');
-        }
-      }
-    } catch (e) {
-      console.warn('Meta WhatsApp Cloud API automatic dispatch error:', e);
-    }
+  if (!token) {
+    toast('⚠️ Configura tu Token de Meta WhatsApp API para envíos automáticos');
+    return false;
   }
 
-  // FALLBACK GARANTIZADO: WHATSAPP WEB DIRECTO
-  if (!sentViaCloud) {
-    sendTaskWhatsAppNotificationDirect(task, cleanPhone);
+  try {
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        to: cleanPhone,
+        type: 'template',
+        template: {
+          name: 'hello_world',
+          language: { code: 'en_US' }
+        }
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.messages && data.messages[0]) {
+      toast(`🚀 Notificación enviada en segundo plano a WhatsApp (+${cleanPhone})`);
+      return true;
+    } else {
+      const errCode = (data.error && data.error.code) ? data.error.code : 0;
+      console.warn(`Meta API WhatsApp Error ${errCode}:`, data);
+      if (errCode === 190) {
+        toast('⚠️ Token de Meta expirado (24h). Pega un Token nuevo en Configuración para envíos en segundo plano.');
+      } else {
+        toast(`⚠️ Respuesta de Meta API (Error ${errCode}). Revisa tu configuración.`);
+      }
+      return false;
+    }
+  } catch (e) {
+    console.warn('Meta WhatsApp Cloud API automatic dispatch error:', e);
+    toast('⚠️ No se pudo conectar con Meta WhatsApp API');
+    return false;
   }
 }
 
