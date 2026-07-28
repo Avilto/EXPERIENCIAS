@@ -4842,53 +4842,51 @@ function saveWhatsAppBackendConfig() {
 async function sendTestWhatsAppBackendAlert() {
   const config = JSON.parse(localStorage.getItem('doit_wsp_backend_config') || '{}');
   const phone = val('inp-wsp-phone') || config.phone || '+51968027195';
-  const apiUrl = val('inp-wsp-url') || config.apiUrl || 'https://graph.facebook.com/v25.0/1258054830720471/messages';
-  const token = val('inp-wsp-token') || config.token;
+  const apiUrl = (val('inp-wsp-url') || config.apiUrl || 'https://graph.facebook.com/v25.0/1258054830720471/messages').trim();
+  let token = (val('inp-wsp-token') || config.token || '').trim();
 
   if (!token) {
     return toast('⚠️ Pega tu Token de acceso de Meta Developers antes de probar');
   }
 
-  let cleanPhone = phone.replace(/[^0-9+]/g, '');
-  if (!cleanPhone.startsWith('+') && !cleanPhone.startsWith('51') && cleanPhone.length === 9) {
-    cleanPhone = '51' + cleanPhone;
-  }
-  cleanPhone = cleanPhone.replace('+', '');
+  let cleanPhone = phone.replace(/[^0-9]/g, '');
+  if (cleanPhone.length === 9) cleanPhone = '51' + cleanPhone;
 
   try {
-    toast('📡 Conectando con servidores de Meta WhatsApp...');
-    
-    // Payload oficial de plantilla Meta 'hello_world'
+    toast('📡 Conectando con los servidores de Meta WhatsApp API...');
+
+    const payload = {
+      messaging_product: 'whatsapp',
+      to: cleanPhone,
+      type: 'template',
+      template: {
+        name: 'hello_world',
+        language: { code: 'en_US' }
+      }
+    };
+
     const res = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token.trim()}`
+        'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        to: cleanPhone,
-        type: 'template',
-        template: {
-          name: 'hello_world',
-          language: { code: 'en_US' }
-        }
-      })
+      body: JSON.stringify(payload)
     });
 
     const data = await res.json();
 
     if (res.ok && data.messages && data.messages[0]) {
       toast('🎉 ¡ÉXITO! Mensaje de WhatsApp enviado a tu celular');
-      alert(`🎉 ¡ENVIADO CON ÉXITO POR LA APP KUBO v2.0!\n\nMensaje enviado a: +${cleanPhone}\nID de Meta: ${data.messages[0].id}\n\n¡Revisa tu WhatsApp en tu celular!`);
+      alert(`🎉 ¡ENVIADO CON ÉXITO POR LA APP KUBO v2.0!\n\nMensaje enviado a: +${cleanPhone}\nID de Meta: ${data.messages[0].id}\n\n¡Revisa tu celular ahora!`);
     } else {
       const errMsg = (data.error && data.error.message) ? data.error.message : JSON.stringify(data);
-      console.warn('Meta API error:', data);
-      alert(`⚠️ Aviso de Meta API:\n\n${errMsg}\n\n📌 Solución: Verifica si tu número (+${cleanPhone}) está agregado en la lista de 'Destinatario' en Meta Developers o si el Token ha caducado.`);
+      console.warn('Meta API response error:', data);
+      alert(`⚠️ Respuesta de Meta API:\n\n${errMsg}\n\n📌 Solución: Verifica si tu número (+${cleanPhone}) está en la lista de Destinatarios en Meta o si el token ha caducado.`);
     }
   } catch (err) {
     console.error('Fetch error:', err);
-    alert(`⚠️ Error de conexión: ${err.message}`);
+    alert(`⚠️ Bloqueo de seguridad del navegador (CORS / Network):\n\n${err.message}\n\nNota: Los navegadores bloquean peticiones directas POST a Meta Graph API sin backend.`);
   }
 }
 
