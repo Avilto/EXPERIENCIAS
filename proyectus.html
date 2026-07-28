@@ -4888,9 +4888,15 @@ async function sendTestWhatsAppBackendAlert() {
       toast('🎉 ¡ÉXITO! Mensaje de WhatsApp enviado a tu celular');
       alert(`🎉 ¡ENVIADO CON ÉXITO POR LA APP KUBO v2.0!\n\nMensaje enviado a: +${cleanPhone}\nID de Meta: ${data.messages[0].id}\n\n¡Revisa tu celular ahora!`);
     } else {
+      const errCode = (data.error && data.error.code) ? data.error.code : 0;
       const errMsg = (data.error && data.error.message) ? data.error.message : JSON.stringify(data);
       console.warn('Meta API response error:', data);
-      alert(`⚠️ Respuesta de Meta API:\n\n${errMsg}\n\n📌 Solución: Verifica si tu número (+${cleanPhone}) está en la lista de Destinatarios en Meta o si el token ha caducado.`);
+      
+      if (errCode === 190) {
+        alert(`⚠️ EL TOKEN DE META HA CADUCADO (Error 190 OAuthException):\n\nLos tokens temporales de Meta Developers vencen a las 24 horas.\n\n📌 Solución:\n1. Ve a Meta Developers (Paso 1. Pruébalo).\n2. Haz clic en 'Generar nuevo token'.\n3. Copia y pega el nuevo token aquí.`);
+      } else {
+        alert(`⚠️ Respuesta de Meta API (Error ${errCode}):\n\n${errMsg}\n\n📌 Verifica si tu número (+${cleanPhone}) está en la lista de Destinatarios en Meta Developers.`);
+      }
     }
   } catch (err) {
     console.error('Fetch error:', err);
