@@ -3552,6 +3552,7 @@ function saveTask(){
     payload.pid = currentProjectId;
     DB.createTask(payload);
     toast('✅ Tarea creada');
+    dispatchAutomaticWhatsAppBackendAlert(payload);
   }
 
   closeModal('mNewTask');
@@ -4156,12 +4157,17 @@ function saveDailyTask() {
   const pid = val('inp-dtProject');
   const notes = val('inp-dtNotes');
 
+  const newTask = { date, start_time: startTime, end_time: endTime, title, category, importance, pid, notes };
+
   if (editingDailyTaskId) {
-    DB.saveDailyTask({ id: editingDailyTaskId, date, start_time: startTime, end_time: endTime, title, category, importance, pid, notes });
+    newTask.id = editingDailyTaskId;
+    DB.saveDailyTask(newTask);
     toast('✅ Tarea de la agenda actualizada');
   } else {
-    DB.saveDailyTask({ date, start_time: startTime, end_time: endTime, title, category, importance, pid, notes, status: 'TODO' });
+    newTask.status = 'TODO';
+    DB.saveDailyTask(newTask);
     toast('✅ Tarea agregada a la agenda');
+    dispatchAutomaticWhatsAppBackendAlert(newTask);
   }
 
   closeModal('mNewDailyTask');
@@ -4908,7 +4914,7 @@ async function dispatchAutomaticWhatsAppBackendAlert(task, userPhone) {
   const user = getAuthUser();
   const config = JSON.parse(localStorage.getItem('doit_wsp_backend_config') || '{}');
   
-  let cleanPhone = (userPhone || config.phone || '+51968027195').replace(/[^0-9+]/g, '');
+  let cleanPhone = (userPhone || config.phone || (user && user.phone ? user.phone : '+51968027195')).replace(/[^0-9+]/g, '');
   if (!cleanPhone.startsWith('+') && !cleanPhone.startsWith('51') && cleanPhone.length === 9) {
     cleanPhone = '51' + cleanPhone;
   }
@@ -4917,6 +4923,8 @@ async function dispatchAutomaticWhatsAppBackendAlert(task, userPhone) {
   const DEFAULT_META_TOKEN = 'EAAMSsARWyVcBSDQOGvnZBfryWhOesY6FZAZA5XMtccj5swGlJfawVo4HEKdOlklrxC1ZAzJzyWhkW53vkDWFx6c7jo9sy9ZAnsX3XIJFghw9iM8bH3Qv10Fd8j4uT7G8sZAk9CgzgcdymxVsBaM2PBOXQXtFyfRQy2BUFJeQZAlyQdn8mEWgVaoF7KB3ozp9N6VCAaJ0xAxN7aZBvZC2vmgObsGZCV2ZCxl8W3ZCyZBBtG25HiGLK9sScNwHaW8yaJW6KpjP1ZBihsSrQlgAuEnNzE1nleehx0';
   const apiUrl = config.apiUrl || 'https://graph.facebook.com/v25.0/1258054830720471/messages';
   const token = (config.token || DEFAULT_META_TOKEN).trim();
+
+  let sentViaCloud = false;
 
   if (token) {
     try {
@@ -4939,15 +4947,42 @@ async function dispatchAutomaticWhatsAppBackendAlert(task, userPhone) {
 
       const data = await res.json();
       if (res.ok && data.messages && data.messages[0]) {
-        toast(`🚀 Notificación automática enviada a tu WhatsApp (+${cleanPhone})`);
+        toast(`🚀 Notificación Meta Cloud API enviada a tu WhatsApp (+${cleanPhone})`);
+        sentViaCloud = true;
         return true;
+      } else {
+        const errCode = (data.error && data.error.code) ? data.error.code : 0;
+        console.warn(`Meta API WhatsApp Error ${errCode}:`, data);
+        if (errCode === 190) {
+          toast('⚠️ Token temporal de Meta expirado (24h). Usando envío por WhatsApp Web...');
+        }
       }
     } catch (e) {
       console.warn('Meta WhatsApp Cloud API automatic dispatch error:', e);
     }
   }
 
-  showTaskDeadlineAlertModal(task, cleanPhone);
+  // FALLBACK GARANTIZADO: WHATSAPP WEB DIRECTO
+  if (!sentViaCloud) {
+    sendTaskWhatsAppNotificationDirect(task, cleanPhone);
+  }
+}
+
+function sendTaskWhatsAppNotificationDirect(task, phone) {
+  const user = getAuthUser();
+  let cleanPhone = (phone || '+51968027195').replace(/[^0-9+]/g, '').replace('+', '');
+  if (cleanPhone.length === 9) cleanPhone = '51' + cleanPhone;
+
+  const title = task.title || task.name || 'Nueva Actividad / Tarea';
+  const proj = task.pid ? DB.project(task.pid) : null;
+  const projTitle = proj ? proj.title : 'Kubo 2.0 Proyectos';
+  const time = task.start_time || task.due_date || task.date || 'Programada';
+
+  const msg = `🚀 *NUEVA ACTIVIDAD / TAREA - KUBO v2.0* 🚀\n\n📌 *Actividad:* ${title}\n📁 *Proyecto:* ${projTitle}\n⏰ *Fecha/Hora:* ${time}\n👤 *Creado por:* ${user ? user.name : 'Usuario'}\n\n👉 _Acceder a Kubo:_ http://localhost:3005/index.html`;
+
+  const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+  toast('💬 Abriendo WhatsApp para notificar tu nueva actividad...');
 }
 
 function saveUserPhoneFromProfile() {
