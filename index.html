@@ -2976,21 +2976,45 @@ function renderModuleTreeHTML(parentId = null, depth = 0, filteredTasks = [], di
 
   if (!levelModules.length) return '';
 
+  // ORDEN AUTOMÁTICO DE MÓDULOS POR IMPORTANCIA: 🔴 Crítica -> 🟠 Alta -> 🟡 Media -> 🟢 Baja
+  levelModules.sort((a, b) => {
+    const impWeight = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+    return (impWeight[a.importance || 'MEDIUM'] ?? 2) - (impWeight[b.importance || 'MEDIUM'] ?? 2);
+  });
+
+  const impColors = { CRITICAL: '#DC2626', HIGH: '#EA580C', MEDIUM: '#D4A848', LOW: '#16A34A' };
+  const impLabels = { CRITICAL: '🔴 Crítica', HIGH: '🟠 Alta', MEDIUM: '🟡 Media', LOW: '🟢 Baja' };
+
   let html = '';
   levelModules.forEach(mod => {
-    const modTasks = filteredTasks.filter(t => String(t.mid) === String(mod.id));
+    const modImp = mod.importance || 'MEDIUM';
+    const accentColor = impColors[modImp] || '#D4A848';
+
+    let modTasks = filteredTasks.filter(t => String(t.mid) === String(mod.id));
+    
+    // ORDEN AUTOMÁTICO DE TAREAS DENTRO DEL MÓDULO POR IMPORTANCIA
+    modTasks.sort((a, b) => {
+      const impWeight = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+      const weightA = impWeight[a.importance || 'MEDIUM'] ?? 2;
+      const weightB = impWeight[b.importance || 'MEDIUM'] ?? 2;
+      if (weightA !== weightB) return weightA - weightB;
+      const statusWeight = { TODO: 0, IN_PROGRESS: 0, DONE: 1 };
+      return (statusWeight[a.status] || 0) - (statusWeight[b.status] || 0);
+    });
+
     const isOpen = openModuleIds.has(String(mod.id));
     const subModulesHTML = renderModuleTreeHTML(mod.id, depth + 1, filteredTasks, displayModules);
     const doneCount = modTasks.filter(t => t.status === 'DONE').length;
 
     html += `
-      <div class="module-group" id="module-group-${mod.id}" style="background:${depth === 0 ? '#f8fafc' : '#ffffff'};border:1.5px solid var(--border);border-left:${depth > 0 ? '4px solid var(--blue)' : '1.5px solid var(--border)'};border-radius:12px;padding:${depth === 0 ? '16px' : '12px 14px'};margin-bottom:12px;margin-left:${depth * 14}px;transition:all .3s ease;box-shadow:0 1px 3px rgba(0,0,0,0.03)">
+      <div class="module-group" id="module-group-${mod.id}" style="background:${depth === 0 ? '#f8fafc' : '#ffffff'};border:1.5px solid var(--border);border-left:5px solid ${accentColor};border-radius:12px;padding:${depth === 0 ? '16px' : '12px 14px'};margin-bottom:12px;margin-left:${depth * 14}px;transition:all .3s ease;box-shadow:0 1px 3px rgba(0,0,0,0.03)">
         <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleModuleAccordion('${mod.id}')">
           <div style="display:flex;align-items:center;gap:10px">
             <span class="msr" id="module-chev-${mod.id}" style="font-size:18px;color:var(--blue);transition:transform .2s;transform:${isOpen ? 'rotate(180deg)' : 'rotate(0deg)'}">expand_more</span>
             <div>
               <div style="display:flex;align-items:center;gap:8px">
                 <h4 style="font-family:'Inter',sans-serif;font-size:${depth === 0 ? '14px' : '13px'};font-weight:700;color:var(--t1)">${depth > 0 ? '📁 ' : ''}${esc(mod.name)}</h4>
+                <span class="badge" style="font-size:10px;background:${accentColor}15;color:${accentColor};border:1px solid ${accentColor}30;font-weight:700">${impLabels[modImp]}</span>
                 ${depth > 0 ? `<span class="badge badge-blue" style="font-size:9px">Sub-módulo L${depth+1}</span>` : ''}
               </div>
               ${mod.desc ? `<p style="font-size:11px;color:var(--t3);margin-top:2px">${esc(mod.desc)}</p>` : ''}
@@ -3016,7 +3040,7 @@ function renderModuleTreeHTML(parentId = null, depth = 0, filteredTasks = [], di
         </div>
 
         <div id="module-body-${mod.id}" style="display:${isOpen ? 'flex' : 'none'};flex-direction:column;gap:12px;margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
-          <!-- TAREAS DIRECTAS DEL MÓDULO -->
+          <!-- TAREAS DIRECTAS DEL MÓDULO (ORDENADAS POR IMPORTANCIA: CRÍTICA -> ALTA -> MEDIA -> BAJA) -->
           <div style="display:flex;flex-direction:column;gap:8px">
             ${modTasks.length ? modTasks.map(t => taskCard(t)).join('') : '<p style="font-size:11px;color:var(--t3);font-style:italic">Sin tareas directas en este módulo.</p>'}
           </div>
@@ -3713,15 +3737,34 @@ function renderModulesList(){
     html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">`;
 
     pModules.forEach(m => {
-      const mTasks = pTasks.filter(t => t.mid === m.id);
+      const impColors = { CRITICAL: '#DC2626', HIGH: '#EA580C', MEDIUM: '#D4A848', LOW: '#16A34A' };
+      const impLabels = { CRITICAL: '🔴 Crítica', HIGH: '🟠 Alta', MEDIUM: '🟡 Media', LOW: '🟢 Baja' };
+
+      let mTasks = pTasks.filter(t => t.mid === m.id);
+      
+      // ORDEN AUTOMÁTICO DE TAREAS DENTRO DEL MÓDULO POR IMPORTANCIA
+      mTasks.sort((a, b) => {
+        const impWeight = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+        const weightA = impWeight[a.importance || 'MEDIUM'] ?? 2;
+        const weightB = impWeight[b.importance || 'MEDIUM'] ?? 2;
+        if (weightA !== weightB) return weightA - weightB;
+        const statusWeight = { TODO: 0, IN_PROGRESS: 0, DONE: 1 };
+        return (statusWeight[a.status] || 0) - (statusWeight[b.status] || 0);
+      });
+
       const doneCount = mTasks.filter(t => t.status === 'DONE').length;
       const pct = mTasks.length ? Math.round(doneCount / mTasks.length * 100) : 0;
+      const modImp = m.importance || 'MEDIUM';
+      const accentColor = impColors[modImp] || '#D4A848';
       
       html += `
-        <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;justify-content:space-between">
+        <div style="background:var(--surface);border:1.5px solid var(--border);border-left:5px solid ${accentColor};border-radius:14px;padding:16px;display:flex;flex-direction:column;justify-content:space-between">
           <div>
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-              <h3 style="font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--blue)">${esc(m.name)}</h3>
+              <div>
+                <h3 style="font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--blue);margin-bottom:2px">${esc(m.name)}</h3>
+                <span class="badge" style="font-size:9px;background:${accentColor}15;color:${accentColor};border:1px solid ${accentColor}30;font-weight:700">${impLabels[modImp]}</span>
+              </div>
               <div style="display:flex;gap:4px">
                 <button class="btn-icon" onclick="openEditModule('${m.id}')" style="width:24px;height:24px" title="Editar Módulo">
                   <span class="msr" style="font-size:12px">edit</span>
@@ -3744,14 +3787,20 @@ function renderModulesList(){
             </div>
 
             <div style="display:flex;flex-direction:column;gap:6px">
-              ${mTasks.length ? mTasks.map(t => `
-                <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;padding:8px 10px;border-radius:8px;border:1px solid var(--border)">
-                  <span style="font-size:12px;font-weight:600;color:var(--t1);text-overflow:ellipsis;overflow:hidden;white-space:nowrap;max-width:180px;${t.status==='DONE'?'text-decoration:line-through;color:var(--t3)':''}">${esc(t.title)}</span>
-                  <span class="badge" style="font-size:9px;${t.status==='DONE'?'background:#E8F5E9;color:#2E7D32':t.status==='IN_PROGRESS'?'background:#E3F2FD;color:#1565C0':'background:#F5F5F5;color:#616161'}">
-                    ${t.status==='DONE'?'Hecha':t.status==='IN_PROGRESS'?'En curso':'Pendiente'}
-                  </span>
+              ${mTasks.length ? mTasks.map(t => {
+                const taskImpColor = impColors[t.importance || 'MEDIUM'] || '#D4A848';
+                return `
+                <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;padding:8px 10px;border-radius:8px;border:1px solid var(--border);border-left:3px solid ${taskImpColor}">
+                  <span style="font-size:12px;font-weight:600;color:var(--t1);text-overflow:ellipsis;overflow:hidden;white-space:nowrap;max-width:160px;${t.status==='DONE'?'text-decoration:line-through;color:var(--t3)':''}">${esc(t.title)}</span>
+                  <div style="display:flex;align-items:center;gap:4px">
+                    <span class="badge" style="font-size:8px;padding:1px 5px;background:${taskImpColor}15;color:${taskImpColor}">${impLabels[t.importance||'MEDIUM']}</span>
+                    <span class="badge" style="font-size:9px;${t.status==='DONE'?'background:#E8F5E9;color:#2E7D32':t.status==='IN_PROGRESS'?'background:#E3F2FD;color:#1565C0':'background:#F5F5F5;color:#616161'}">
+                      ${t.status==='DONE'?'Hecha':t.status==='IN_PROGRESS'?'En curso':'Pendiente'}
+                    </span>
+                  </div>
                 </div>
-              `).join('') : '<p style="font-size:11px;color:var(--t3);font-style:italic">Sin tareas asignadas</p>'}
+              `;
+              }).join('') : '<p style="font-size:11px;color:var(--t3);font-style:italic">Sin tareas asignadas</p>'}
             </div>
           </div>
           
